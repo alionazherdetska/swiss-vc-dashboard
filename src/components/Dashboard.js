@@ -27,9 +27,10 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("companies");
   const [filters, setFilters] = useState({
     industries: [],
+    ceoGenders: [],
     cantons: [],
     searchQuery: "",
-    yearRange: [2015, 2025],
+    yearRange: [2012, 2025],
     dealTypes: [],
     phases: [],
   });
@@ -82,6 +83,13 @@ const Dashboard = () => {
           years: [
             ...new Set(companies.map((d) => d.Year).filter((y) => y)),
           ].sort(),
+          ceoGenders: [
+  ...new Set(
+    companies
+      .map((d) => d["Gender CEO"] || d.GenderCEO) // Handle both field names
+      .filter((g) => g && g !== "Unknown")
+  ),
+].sort(),
         }
       : { industries: [], years: [] };
 
@@ -120,6 +128,11 @@ const Dashboard = () => {
         !filters.industries.includes(item.Industry)
       )
         return false;
+        if (
+  filters.ceoGenders.length &&
+  !filters.ceoGenders.includes(item["Gender CEO"] || item.GenderCEO)
+)
+  return false;
       if (filters.cantons.length && !filters.cantons.includes(item.Canton))
         return false;
       if (
@@ -182,7 +195,7 @@ const Dashboard = () => {
       industries: [],
       cantons: [],
       searchQuery: "",
-      yearRange: [2015, 2025],
+      yearRange: [2012, 2025],
       dealTypes: [],
       phases: [],
     });
@@ -381,9 +394,6 @@ const Dashboard = () => {
             <Building2 className="h-4 w-4 mr-2" />
             Swiss Startup Ecosystem Dashboard | Inspired by Swiss Venture
             Capital Report 2025
-          </p>
-          <p className="mt-1 text-xs">
-            Data visualization for entrepreneurship and innovation analysis
           </p>
         </div>
       </div>

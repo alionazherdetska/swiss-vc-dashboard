@@ -1,4 +1,3 @@
-// utils.js - Fixed with Proper Industry Trends Calculation
 import { OFFICIAL_CANTONS, CANTON_MAP } from "./constants";
 
 export const normalizeCanton = (rawCanton) => {
@@ -81,51 +80,6 @@ export const processDeals = (dealsData) => {
     });
 };
 
-// FIXED: Generate proper industry trends in the format expected by the chart
-const generateIndustryTrends = (data, groupByField = "Industry") => {
-
-  // Get all unique years and categories
-  const years = [
-    ...new Set(data.filter((d) => d.Year && d.Year >= 2015).map((d) => d.Year)),
-  ].sort();
-  const categories = [
-    ...new Set(
-      data
-        .filter((d) => d[groupByField] && d[groupByField] !== "Unknown")
-        .map((d) => d[groupByField])
-    ),
-  ];
-
-  if (years.length === 0 || categories.length === 0) {
-    return [];
-  }
-
-  // Create trend data for each category in the PROPER FORMAT
-  const trends = categories.map((category) => {
-    const dataPoints = years.map((year) => {
-      const count = data.filter(
-        (d) => d[groupByField] === category && d.Year === year
-      ).length;
-      return { year, value: count };
-    });
-
-    const totalCount = dataPoints.reduce((sum, d) => sum + d.value, 0);
-
-    return {
-      name: category,
-      data: dataPoints, // Array of {year, value} objects
-      totalCount,
-    };
-  });
-
-  // Sort by total activity and return top 15
-  const sortedTrends = trends
-    .sort((a, b) => b.totalCount - a.totalCount)
-    .slice(0, 15);
-
-  return sortedTrends;
-};
-
 export const generateChartData = (
   activeTab,
   filteredCompanies,
@@ -150,8 +104,6 @@ export const generateChartData = (
       byFunded[fundedStatus] = (byFunded[fundedStatus] || 0) + 1;
     });
 
-    // Generate industry trends in PROPER FORMAT
-    const industryTrends = generateIndustryTrends(currentData, "Industry");
 
     return {
       timeline: Object.entries(byYear)
@@ -173,7 +125,6 @@ export const generateChartData = (
         name,
         value,
       })),
-      industryTrends: industryTrends, // Array of {name, data: [{year, value}]} objects
     };
   } else {
     const byYear = {},
@@ -190,9 +141,6 @@ export const generateChartData = (
         byAmount[item.AmountRange] = (byAmount[item.AmountRange] || 0) + 1;
       if (item.Canton) byCanton[item.Canton] = (byCanton[item.Canton] || 0) + 1;
     });
-
-    // Generate deal type trends in PROPER FORMAT
-    const industryTrends = generateIndustryTrends(currentData, "Type");
 
     return {
       timeline: Object.entries(byYear)
@@ -225,7 +173,6 @@ export const generateChartData = (
           canton: d.Canton,
           year: d.Year,
         })),
-      industryTrends: industryTrends, // Array of {name, data: [{year, value}]} objects
     };
   }
 };

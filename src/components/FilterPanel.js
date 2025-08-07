@@ -51,7 +51,7 @@ const FilterPanel = ({
         <div className="flex items-center space-x-2">
           <input
             type="number"
-            min="2015"
+            min="2012"
             max={filters.yearRange[1] - 1}
             value={filters.yearRange[0]}
             onChange={(e) =>
@@ -122,6 +122,52 @@ const FilterPanel = ({
               <span className="text-sm">
                 {canton.name} ({canton.code})
               </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* CEO Gender Filter */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          CEO Gender ({filters.ceoGenders.length} selected)
+        </label>
+        <div className="space-y-2 p-2 border border-gray-200 rounded-md">
+          <label className="flex items-center p-1 hover:bg-gray-50 rounded font-medium">
+            <input
+              type="checkbox"
+              checked={
+                filters.ceoGenders.length === filterOptions.ceoGenders?.length
+              }
+              onChange={() => {
+                if (
+                  filters.ceoGenders.length === filterOptions.ceoGenders?.length
+                ) {
+                  updateFilter("ceoGenders", []);
+                } else {
+                  updateFilter("ceoGenders", filterOptions.ceoGenders || []);
+                }
+              }}
+              className="mr-2 text-red-600 focus:ring-red-500"
+            />
+            <span className="text-sm">
+              {filters.ceoGenders.length === filterOptions.ceoGenders?.length
+                ? "Deselect All"
+                : "Select All"}
+            </span>
+          </label>
+          {filterOptions.ceoGenders?.map((gender) => (
+            <label
+              key={gender}
+              className="flex items-center p-1 hover:bg-gray-50 rounded cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={filters.ceoGenders.includes(gender)}
+                onChange={() => toggleArrayFilter("ceoGenders", gender)}
+                className="mr-2 text-red-600 focus:ring-red-500"
+              />
+              <span className="text-sm">{gender}</span>
             </label>
           ))}
         </div>

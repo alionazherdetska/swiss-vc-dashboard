@@ -82,11 +82,6 @@ export const getChartOptions = (activeTab) =>
       icon: MapPin,
     },
     {
-      key: "industry-trends",
-      name: "Industry Trends",
-      icon: TrendingUp,
-    },
-    {
       key: "funding-analysis",
       name:
         activeTab === "companies" ? "Funding Status" : "Amount vs Valuation",

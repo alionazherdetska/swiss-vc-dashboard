@@ -23,26 +23,26 @@ import { Factory } from "./CustomIcons";
 import { COLORS } from "./constants";
 
 const COLOR_PALETTE = [
-  "#E53E3E", // Red (Swiss theme)
-  "#3182CE", // Blue
-  "#38A169", // Green
-  "#D69E2E", // Yellow
-  "#805AD5", // Purple
-  "#DD6B20", // Orange
-  "#319795", // Teal
-  "#1e3a8a",
-  "#b91c1c",
-  "#0ea5e9",
-  "#f43f5e",
-  "#9333ea",
-  "#16a34a",
-  "#eab308",
-  "#ea580c",
-  "#3b0764",
-  "#991b1b",
-  "#0284c7",
-  "#dc2626",
-  "#7c3aed",
+  "#E84A5F", // Primary Red (Swiss theme)
+  "#3498DB", // Blue
+  "#2ECC71", // Green
+  "#F7931E", // Yellow
+  "#9B59B6", // Purple
+  "#FF6B35", // Orange
+  "#1ABC9C", // Teal
+  "#7F8C8D", // Gray
+  "#E84A5F", // Primary Red (repeat for more items)
+  "#3498DB", // Blue (repeat)
+  "#2ECC71", // Green (repeat)
+  "#F7931E", // Yellow (repeat)
+  "#9B59B6", // Purple (repeat)
+  "#FF6B35", // Orange (repeat)
+  "#1ABC9C", // Teal (repeat)
+  "#7F8C8D", // Gray (repeat)
+  "#E84A5F", // Primary Red (repeat)
+  "#3498DB", // Blue (repeat)
+  "#2ECC71", // Green (repeat)
+  "#F7931E", // Yellow (repeat)
 ];
 
 const CHART_MARGIN = { top: 20, right: 30, left: 40, bottom: 80 };
@@ -52,8 +52,8 @@ export const TimelineChart = ({ data }) => (
     <AreaChart data={data} margin={CHART_MARGIN}>
       <defs>
         <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="5%" stopColor="#E53E3E" stopOpacity={0.8} />
-          <stop offset="95%" stopColor="#E53E3E" stopOpacity={0.1} />
+          <stop offset="5%" stopColor="#E84A5F" stopOpacity={0.8} />
+          <stop offset="95%" stopColor="#E84A5F" stopOpacity={0.1} />
         </linearGradient>
       </defs>
       <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
@@ -76,7 +76,7 @@ export const TimelineChart = ({ data }) => (
       <Area
         type="monotone"
         dataKey="count"
-        stroke="#E53E3E"
+        stroke="#E84A5F"
         strokeWidth={2}
         fillOpacity={1}
         fill="url(#colorCount)"
@@ -152,7 +152,7 @@ export const IndustryDistributionChart = ({ data, activeTab }) => {
         <Line
           type="monotone"
           dataKey="value"
-          stroke="#3182CE"
+          stroke="#3498DB"
           strokeWidth={3}
           dot={{ r: 5 }}
           name={activeTab === "companies" ? "Companies" : "Deals"}
@@ -198,7 +198,7 @@ export const GeographicDistributionChart = ({ data }) => {
           labelLine={false}
         >
           {cantonData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <Cell key={`cell-${index}`} fill={COLOR_PALETTE[index % COLOR_PALETTE.length]} />
           ))}
         </Pie>
         <Tooltip
@@ -361,7 +361,7 @@ export const FundingAnalysisChart = ({ data, activeTab }) => {
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={entry.name === "Funded" ? "#38A169" : "#E53E3E"}
+                fill={entry.name === "Funded" ? "#2ECC71" : "#E84A5F"}
               />
             ))}
           </Pie>
@@ -383,7 +383,7 @@ export const FundingAnalysisChart = ({ data, activeTab }) => {
               name === "x" ? "Amount" : "Valuation",
             ]}
           />
-          <Scatter name="Deals" data={chartData} fill="#E53E3E" />
+          <Scatter name="Deals" data={chartData} fill="#E84A5F" />
           <Legend />
         </ScatterChart>
       </ResponsiveContainer>
@@ -426,7 +426,7 @@ export const PhaseAnalysisChart = ({ data }) => {
         <Tooltip formatter={(value) => [`${value}`, "Count"]} />
         <Bar
           dataKey="value"
-          fill="#D69E2E"
+          fill="#F7931E"
           radius={[4, 4, 0, 0]}
           name="Deals"
         />
