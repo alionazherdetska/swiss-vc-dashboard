@@ -215,54 +215,81 @@ export const GeographicDistributionChart = ({ data }) => {
   );
 };
 
+export const TopIndustriesBarChart = ({ data }) => {
+  // Prepare top 6 industries by value
+  const chartData = useMemo(() => {
+    if (!data || !Array.isArray(data)) return [];
+    return [...data]
+      .sort((a, b) => b.value - a.value)
+      .map((item) => ({
+        name: item.name || "Unknown",
+        value: item.value || 0,
+      }));
+  }, [data]);
+
+  if (!chartData.length) {
+    return (
+      <div className="h-96 flex items-center justify-center text-gray-500">
+        <div className="text-center">
+          <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+          <p>No industry data available</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart data={chartData} margin={{ top: 20, right: 30, left: 40, bottom: 40 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+        <XAxis dataKey="name" stroke="#4A5568" />
+        <YAxis stroke="#4A5568" />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="value" fill="#3498DB" name="Companies" />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
+
 export const IndustryTrendsChart = ({
   data,
   filters,
   filterOptions,
+  selectedIndustries = [],
   activeTab,
 }) => {
-  const MAX_VISIBLE_INDUSTRIES = 6;
-
-  const { filteredData, chartDataArray } = useMemo(() => {
-    if (!data || !Array.isArray(data))
-      return { filteredData: [], chartDataArray: [] };
-
-    let filtered = data;
-
-    if (activeTab === "companies" && filters?.industries?.length > 0) {
-      filtered = data.filter((industry) =>
-        filters.industries.includes(industry.name)
-      );
-    } else if (activeTab === "deals" && filters?.dealTypes?.length > 0) {
-      filtered = data.filter((dealType) =>
-        filters.dealTypes.includes(dealType.name)
-      );
-    }
-
-    if (
-      filtered.length === 0 ||
-      (filters?.industries?.length === 0 && filters?.dealTypes?.length === 0)
-    ) {
-      filtered = data
-        .slice(0, MAX_VISIBLE_INDUSTRIES)
-        .sort((a, b) => b.total - a.total);
-    }
-
-    const chartData = {};
-    filtered.forEach((industry) => {
-      industry.data.forEach(({ year, value }) => {
-        if (!chartData[year]) chartData[year] = { year };
-        chartData[year][industry.name] = value;
-      });
+  const MAX_INDUSTRIES = 3;
+  // Prepare data for multi-line chart: each line is a top industry, x-axis is year
+  const { chartData, topIndustries } = useMemo(() => {
+  if (!data || !Array.isArray(data)) return { chartData: [], topIndustries: [] };
+  // Find top industries by total value
+  const totals = data.map(ind => ({
+    name: ind.name,
+    total: ind.data.reduce((sum, d) => sum + d.value, 0),
+    data: ind.data,
+  }));
+  const sorted = totals.sort((a, b) => b.total - a.total).slice(0, MAX_INDUSTRIES);
+  // Collect all years
+  const years = Array.from(
+    new Set(sorted.flatMap(ind => ind.data.map(d => d.year)))
+  ).sort((a, b) => a - b);
+  // Build chart data: [{ year, [industry1]: value, ... }]
+  const chartData = years.map(year => {
+    const entry = { year };
+    sorted.forEach(ind => {
+      entry[ind.name] = ind.data.find(d => d.year === year)?.value || 0;
     });
+    return entry;
+  });
+  return { chartData, topIndustries: sorted.map(ind => ind.name) };
+}, [data]);
 
-    return {
-      filteredData: filtered,
-      chartDataArray: Object.values(chartData).sort((a, b) => a.year - b.year),
-    };
-  }, [data, filters, activeTab]);
+  // Only show selected industries (or all if none selected)
+  const industriesToShow =
+    selectedIndustries.length > 0 ? selectedIndustries : topIndustries;
 
-  if (!filteredData || filteredData.length === 0) {
+  if (!chartData || chartData.length === 0) {
     return (
       <div className="h-96 flex items-center justify-center text-gray-500">
         <div className="text-center">
@@ -275,50 +302,25 @@ export const IndustryTrendsChart = ({
 
   return (
     <div className="h-[470px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartDataArray} margin={CHART_MARGIN}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis
-            dataKey="year"
-            tick={{ fill: "#555" }}
-            angle={-45}
-            textAnchor="end"
-            height={60}
-          />
-          <YAxis
-            tick={{ fill: "#555" }}
-            label={{
-              value:
-                activeTab === "companies"
-                  ? "Companies Founded"
-                  : "Deals Closed",
-              angle: -90,
-              position: "insideLeft",
-              fill: "#555",
-            }}
-          />
-          <Tooltip
-            contentStyle={{
-              background: "rgba(255, 255, 255, 0.96)",
-              border: "1px solid #ddd",
-              borderRadius: "8px",
-              padding: "12px",
-            }}
-          />
-          <Legend />
-          {filteredData.map((industry, index) => (
-            <Line
-              key={industry.name}
-              type="monotone"
-              dataKey={industry.name}
-              name={industry.name}
-              stroke={COLOR_PALETTE[index % COLOR_PALETTE.length]}
-              strokeWidth={2.5}
-              activeDot={{ r: 5 }}
-            />
-          ))}
-        </LineChart>
-      </ResponsiveContainer>
+      <ResponsiveContainer width="100%" height={400}>
+  <LineChart data={chartData} margin={CHART_MARGIN}>
+    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+    <XAxis dataKey="year" />
+    <YAxis />
+    <Tooltip />
+    <Legend />
+    {topIndustries.map((industry, idx) => (
+      <Line
+        key={industry}
+        type="monotone"
+        dataKey={industry}
+        name={industry}
+        stroke={COLOR_PALETTE[idx % COLOR_PALETTE.length]}
+        strokeWidth={2}
+      />
+    ))}
+  </LineChart>
+</ResponsiveContainer>
     </div>
   );
 };

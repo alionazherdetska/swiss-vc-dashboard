@@ -104,6 +104,26 @@ export const generateChartData = (
       byFunded[fundedStatus] = (byFunded[fundedStatus] || 0) + 1;
     });
 
+    // --- Add industryTrends for multi-line chart ---
+    // Get top 4 industries by total count
+    const topIndustries = Object.entries(byIndustry)
+    .filter(([name]) => name !== "Unknown")
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([name]) => name);
+
+    // Get all years sorted
+    const allYears = Array.from(new Set(currentData.map(d => d.Year).filter(Boolean))).sort((a, b) => a - b);
+
+    // Build industryTrends array
+    const industryTrends = topIndustries.map(industry => ({
+      name: industry,
+      data: allYears.map(year => ({
+        year,
+        value: currentData.filter(d => d.Industry === industry && d.Year === year).length
+      }))
+    }));
+    // --- End industryTrends block ---
 
     return {
       timeline: Object.entries(byYear)
@@ -125,6 +145,7 @@ export const generateChartData = (
         name,
         value,
       })),
+      industryTrends, // <-- Add this line to the returned object
     };
   } else {
     const byYear = {},
@@ -160,7 +181,7 @@ export const generateChartData = (
         name,
         value,
       })),
-      cantons: Object.entries(byCanton)
+     cantons: Object.entries(byCanton)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 15),

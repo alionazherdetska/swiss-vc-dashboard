@@ -77,16 +77,29 @@ export const getChartOptions = (activeTab) =>
       icon: Factory,
     },
     {
+      key: "top-industries-bar",
+      name: "Top Industries (Bar)",
+      icon: BarChart3, // or any icon you prefer
+    },
+    ...(activeTab === "companies"
+      ? [{
+          key: "industry-trends",
+      name: "Industry Trends",
+      icon: BarChart3, // or a line chart icon
+        }]
+      : []),
+    {
       key: "geographic-distribution",
       name: "Geographic Distribution",
       icon: MapPin,
     },
-    {
-      key: "funding-analysis",
-      name:
-        activeTab === "companies" ? "Funding Status" : "Amount vs Valuation",
-      icon: DollarSign,
-    },
+     ...(activeTab === "companies"
+      ? [{
+          key: "funding-analysis",
+          name: "Funding Status",
+          icon: DollarSign,
+        }]
+      : []),
     ...(activeTab === "deals"
       ? [
           {

@@ -127,51 +127,55 @@ const FilterPanel = ({
         </div>
       </div>
 
-      {/* CEO Gender Filter */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          CEO Gender ({filters.ceoGenders.length} selected)
-        </label>
-        <div className="space-y-2 p-2 border border-gray-200 rounded-md">
-          <label className="flex items-center p-1 hover:bg-gray-50 rounded font-medium">
-            <input
-              type="checkbox"
-              checked={
-                filters.ceoGenders.length === filterOptions.ceoGenders?.length
-              }
-              onChange={() => {
-                if (
-                  filters.ceoGenders.length === filterOptions.ceoGenders?.length
-                ) {
-                  updateFilter("ceoGenders", []);
-                } else {
-                  updateFilter("ceoGenders", filterOptions.ceoGenders || []);
-                }
-              }}
-              className="mr-2 text-red-600 focus:ring-red-500"
-            />
-            <span className="text-sm">
-              {filters.ceoGenders.length === filterOptions.ceoGenders?.length
-                ? "Deselect All"
-                : "Select All"}
-            </span>
+      {/* CEO Gender Filter - Only show for companies */}
+      {activeTab === "companies" && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            CEO Gender ({filters.ceoGenders?.length || 0} selected)
           </label>
-          {filterOptions.ceoGenders?.map((gender) => (
-            <label
-              key={gender}
-              className="flex items-center p-1 hover:bg-gray-50 rounded cursor-pointer"
-            >
+          <div className="space-y-2 p-2 border border-gray-200 rounded-md">
+            <label className="flex items-center p-1 hover:bg-gray-50 rounded font-medium">
               <input
                 type="checkbox"
-                checked={filters.ceoGenders.includes(gender)}
-                onChange={() => toggleArrayFilter("ceoGenders", gender)}
+                checked={
+                  (filters.ceoGenders?.length || 0) === (filterOptions.ceoGenders?.length || 0) &&
+                  (filterOptions.ceoGenders?.length || 0) > 0
+                }
+                onChange={() => {
+                  if (
+                    (filters.ceoGenders?.length || 0) === (filterOptions.ceoGenders?.length || 0)
+                  ) {
+                    updateFilter("ceoGenders", []);
+                  } else {
+                    updateFilter("ceoGenders", filterOptions.ceoGenders || []);
+                  }
+                }}
                 className="mr-2 text-red-600 focus:ring-red-500"
               />
-              <span className="text-sm">{gender}</span>
+              <span className="text-sm">
+                {(filters.ceoGenders?.length || 0) === (filterOptions.ceoGenders?.length || 0) &&
+                 (filterOptions.ceoGenders?.length || 0) > 0
+                  ? "Deselect All"
+                  : "Select All"}
+              </span>
             </label>
-          ))}
+            {filterOptions.ceoGenders?.map((gender) => (
+              <label
+                key={gender}
+                className="flex items-center p-1 hover:bg-gray-50 rounded cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={filters.ceoGenders?.includes(gender) || false}
+                  onChange={() => toggleArrayFilter("ceoGenders", gender)}
+                  className="mr-2 text-red-600 focus:ring-red-500"
+                />
+                <span className="text-sm">{gender}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Tab-specific filters */}
       {activeTab === "companies" ? (

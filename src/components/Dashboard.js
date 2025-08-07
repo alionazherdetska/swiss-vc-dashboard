@@ -5,6 +5,7 @@ import { BarChart3 } from "lucide-react";
 // Import our modular components
 import FilterPanel from "./FilterPanel.js";
 import MetricsCards from "./MetricsCards.js";
+import { TopIndustriesBarChart } from "./Charts.js";
 import ChartSelector from "./ChartSelector.js";
 import InsightsPanel from "./InsightsPanel.js";
 import {
@@ -220,9 +221,17 @@ const Dashboard = () => {
             activeTab={activeTab}
           />
         );
+        case "top-industries-bar":
+      return (
+        <TopIndustriesBarChart
+          data={activeTab === "companies" ? chartData.industries : chartData.types}
+        />
+      );
       case "geographic-distribution":
         return <GeographicDistributionChart data={chartData.cantons} />;
       case "industry-trends":
+          console.log("industryTrends data", chartData.industryTrends);
+
         // 🔧 FIX: Pass both filters and filterOptions to the chart
         return (
           <IndustryTrendsChart
@@ -280,17 +289,27 @@ const Dashboard = () => {
     activeTab === "companies" ? filteredCompanies : filteredDeals;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
+      <div className="max-w-7xl mx-auto d-flex">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm mb-6 p-6 border border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Swiss Startup Ecosystem Dashboard
-          </h1>
-          <p className="text-gray-600 text-lg mb-6">
-            Analysis of {companies.length.toLocaleString()} companies and{" "}
-            {deals.length.toLocaleString()} deals
-          </p>
+    <div className="flex items-center mb-2">
+      <img
+        src="/logo.png"
+        alt="Swiss Startup Ecosystem Logo"
+        className="h-24 mr-6 mb-4 mt-4"
+        style={{ minWidth: "4rem" }}
+      />
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Swiss Startup Ecosystem Dashboard
+        </h1>
+        <p className="text-gray-600 text-lg mt-1">
+          Analysis of {companies.length.toLocaleString()} companies and{" "}
+          {deals.length.toLocaleString()} deals
+        </p>
+      </div>
+    </div>
 
           {/* Tab Navigation */}
           <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg mb-6">
