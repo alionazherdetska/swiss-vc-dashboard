@@ -1,10 +1,11 @@
-// constants.js
 import {
   TrendingUp,
   MapPin,
   DollarSign,
   BarChart3,
   Factory,
+  Calendar,
+  LineChart,
 } from "lucide-react";
 
 // Official Swiss cantons in correct order with codes
@@ -73,19 +74,28 @@ export const getChartOptions = (activeTab) =>
     { key: "timeline", name: "Timeline Trends", icon: TrendingUp },
     {
       key: "industry-distribution",
-      name: activeTab === "companies" ? "Industries" : "Deal Types",
+      name: activeTab === "companies" ? "Companies by Industry (Line)" : "Deal Types (Line)",
       icon: Factory,
-    },
-    {
-      key: "top-industries-bar",
-      name: "Top Industries (Bar)",
-      icon: BarChart3, // or any icon you prefer
     },
     ...(activeTab === "companies"
       ? [{
+      key: "top-industries-bar",
+      name: "Companies by Industry (Bar)",
+      icon: BarChart3,
+        }]
+      : []),
+    ...(activeTab === "companies"
+      ? [{
           key: "industry-trends",
-      name: "Industry Trends",
-      icon: BarChart3, // or a line chart icon
+          name: "Top Industry Trends",
+          icon: LineChart,
+        }]
+      : []),
+    ...(activeTab === "deals"
+      ? [{
+          key: "quarterly-analysis",
+          name: "Quarterly Analysis",
+          icon: Calendar,
         }]
       : []),
     {
@@ -93,7 +103,7 @@ export const getChartOptions = (activeTab) =>
       name: "Geographic Distribution",
       icon: MapPin,
     },
-     ...(activeTab === "companies"
+    ...(activeTab === "companies"
       ? [{
           key: "funding-analysis",
           name: "Funding Status",
@@ -144,6 +154,21 @@ export const SAMPLE_DATA = {
       Canton: "Zürich",
       Company: "optimyze.cloud AG",
       "Gender CEO": "Male",
+      Amount: "50",
+      Industry: "Technology",
     },
   ],
 };
+
+// Volume display options
+export const VOLUME_OPTIONS = [
+  { key: "count", name: "Count", unit: "" },
+  { key: "volume", name: "Volume", unit: "CHF M" },
+];
+
+// Time interval options for quarterly analysis
+export const TIME_INTERVALS = [
+  { key: "quarter", name: "Quarterly" },
+  { key: "half", name: "Half-Yearly" },
+  { key: "year", name: "Yearly" },
+];

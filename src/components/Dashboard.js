@@ -1,6 +1,5 @@
-// Dashboard.jsx - Fixed Version
+import { BarChart3, Moon, Sun } from "lucide-react";
 import React, { useState, useEffect, useMemo } from "react";
-import { BarChart3 } from "lucide-react";
 
 // Import our modular components
 import FilterPanel from "./FilterPanel.js";
@@ -15,12 +14,13 @@ import {
   IndustryTrendsChart,
   FundingAnalysisChart,
   PhaseAnalysisChart,
+  QuarterlyAnalysisChart,
 } from "./Charts.js";
 import { Building2, Handshake } from "./CustomIcons.js";
 
 // Import utilities and constants
 import { processCompanies, processDeals, generateChartData } from "./utils";
-import { SAMPLE_DATA, getChartOptions } from "./constants";
+import { SAMPLE_DATA, getChartOptions, VOLUME_OPTIONS } from "./constants";
 
 const Dashboard = () => {
   const [companies, setCompanies] = useState([]);
@@ -30,13 +30,36 @@ const Dashboard = () => {
     industries: [],
     ceoGenders: [],
     cantons: [],
-    searchQuery: "",
     yearRange: [2012, 2025],
     dealTypes: [],
     phases: [],
   });
   const [activeChartType, setActiveChartType] = useState("timeline");
   const [loading, setLoading] = useState(true);
+  const [isDark, setIsDark] = useState(false);
+  const [showVolume, setShowVolume] = useState(false);
+  const [selectedIndustry, setSelectedIndustry] = useState("");
+
+  // Dark mode toggle
+  const toggleDarkMode = () => {
+    setIsDark(!isDark);
+    if (!isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('darkMode', 'false');
+    }
+  };
+
+  // Initialize dark mode from localStorage
+  useEffect(() => {
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    setIsDark(savedDarkMode);
+    if (savedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
 
   // Load and process data
   useEffect(() => {
@@ -85,12 +108,12 @@ const Dashboard = () => {
             ...new Set(companies.map((d) => d.Year).filter((y) => y)),
           ].sort(),
           ceoGenders: [
-  ...new Set(
-    companies
-      .map((d) => d["Gender CEO"] || d.GenderCEO) // Handle both field names
-      .filter((g) => g && g !== "Unknown")
-  ),
-].sort(),
+            ...new Set(
+              companies
+                .map((d) => d["Gender CEO"] || d.GenderCEO)
+                .filter((g) => g && g !== "Unknown")
+            ),
+          ].sort(),
         }
       : { industries: [], years: [] };
 
@@ -114,26 +137,17 @@ const Dashboard = () => {
   // Apply filters
   const filteredCompanies = useMemo(() => {
     return companies.filter((item) => {
-      if (filters.searchQuery) {
-        const searchLower = filters.searchQuery.toLowerCase();
-        const matchesSearch =
-          item.Company?.toLowerCase().includes(searchLower) ||
-          item.Industry?.toLowerCase().includes(searchLower) ||
-          item.Canton?.toLowerCase().includes(searchLower) ||
-          item.City?.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-      }
 
       if (
         filters.industries.length &&
         !filters.industries.includes(item.Industry)
       )
         return false;
-        if (
-  filters.ceoGenders.length &&
-  !filters.ceoGenders.includes(item["Gender CEO"] || item.GenderCEO)
-)
-  return false;
+      if (
+        filters.ceoGenders.length &&
+        !filters.ceoGenders.includes(item["Gender CEO"] || item.GenderCEO)
+      )
+        return false;
       if (filters.cantons.length && !filters.cantons.includes(item.Canton))
         return false;
       if (
@@ -147,15 +161,6 @@ const Dashboard = () => {
 
   const filteredDeals = useMemo(() => {
     return deals.filter((item) => {
-      if (filters.searchQuery) {
-        const searchLower = filters.searchQuery.toLowerCase();
-        const matchesSearch =
-          item.Company?.toLowerCase().includes(searchLower) ||
-          item.Type?.toLowerCase().includes(searchLower) ||
-          item.Phase?.toLowerCase().includes(searchLower) ||
-          item.Canton?.toLowerCase().includes(searchLower);
-        if (!matchesSearch) return false;
-      }
 
       if (filters.dealTypes.length && !filters.dealTypes.includes(item.Type))
         return false;
@@ -208,7 +213,30 @@ const Dashboard = () => {
 
     switch (activeChartType) {
       case "timeline":
-        return <TimelineChart data={chartData.timeline} />;
+        return (
+          <div className="space-y-4">
+            {activeTab === "deals" && (
+              <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={showVolume}
+                    onChange={(e) => setShowVolume(e.target.checked)}
+                    className="text-red-600 focus:ring-red-500"
+                  />
+                  <span className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                    Show Volume (CHF M) instead of Count
+                  </span>
+                </label>
+              </div>
+            )}
+            <TimelineChart 
+              data={chartData.timeline} 
+              showVolume={showVolume && activeTab === "deals"}
+              isDark={isDark}
+            />
+          </div>
+        );
       case "industry-distribution":
         let industryData =
           activeTab === "companies"
@@ -219,27 +247,54 @@ const Dashboard = () => {
           <IndustryDistributionChart
             data={industryData}
             activeTab={activeTab}
+            isDark={isDark}
           />
         );
-        case "top-industries-bar":
-      return (
-        <TopIndustriesBarChart
-          data={activeTab === "companies" ? chartData.industries : chartData.types}
-        />
-      );
+      case "top-industries-bar":
+        return (
+          <TopIndustriesBarChart
+            data={activeTab === "companies" ? chartData.industries : chartData.types}
+            isDark={isDark}
+          />
+        );
       case "geographic-distribution":
-        return <GeographicDistributionChart data={chartData.cantons} />;
+        return <GeographicDistributionChart data={chartData.cantons} isDark={isDark} />;
       case "industry-trends":
-          console.log("industryTrends data", chartData.industryTrends);
-
-        // 🔧 FIX: Pass both filters and filterOptions to the chart
         return (
           <IndustryTrendsChart
             data={chartData.industryTrends}
             filters={filters}
             filterOptions={filterOptions}
             activeTab={activeTab}
+            isDark={isDark}
           />
+        );
+      case "quarterly-analysis":
+        return (
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={showVolume}
+                  onChange={(e) => setShowVolume(e.target.checked)}
+                  className="text-red-600 focus:ring-red-500"
+                />
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                  Show Volume (CHF M) instead of Count
+                </span>
+              </label>
+            </div>
+            <QuarterlyAnalysisChart
+              data={chartData.industryTrends}
+              selectedIndustry={selectedIndustry}
+              setSelectedIndustry={setSelectedIndustry}
+              filterOptions={filterOptions}
+              showVolume={showVolume}
+              setShowVolume={setShowVolume}
+              isDark={isDark}
+            />
+          </div>
         );
       case "funding-analysis":
         if (activeTab === "companies") {
@@ -247,6 +302,7 @@ const Dashboard = () => {
             <FundingAnalysisChart
               data={chartData.funded}
               activeTab={activeTab}
+              isDark={isDark}
             />
           );
         } else {
@@ -254,12 +310,13 @@ const Dashboard = () => {
             <FundingAnalysisChart
               data={chartData.scatter}
               activeTab={activeTab}
+              isDark={isDark}
             />
           );
         }
       case "phase-analysis":
         const phaseData = chartData.phases || chartData.amounts || [];
-        return <PhaseAnalysisChart data={phaseData} />;
+        return <PhaseAnalysisChart data={phaseData} isDark={isDark} />;
       default:
         return (
           <div className="h-96 flex items-center justify-center text-gray-500">
@@ -274,10 +331,10 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">
+          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 ${isDark ? 'border-blue-400' : 'border-red-600'}`}></div>
+          <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
             Loading Swiss startup ecosystem data...
           </p>
         </div>
@@ -289,30 +346,45 @@ const Dashboard = () => {
     activeTab === "companies" ? filteredCompanies : filteredDeals;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto d-flex">
+    <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="max-w-7xl mx-auto">
+        {/* Dark Mode Toggle */}
+        <button
+          onClick={toggleDarkMode}
+          className="fixed top-4 right-4 z-50 p-3 rounded-full border transition-all duration-300 hover:scale-105"
+          style={{
+            background: isDark ? '#1F2937' : '#ffffff',
+            borderColor: isDark ? '#374151' : '#E5E7EB',
+            color: isDark ? '#F9FAFB' : '#1F2937',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+          }}
+          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
+
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm mb-6 p-6 border border-gray-200">
-    <div className="flex items-center mb-2">
-      <img
-        src="/logo.png"
-        alt="Swiss Startup Ecosystem Logo"
-        className="h-24 mr-6 mb-4 mt-4"
-        style={{ minWidth: "4rem" }}
-      />
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
-          Swiss Startup Ecosystem Dashboard
-        </h1>
-        <p className="text-gray-600 text-lg mt-1">
-          Analysis of {companies.length.toLocaleString()} companies and{" "}
-          {deals.length.toLocaleString()} deals
-        </p>
-      </div>
-    </div>
+        <div className={`rounded-lg shadow-sm mb-6 p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+          <div className="flex items-center mb-2">
+            <img
+              src="/logo.png"
+              alt="Swiss Startup Ecosystem Logo"
+              className="h-24 mr-6 mb-4 mt-4"
+              style={{ minWidth: "4rem" }}
+            />
+            <div>
+              <h1 className={`text-3xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+                Swiss Startup Ecosystem Dashboard
+              </h1>
+              <p className={`text-lg mt-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+                Analysis of {companies.length.toLocaleString()} companies and{" "}
+                {deals.length.toLocaleString()} deals
+              </p>
+            </div>
+          </div>
 
           {/* Tab Navigation */}
-          <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg mb-6">
+          <div className={`flex space-x-2 p-1 rounded-lg mb-6 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
             <button
               onClick={() => {
                 setActiveTab("companies");
@@ -320,8 +392,12 @@ const Dashboard = () => {
               }}
               className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
                 activeTab === "companies"
-                  ? "bg-white text-red-600 shadow-sm border border-red-200"
-                  : "text-gray-600 hover:text-gray-800"
+                  ? isDark 
+                    ? "bg-gray-600 text-red-400 shadow-sm border border-red-600"
+                    : "bg-white text-red-600 shadow-sm border border-red-200"
+                  : isDark
+                    ? "text-gray-300 hover:text-gray-100"
+                    : "text-gray-600 hover:text-gray-800"
               }`}
             >
               <Building2 className="h-4 w-4 inline mr-2" />
@@ -334,8 +410,12 @@ const Dashboard = () => {
               }}
               className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
                 activeTab === "deals"
-                  ? "bg-white text-red-600 shadow-sm border border-red-200"
-                  : "text-gray-600 hover:text-gray-800"
+                  ? isDark 
+                    ? "bg-gray-600 text-red-400 shadow-sm border border-red-600"
+                    : "bg-white text-red-600 shadow-sm border border-red-200"
+                  : isDark
+                    ? "text-gray-300 hover:text-gray-100"
+                    : "text-gray-600 hover:text-gray-800"
               }`}
             >
               <Handshake className="h-4 w-4 inline mr-2" />
@@ -349,6 +429,7 @@ const Dashboard = () => {
             filteredCompanies={filteredCompanies}
             filteredDeals={filteredDeals}
             filterOptions={filterOptions}
+            isDark={isDark}
           />
         </div>
 
@@ -362,34 +443,36 @@ const Dashboard = () => {
               updateFilter={updateFilter}
               toggleArrayFilter={toggleArrayFilter}
               resetFilters={resetFilters}
+              isDark={isDark}
             />
           </div>
 
           {/* Charts Panel */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+            <div className={`rounded-lg shadow-sm p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               {/* Chart Type Selector */}
               <ChartSelector
                 activeTab={activeTab}
                 activeChartType={activeChartType}
                 setActiveChartType={setActiveChartType}
+                isDark={isDark}
               />
 
               {/* Chart Title */}
               <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-800">
+                <h3 className={`text-lg font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
                   {getChartOptions(activeTab).find(
                     (opt) => opt.key === activeChartType
                   )?.name || "Chart"}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
                   {activeTab === "companies" ? "Company" : "Deal"} data
                   visualization
                 </p>
               </div>
 
               {/* Active Chart */}
-              <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
                 {renderChart()}
               </div>
 
@@ -402,13 +485,14 @@ const Dashboard = () => {
                 filteredCompanies={filteredCompanies}
                 filteredDeals={filteredDeals}
                 chartData={chartData}
+                isDark={isDark}
               />
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-500 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className={`mt-8 text-center text-sm p-4 rounded-lg shadow-sm border ${isDark ? 'text-gray-400 bg-gray-800 border-gray-700' : 'text-gray-500 bg-white border-gray-200'}`}>
           <p className="flex items-center justify-center">
             <Building2 className="h-4 w-4 mr-2" />
             Swiss Startup Ecosystem Dashboard | Inspired by Swiss Venture
