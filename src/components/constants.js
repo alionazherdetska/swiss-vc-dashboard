@@ -94,7 +94,7 @@ export const getChartOptions = (activeTab) =>
     ...(activeTab === "deals"
       ? [{
           key: "quarterly-analysis",
-          name: "Quarterly Analysis",
+          name: "Sector Analysis",
           icon: Calendar,
         }]
       : []),

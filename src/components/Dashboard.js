@@ -1,5 +1,5 @@
 import { BarChart3, Moon, Sun } from "lucide-react";
-import React, { useState, useEffect, useMemo } from "react";
+import React, {useState, useEffect, useMemo, useRef, useCallback} from "react";
 
 // Import our modular components
 import FilterPanel from "./FilterPanel.js";
@@ -17,10 +17,10 @@ import {
   QuarterlyAnalysisChart,
 } from "./Charts.js";
 import { Building2, Handshake } from "./CustomIcons.js";
-
-// Import utilities and constants
 import { processCompanies, processDeals, generateChartData } from "./utils";
 import { SAMPLE_DATA, getChartOptions, VOLUME_OPTIONS } from "./constants";
+import { COLOR_PALETTE, FIXED_INDUSTRY_COLORS } from "./colors";
+
 
 const Dashboard = () => {
   const [companies, setCompanies] = useState([]);
@@ -39,6 +39,49 @@ const Dashboard = () => {
   const [isDark, setIsDark] = useState(false);
   const [showVolume, setShowVolume] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState("");
+// Import utilities and constants
+
+
+  // keep a stable map that starts with your fixed colors
+  const colorMapRef = useRef(new Map(Object.entries(FIXED_INDUSTRY_COLORS)));
+
+  const ALIASES = {
+    "med tech": "MedTech",
+    "medtech": "MedTech",
+    "fin tech": "FinTech",
+    "cleantech": "Cleantech",
+    "ict": "ICT",
+    // add common variants you see
+  };
+
+  const normalizeIndustry = (raw) => {
+    if (!raw) return null;
+    const s = String(raw).trim();
+    const key = s.toLowerCase().replace(/\s+/g, " ");
+    const alias = ALIASES[key];
+    if (alias) return alias;
+
+    // Title-case canonicalization fallback
+    return s
+        .replace(/\s*\(.*?\)/g, "")
+        .split(/\s+/)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
+  };
+
+  const getIndustryColor = useCallback((name) => {
+    const norm = normalizeIndustry(name);
+    if (!norm) return "#7F8C8D"; // neutral gray for unknown
+
+    if (colorMapRef.current.has(norm)) {
+      return colorMapRef.current.get(norm);
+    }
+    // assign next fallback color and remember it (stable across filters)
+    const next = COLOR_PALETTE[colorMapRef.current.size % COLOR_PALETTE.length];
+    colorMapRef.current.set(norm, next);
+    return next;
+  }, []);
+
 
   // Dark mode toggle
   const toggleDarkMode = () => {
@@ -181,6 +224,8 @@ const Dashboard = () => {
   const chartData = useMemo(() => {
     return generateChartData(activeTab, filteredCompanies, filteredDeals);
   }, [activeTab, filteredCompanies, filteredDeals]);
+  console.log("timeline sample:", chartData.timeline?.[0]);
+
 
   // Filter update functions
   const updateFilter = (key, value) => {
@@ -214,29 +259,29 @@ const Dashboard = () => {
     switch (activeChartType) {
       case "timeline":
         return (
-          <div className="space-y-4">
-            {activeTab === "deals" && (
-              <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <label className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={showVolume}
-                    onChange={(e) => setShowVolume(e.target.checked)}
-                    className="text-red-600 focus:ring-red-500"
-                  />
-                  <span className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                    Show Volume (CHF M) instead of Count
-                  </span>
-                </label>
-              </div>
-            )}
-            <TimelineChart 
-              data={chartData.timeline} 
-              showVolume={showVolume && activeTab === "deals"}
-              isDark={isDark}
-            />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Left: Sum of invested capital */}
+              <TimelineChart
+                  data={chartData.timeline}
+                  showVolume={true}
+                  isDark={isDark}
+                  title="Overall Sum of Invested Capital by Year"
+                  yLabel="Invested Capital CHF (M)"                 // exact Y-axis label you asked for
+              />
+
+              {/* Right: Count of deals */}
+              <TimelineChart
+                  data={chartData.timeline}
+                  showVolume={false}
+                  isDark={isDark}
+                  title="Overall Number of Deals by Year"
+                  yLabel="Number of Deals"
+              />
+            </div>
         );
+
+
+
       case "industry-distribution":
         let industryData =
           activeTab === "companies"
@@ -271,31 +316,13 @@ const Dashboard = () => {
         );
       case "quarterly-analysis":
         return (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={showVolume}
-                  onChange={(e) => setShowVolume(e.target.checked)}
-                  className="text-red-600 focus:ring-red-500"
-                />
-                <span className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                  Show Volume (CHF M) instead of Count
-                </span>
-              </label>
-            </div>
             <QuarterlyAnalysisChart
-              data={chartData.industryTrends}
-              selectedIndustry={selectedIndustry}
-              setSelectedIndustry={setSelectedIndustry}
-              filterOptions={filterOptions}
-              showVolume={showVolume}
-              setShowVolume={setShowVolume}
-              isDark={isDark}
+                deals={filteredDeals}
+                isDark={isDark}
+                colorOf={getIndustryColor}   // pass down
             />
-          </div>
         );
+
       case "funding-analysis":
         if (activeTab === "companies") {
           return (
