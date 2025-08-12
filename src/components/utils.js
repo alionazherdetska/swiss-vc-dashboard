@@ -1,4 +1,30 @@
 import { OFFICIAL_CANTONS, CANTON_MAP } from "./constants";
+// Put at top of utils.js
+const parseAmountToMillions = (v) => {
+  if (v == null) return null;
+  if (typeof v === "number") return v; // assume already in CHF millions
+
+  // Normalize common text formats: "CHF 5.2m", "5,2 M", "5’200’000", "5.2 million"
+  let s = String(v).toLowerCase();
+  s = s
+      .replace(/chf/g, "")
+      .replace(/\s/g, "")
+      .replace(/[’,']/g, "")            // thousands separators
+      .replace(/million(s)?/g, "m");
+
+  // Already expressed in millions?
+  if (s.endsWith("m")) {
+    const n = parseFloat(s.slice(0, -1).replace(",", "."));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  // If it looks like a big absolute CHF number, convert to millions
+  const n = parseFloat(s.replace(",", "."));
+  if (!Number.isFinite(n)) return null;
+
+  // Heuristic: if n > 1e4, assume it's CHF units, convert to millions
+  return n > 10000 ? n / 1_000_000 : n;
+};
 
 export const normalizeCanton = (rawCanton) => {
   if (!rawCanton) return null;
@@ -86,9 +112,22 @@ export const processDeals = (dealsData) => {
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(" ");
 
+      const rawAmount =
+          deal.Amount ??
+          deal["Amount (CHF M)"] ??
+          deal["Amount CHF M"] ??
+          deal["Amount (CHF million)"] ??
+          deal["AmountCHF_M"] ??
+          deal["Deal Amount"] ??
+          deal["Funding Amount"] ??
+          deal["Amount (CHF)"] ??           // will be converted to M
+          deal["Amount (CHF) m"];
+
+      const parsedAmountM = parseAmountToMillions(rawAmount);
+
       return {
         ...deal,
-        Amount: deal.Amount ? parseFloat(deal.Amount) : null,
+        Amount: parsedAmountM,
         Valuation: deal.Valuation ? parseFloat(deal.Valuation) : null,
         Year: year,
         Quarter: quarter,
@@ -339,6 +378,9 @@ export const generateChartData = (
           year: d.Year,
         })),
       industryTrends: dealIndustryTrends,
+
     };
+
   }
+
 };

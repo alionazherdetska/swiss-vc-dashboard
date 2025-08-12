@@ -2,6 +2,7 @@ import React from "react";
 import { Filter } from "lucide-react";
 import { OFFICIAL_CANTONS } from "./constants";
 
+
 const FilterPanel = ({
   filters,
   filterOptions,

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, {useMemo, useRef, useState} from "react";
 import {
   BarChart,
   Bar,
@@ -18,11 +18,13 @@ import {
   Area,
   AreaChart,
   ComposedChart,
+    LabelList,
 } from "recharts";
 import { BarChart3, TrendingUp, Calendar } from "lucide-react";
 import { Factory } from "./CustomIcons";
+import {FIXED_INDUSTRY_COLORS} from "./colors";
 
-const COLOR_PALETTE = [
+export const COLOR_PALETTE = [
   "#E84A5F", // Primary Red (Swiss theme)
   "#3498DB", // Blue
   "#2ECC71", // Green
@@ -48,273 +50,442 @@ const COLOR_PALETTE = [
 const CHART_MARGIN = { top: 50, right: 50, left: 10, bottom: 10 };
 
 // Updated TimelineChart with Volume option
-export const TimelineChart = ({ data, showVolume = false, isDark = false }) => {
+// Updated TimelineChart (drop-in replacement)
+export const TimelineChart = ({
+                                data,
+                                showVolume = false,
+                                isDark = false,
+                                title,            // NEW
+                                yLabel            // NEW (e.g., "CHF (M)" or "Number of Deals")
+                              }) => {
   const chartKey = showVolume ? "volume" : "count";
-  const chartLabel = showVolume ? "Volume (CHF M)" : "Count";
-  
-  return (
-    <div className="space-y-4">
-      <ResponsiveContainer width="100%" height={400}>
-        <AreaChart data={data} margin={CHART_MARGIN}>
-          <defs>
-            <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#E84A5F" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#E84A5F" stopOpacity={0.1} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid 
-            strokeDasharray="3 3" 
-            stroke={isDark ? "#374151" : "#E2E8F0"} 
-          />
-          <XAxis
-            dataKey="year"
-            stroke={isDark ? "#D1D5DB" : "#4A5568"}
-            fontSize={12}
-            angle={-45}
-            textAnchor="end"
-            height={60}
-          />
-          <YAxis 
-            stroke={isDark ? "#D1D5DB" : "#4A5568"} 
-            fontSize={12}
-            label={{
-              value: chartLabel,
-              angle: -90,
-              position: "insideLeft",
-              style: { textAnchor: "middle", fill: isDark ? "#D1D5DB" : "#4A5568" }
-            }}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: isDark ? "#374151" : "white",
-              border: `1px solid ${isDark ? "#4B5563" : "#E2E8F0"}`,
-              borderRadius: "8px",
-              color: isDark ? "#F3F4F6" : "#1F2937"
-            }}
-            formatter={(value) => [
-              showVolume ? `${value.toFixed(1)}M CHF` : value,
-              chartLabel
-            ]}
-          />
-          <Area
-            type="monotone"
-            dataKey={chartKey}
-            stroke="#E84A5F"
-            strokeWidth={2}
-            fillOpacity={1}
-            fill="url(#colorMetric)"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
-  );
-};
+  const defaultY = showVolume ? "Volume (CHF M)" : "Count";
+  const chartLabel = yLabel || defaultY;
 
-// New Quarterly Analysis Chart
-export const QuarterlyAnalysisChart = ({ 
-  data, 
-  selectedIndustry, 
-  setSelectedIndustry, 
-  filterOptions, 
-  timeInterval = "quarter",
-  showVolume = false,
-  setShowVolume,
-  isDark = false 
-}) => {
-  const [localTimeInterval, setLocalTimeInterval] = useState(timeInterval);
-  
-  // Debug logging
-  console.log("QuarterlyAnalysisChart - data:", data);
-  console.log("QuarterlyAnalysisChart - selectedIndustry:", selectedIndustry);
-  
-  const chartData = useMemo(() => {
-    if (!data || !selectedIndustry) return [];
-    
-    // Find the selected industry data
-    const industryData = data.find(d => d.name === selectedIndustry);
-    console.log("Found industryData:", industryData);
-    
-    if (!industryData || !industryData.data) return [];
-    
-    // Group data by time interval
-    const groupedData = {};
-    
-    industryData.data.forEach(item => {
-      if (!item.year) return;
-      
-      let timeKey;
-      if (localTimeInterval === "quarter" && item.quarter) {
-        timeKey = `${item.year} Q${item.quarter}`;
-      } else if (localTimeInterval === "half" && item.quarter) {
-        const half = item.quarter <= 2 ? 1 : 2;
-        timeKey = `${item.year} H${half}`;
-      } else {
-        timeKey = item.year.toString();
-      }
-      
-      if (!groupedData[timeKey]) {
-        groupedData[timeKey] = { 
-          period: timeKey, 
-          count: 0, 
-          volume: 0,
-          year: item.year,
-          quarter: item.quarter || 1
-        };
-      }
-      
-      groupedData[timeKey].count += item.count || 0;
-      groupedData[timeKey].volume += item.volume || 0;
-    });
-    
-    const result = Object.values(groupedData).sort((a, b) => {
-      if (a.year !== b.year) return a.year - b.year;
-      return (a.quarter || 0) - (b.quarter || 0);
-    });
-    
-    console.log("Processed chartData:", result);
-    return result;
-  }, [data, selectedIndustry, localTimeInterval]);
-  
-  const metric = showVolume ? "volume" : "count";
-  const metricLabel = showVolume ? "Volume (CHF M)" : "Count";
-  
-  // Get available industries from data
-  const availableIndustries = data ? data.map(d => d.name).filter(Boolean) : [];
-  
   return (
-    <div className="space-y-4">
-      
-      {/* Controls */}
-      <div className="flex flex-wrap gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <div className="flex items-center space-x-2">
-          <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            Industry:
-          </label>
-          <select
-            value={selectedIndustry || ""}
-            onChange={(e) => setSelectedIndustry(e.target.value)}
-            className={`px-3 py-1 border rounded-md text-sm ${
-              isDark 
-                ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                : 'bg-white border-gray-300 text-gray-700'
-            }`}
-          >
-            <option value="">Select Industry</option>
-            {availableIndustries.map(industry => (
-              <option key={industry} value={industry}>{industry}</option>
-            ))}
-          </select>
-        </div>
-        
-        <div className="flex items-center space-x-2">
-          <label className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-            Time Interval:
-          </label>
-          <select
-            value={localTimeInterval}
-            onChange={(e) => setLocalTimeInterval(e.target.value)}
-            className={`px-3 py-1 border rounded-md text-sm ${
-              isDark 
-                ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                : 'bg-white border-gray-300 text-gray-700'
-            }`}
-          >
-            <option value="quarter">Quarterly</option>
-            <option value="half">Half-Yearly</option>
-            <option value="year">Yearly</option>
-          </select>
-        </div>
-        
-        {setShowVolume && (
-          <div className="flex items-center space-x-2">
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={showVolume}
-                onChange={(e) => setShowVolume(e.target.checked)}
-                className="text-red-600 focus:ring-red-500"
-              />
-              <span className={`text-sm font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                Show Volume
-              </span>
-            </label>
-          </div>
+      <div className="space-y-2">
+        {title && (
+            <h3 className={`text-lg font-bold text-center ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+              {title}
+            </h3>
         )}
-      </div>
-      
-      {/* Chart */}
-      {chartData.length > 0 ? (
         <ResponsiveContainer width="100%" height={400}>
-          <ComposedChart data={chartData} margin={CHART_MARGIN}>
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke={isDark ? "#374151" : "#E2E8F0"} 
-            />
+          <AreaChart data={data} margin={CHART_MARGIN}>
+            <defs>
+              <linearGradient id={`color-${chartKey}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#E84A5F" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#E84A5F" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "#374151" : "#E2E8F0"} />
             <XAxis
-              dataKey="period"
-              stroke={isDark ? "#D1D5DB" : "#4A5568"}
-              fontSize={12}
-              angle={-45}
-              textAnchor="end"
-              height={80}
+                dataKey="year"
+                stroke={isDark ? "#D1D5DB" : "#4A5568"}
+                fontSize={12}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+                label={{ value: "Year", position: "insideBottomRight", offset: -5, fill: isDark ? "#D1D5DB" : "#4A5568" }} // NEW
             />
-            <YAxis 
-              stroke={isDark ? "#D1D5DB" : "#4A5568"} 
-              fontSize={12}
-              label={{
-                value: metricLabel,
-                angle: -90,
-                position: "insideLeft",
-                style: { textAnchor: "middle", fill: isDark ? "#D1D5DB" : "#4A5568" }
-              }}
+            <YAxis
+                stroke={isDark ? "#D1D5DB" : "#4A5568"}
+                fontSize={12}
+                label={{
+                  value: chartLabel,
+                  angle: -90,
+                  position: "insideLeft",
+                  style: { textAnchor: "middle", fill: isDark ? "#D1D5DB" : "#4A5568" }
+                }}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: isDark ? "#374151" : "white",
-                border: `1px solid ${isDark ? "#4B5563" : "#E2E8F0"}`,
-                borderRadius: "8px",
-                color: isDark ? "#F3F4F6" : "#1F2937"
-              }}
-              formatter={(value) => [
-                showVolume ? `${value.toFixed(1)}M CHF` : value,
-                metricLabel
-              ]}
+                contentStyle={{
+                  backgroundColor: isDark ? "#374151" : "white",
+                  border: `1px solid ${isDark ? "#4B5563" : "#E2E8F0"}`,
+                  borderRadius: "8px",
+                  color: isDark ? "#F3F4F6" : "#1F2937"
+                }}
+                formatter={(value) => [
+                  showVolume ? `${Number(value).toFixed(1)}M CHF` : value,
+                  chartLabel
+                ]}
             />
-            <Legend />
-            <Bar
-              dataKey={metric}
-              fill="#3498DB"
-              name={`${selectedIndustry} - ${metricLabel}`}
-              radius={[4, 4, 0, 0]}
+            <Area
+                type="monotone"
+                dataKey={chartKey}
+                stroke="#E84A5F"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill={`url(#color-${chartKey})`}
             />
-            <Line
-              type="monotone"
-              dataKey={metric}
-              stroke="#E84A5F"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-              name={`${selectedIndustry} Trend`}
-            />
-          </ComposedChart>
+          </AreaChart>
         </ResponsiveContainer>
-      ) : (
-        <div className="text-center text-gray-500 py-8">
-          <Calendar className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>
-            {!selectedIndustry 
-              ? "Please select an industry to view quarterly analysis" 
-              : "No data available for the selected industry"}
-          </p>
-          {availableIndustries.length > 0 && (
-            <p className="text-sm mt-2">
-              Available industries: {availableIndustries.slice(0, 5).join(", ")}
-              {availableIndustries.length > 5 && "..."}
-            </p>
-          )}
-        </div>
-      )}
-    </div>
+      </div>
   );
+};
+// New QuarterlyAnalysisChart (drop-in)
+export const QuarterlyAnalysisChart = ({
+                                           deals,                 // <— preferred: pass filteredDeals here
+                                           data,                  // fallback: if you still pass "data", it will try to use it as deals
+                                           isDark = false,
+                                       }) => {
+    // Modes and total overlay
+    const [leftMode, setLeftMode] = useState("line");   // "line" | "column"
+    const [rightMode, setRightMode] = useState("line"); // "line" | "column"
+    const [showTotal, setShowTotal] = useState(true);
+
+    // ---- helpers ----
+    const sanitizeKey = (s) =>
+        String(s || "Unknown").replace(/\s+/g, "_").replace(/[^\w]/g, "_");
+
+    const axisStroke = isDark ? "#D1D5DB" : "#4A5568";
+    const gridStroke = isDark ? "#374151" : "#E2E8F0";
+    const tooltipStyle = {
+        backgroundColor: isDark ? "#374151" : "white",
+        border: `1px solid ${isDark ? "#4B5563" : "#E2E8F0"}`,
+        borderRadius: "8px",
+        color: isDark ? "#F3F4F6" : "#1F2937",
+    };
+
+    const [showLabels, setShowLabels] = useState(true);
+
+    function useIndustryColor() {
+        const colorMapRef = useRef(new Map(Object.entries(FIXED_INDUSTRY_COLORS)));
+
+        const getColor = (name) => {
+            if (!name) return "#7F8C8D";
+            if (!colorMapRef.current.has(name)) {
+                const next = COLOR_PALETTE[colorMapRef.current.size % COLOR_PALETTE.length];
+                colorMapRef.current.set(name, next);
+            }
+            return colorMapRef.current.get(name);
+        };
+
+        return getColor;
+    }
+    // Pick source: prefer "deals", else try "data"
+    const dealsSource = useMemo(() => {
+        if (Array.isArray(deals)) return deals;
+        if (Array.isArray(data)) return data; // if you still pass filteredDeals via "data"
+        return [];
+    }, [deals, data]);
+
+    // Build Year x Industry aggregates (count, volume in CHF M)
+    const { rows, industries } = useMemo(() => {
+        const byYearIndustry = {}; // { [year]: { [industry]: {count, volume} } }
+        const industrySet = new Set();
+        const yearSet = new Set();
+
+        dealsSource.forEach((d) => {
+            const year = Number(d.Year ?? d.year);
+            if (!year) return;
+
+            const ind = (d.Industry && String(d.Industry).trim()) || "Unknown";
+            industrySet.add(ind);
+            yearSet.add(year);
+
+            byYearIndustry[year] = byYearIndustry[year] || {};
+            byYearIndustry[year][ind] = byYearIndustry[year][ind] || { count: 0, volume: 0 };
+
+            const amt = typeof d.Amount === "number" && isFinite(d.Amount) ? d.Amount : 0; // already CHF M from your utils
+            byYearIndustry[year][ind].count += 1;
+            byYearIndustry[year][ind].volume += amt;
+        });
+
+        const years = Array.from(yearSet).sort((a, b) => a - b);
+        const inds = Array.from(industrySet).sort();
+
+        const rows = years.map((year) => {
+            const entry = { year };
+            let totalCount = 0;
+            let totalVolume = 0;
+            inds.forEach((ind) => {
+                const cKey = `${sanitizeKey(ind)}__count`;
+                const vKey = `${sanitizeKey(ind)}__volume`;
+                const cell = byYearIndustry[year][ind];
+                const c = cell ? cell.count : 0;
+                const v = cell ? cell.volume : 0;
+                entry[cKey] = c;
+                entry[vKey] = +v;
+                totalCount += c;
+                totalVolume += v;
+            });
+            entry.totalCount = totalCount;
+            entry.totalVolume = +totalVolume;
+            return entry;
+        });
+
+        return { rows, industries: inds };
+    }, [dealsSource]);
+
+    const colorOf = useIndustryColor();
+
+
+    // Renderers
+    const renderStackedBars = (metricSuffix) =>
+        industries.map((ind) => {
+            const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+            return (
+                <Bar
+                    key={key}
+                    dataKey={key}
+                    stackId="a"
+                    fill={colorOf(ind)}
+                    name={ind}
+                    radius={[3, 3, 0, 0]}
+                >
+                    {/*<LabelList*/}
+                    {/*    dataKey={key}*/}
+                    {/*    position="top"*/}
+                    {/*    style={{ fontSize: 10, fill: isDark ? "#E5E7EB" : "#374151" }}*/}
+                    {/*    formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}*/}
+                    {/*/>*/}
+                    {showLabels && (
+                        <LabelList
+                            dataKey={key}
+                            position="top"
+                            offset={6}
+                            style={{ fontSize: 10, fill: isDark ? "#E5E7EB" : "#374151", pointerEvents: "none" }}
+                            formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
+                        />
+                    )}
+                </Bar>
+            );
+        });
+
+    const renderLines = (metricSuffix) =>
+        industries.map((ind) => {
+            const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+            return (
+                <Line
+                    key={key}
+                    type="monotone"
+                    dataKey={key}
+                    stroke={colorOf(ind)}
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    name={ind}
+                >
+                    {/*<LabelList*/}
+                    {/*    dataKey={key}*/}
+                    {/*    position="top"*/}
+                    {/*    style={{ fontSize: 10, fill: isDark ? "#E5E7EB" : "#374151" }}*/}
+                    {/*    formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}*/}
+                    {/*/>*/}
+                </Line>
+            );
+        });
+    const renderStackedBarLabels = (metricSuffix) =>
+        industries.map((ind) => {
+            const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+            return (
+                <Bar
+                    key={`${key}__labels`}
+                    dataKey={key}
+                    stackId="a"
+                    fill="transparent"
+                    stroke="transparent"
+                    isAnimationActive={false}
+                >
+                    <LabelList
+                        dataKey={key}
+                        position="top"
+                        offset={6}
+                        style={{
+                            fontSize: 10,                      // smaller labels
+                            fill: isDark ? "#E5E7EB" : "#374151",
+                            pointerEvents: "none"              // tooltips stay responsive
+                        }}
+                        formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
+                    />
+                </Bar>
+            );
+        });
+
+    const renderLineLabels = (metricSuffix) =>
+        industries.map((ind) => {
+            const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+            return (
+                <Line
+                    key={`${key}__labels`}
+                    type="monotone"
+                    dataKey={key}
+                    stroke="transparent"
+                    dot={false}
+                    isAnimationActive={false}
+                >
+                    <LabelList
+                        dataKey={key}
+                        position="top"
+                        offset={6}
+                        style={{
+                            fontSize: 10,
+                            fill: isDark ? "#E5E7EB" : "#374151",
+                            pointerEvents: "none"
+                        }}
+                        formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
+                    />
+                </Line>
+            );
+        });
+    const volumeMax = React.useMemo(
+        () => Math.max(0, ...rows.map(r => r.totalVolume || 0)),
+        [rows]
+    );
+
+    // const countMax = React.useMemo(
+    //     () => Math.max(0, ...rows.map(r => r.totalCount || 0)),
+    //     [rows]
+    // );
+
+    return (
+        <div className="space-y-4">
+            {/* Controls */}
+            <div
+                className={`flex flex-wrap items-center gap-4 p-4 rounded-lg ${isDark ? "bg-gray-800" : "bg-gray-50"}`}>
+                <div className="flex items-center gap-2">
+                    <span className={isDark ? "text-gray-200" : "text-gray-700"}>Left (Volume):</span>
+                    <select
+                        value={leftMode}
+                        onChange={(e) => setLeftMode(e.target.value)}
+                        className={`px-3 py-1 border rounded-md text-sm ${isDark ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300 text-gray-700"}`}
+                    >
+                        <option value="line">Line</option>
+                        <option value="column">Column</option>
+                    </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <span className={isDark ? "text-gray-200" : "text-gray-700"}>Right (Count):</span>
+                    <select
+                        value={rightMode}
+                        onChange={(e) => setRightMode(e.target.value)}
+                        className={`px-3 py-1 border rounded-md text-sm ${isDark ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300 text-gray-700"}`}
+                    >
+                        <option value="line">Line</option>
+                        <option value="column">Column</option>
+                    </select>
+                </div>
+
+                <label className="flex items-center gap-2 ml-auto">
+                    <input
+                        type="checkbox"
+                        checked={showTotal}
+                        onChange={(e) => setShowTotal(e.target.checked)}
+                        className="text-red-600 focus:ring-red-500"
+                    />
+                    <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show total line</span>
+                </label>
+                <label className="flex items-center gap-2">
+                    <input
+                        type="checkbox"
+                        checked={showLabels}
+                        onChange={(e) => setShowLabels(e.target.checked)}
+                        className="text-red-600 focus:ring-red-500"
+                    />
+                    <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show data labels</span>
+                </label>
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* LEFT: Volume vs Year (CHF M) */}
+                <div className="space-y-2">
+                    <h3 className={`text-lg font-semibold text-center ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+                        Investment Volume vs Year (CHF M)
+                    </h3>
+                    <ResponsiveContainer width="100%" height={420}>
+                        <ComposedChart data={rows} margin={CHART_MARGIN}  style={{ overflow: "visible" }}  // allow labels to render outside chart bounds
+                        >
+                            <defs>
+                                <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
+                            <XAxis dataKey="year" stroke={axisStroke}/>
+                            <YAxis
+                                stroke={axisStroke}
+                                domain={[0, Math.ceil(volumeMax * 1.1)]}   // <- fixed, padded domain
+                                allowDataOverflow                          // keeps range stable
+                                label={{
+                                    value: "Investment Volume CHF (M)",
+                                    angle: -90,
+                                    position: "outsideLeft",
+                                    offset: 50,
+                                    fill: axisStroke
+                                }}
+                            />
+                            <Tooltip
+                                contentStyle={tooltipStyle}
+                                formatter={(v, name) => [`${(+v).toFixed(1)}M CHF`, name]}
+                            />
+                            <Legend/>
+                            {leftMode === "column" ? renderStackedBars("volume", showLabels) : renderLines("volume")}
+                            {showTotal && (
+                                <Line
+                                    type="monotone"
+                                    dataKey="totalVolume"
+                                    stroke={isDark ? "#FCA5A5" : "#DC2626"}
+                                    strokeWidth={3}
+                                    dot={false}
+                                    name="Total Volume"
+                                    filter="url(#glow-red)"
+                                />
+                            )}
+                            {showLabels && (leftMode === "column"
+                                ? renderStackedBarLabels("volume")
+                                : renderLineLabels("volume"))}
+                            {showLabels && leftMode === "line" && renderLineLabels("volume")}
+
+                        </ComposedChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* RIGHT: Number of Deals vs Year */}
+                <div className="space-y-2">
+                    <h3 className={`text-lg font-semibold text-center ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+                    Number of Deals vs Year
+                    </h3>
+                    <ResponsiveContainer width="100%" height={420}>
+                        <ComposedChart data={rows} margin={CHART_MARGIN}  style={{ overflow: "visible" }}  // allow labels to render outside chart bounds
+                        >
+                            <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                            <XAxis dataKey="year" stroke={axisStroke} />
+                            <YAxis
+                                stroke={axisStroke}
+                                label={{ value: "Number of Deals", angle: -90, position: "outerLeft", fill: axisStroke, offset:30 }}
+                            />
+                            <Tooltip
+                                contentStyle={tooltipStyle}
+                                formatter={(v, name) => [v, name]}
+                            />
+                            <Legend />
+                            {rightMode === "column" ? renderStackedBars("count") : renderLines("count")}
+                            {showTotal && (
+                                <Line
+                                    type="monotone"
+                                    dataKey="totalCount"
+                                    stroke={isDark ? "#FCA5A5" : "#DC2626"}
+                                    strokeWidth={3}
+                                    dot={false}
+                                    name="Total Deals"
+                                    filter="url(#glow-red)"     // <— the glow
+
+                                />
+                            )}
+                            {showLabels && (leftMode === "column"
+                                ? renderStackedBarLabels("count")
+                                : renderLineLabels("count"))}
+                        </ComposedChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export const IndustryDistributionChart = ({ data, activeTab, isDark = false }) => {
