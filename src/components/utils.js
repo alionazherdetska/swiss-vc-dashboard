@@ -1,15 +1,16 @@
 import { OFFICIAL_CANTONS, CANTON_MAP } from "./constants";
+
 // Put at top of utils.js
 const parseAmountToMillions = (v) => {
   if (v == null) return null;
   if (typeof v === "number") return v; // assume already in CHF millions
 
-  // Normalize common text formats: "CHF 5.2m", "5,2 M", "5’200’000", "5.2 million"
+  // Normalize common text formats: "CHF 5.2m", "5,2 M", "5'200'000", "5.2 million"
   let s = String(v).toLowerCase();
   s = s
       .replace(/chf/g, "")
       .replace(/\s/g, "")
-      .replace(/[’,']/g, "")            // thousands separators
+      .replace(/[',']/g, "")            // thousands separators
       .replace(/million(s)?/g, "m");
 
   // Already expressed in millions?
@@ -85,32 +86,18 @@ export const processDeals = (dealsData) => {
         }
       }
 
-      // Enhanced industry detection for deals
-      let industry = "Technology"; // Default fallback
+      // ONLY use what's actually in the JSON - NO FAKE MAPPINGS
+      let industry = null;
       
-      // Try multiple sources for industry information
-      if (deal.Industry && deal.Industry !== "Unknown" && deal.Industry.trim() !== "") {
+      // Check actual fields in order of preference
+      if (deal.Industry && deal.Industry.trim() && deal.Industry !== "Unknown") {
         industry = deal.Industry.trim();
-      } else if (deal.Vertical && deal.Vertical !== "Unknown" && deal.Vertical.trim() !== "") {
-        industry = deal.Vertical.trim();
-      } else if (deal.Sector && deal.Sector !== "Unknown" && deal.Sector.trim() !== "") {
+      } else if (deal.Sector && deal.Sector.trim() && deal.Sector !== "Unknown") {
         industry = deal.Sector.trim();
-      } else if (deal.Company && deal.Company.toLowerCase().includes("tech")) {
-        industry = "Technology";
-      } else if (deal.Company && deal.Company.toLowerCase().includes("bio")) {
-        industry = "Biotech";
-      } else if (deal.Company && deal.Company.toLowerCase().includes("fin")) {
-        industry = "FinTech";
+      } else if (deal.Vertical && deal.Vertical.trim() && deal.Vertical !== "Unknown") {
+        industry = deal.Vertical.trim();
       }
-
-      // Normalize industry names
-      industry = industry
-        .replace(/\s*\(.*?\)/g, "") // Remove parentheses content
-        .replace(/\s+/g, " ") // Normalize spaces
-        .trim()
-        .split(" ")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(" ");
+      // If none of the fields have real data, leave as null (no fake fallbacks)
 
       const rawAmount =
           deal.Amount ??
@@ -120,7 +107,7 @@ export const processDeals = (dealsData) => {
           deal["AmountCHF_M"] ??
           deal["Deal Amount"] ??
           deal["Funding Amount"] ??
-          deal["Amount (CHF)"] ??           // will be converted to M
+          deal["Amount (CHF)"] ??
           deal["Amount (CHF) m"];
 
       const parsedAmountM = parseAmountToMillions(rawAmount);
@@ -131,19 +118,20 @@ export const processDeals = (dealsData) => {
         Valuation: deal.Valuation ? parseFloat(deal.Valuation) : null,
         Year: year,
         Quarter: quarter,
-        Industry: industry, // Add processed industry
-        HasAmount: !!(deal.Amount && parseFloat(deal.Amount) > 0),
+        Industry: industry, // Can be null if no real data
+        Canton: normalizeCanton(deal.Canton) || "Unknown",
+        HasAmount: !!(parsedAmountM && parseFloat(parsedAmountM) > 0),
         HasValuation: !!(deal.Valuation && parseFloat(deal.Valuation) > 0),
-        AmountRange: deal.Amount
-          ? parseFloat(deal.Amount) < 1
+        AmountRange: parsedAmountM
+          ? parseFloat(parsedAmountM) < 1
             ? "<1M"
-            : parseFloat(deal.Amount) < 5
+            : parseFloat(parsedAmountM) < 5
             ? "1-5M"
-            : parseFloat(deal.Amount) < 10
+            : parseFloat(parsedAmountM) < 10
             ? "5-10M"
-            : parseFloat(deal.Amount) < 25
+            : parseFloat(parsedAmountM) < 25
             ? "10-25M"
-            : parseFloat(deal.Amount) < 50
+            : parseFloat(parsedAmountM) < 50
             ? "25-50M"
             : "50M+"
           : "Unknown",
@@ -167,31 +155,35 @@ export const generateChartData = (
 
     currentData.forEach((item) => {
       if (item.Year) byYear[item.Year] = (byYear[item.Year] || 0) + 1;
-      if (item.Industry)
+      
+      // Only count real industries from JSON
+      if (item.Industry && item.Industry !== "Unknown") {
         byIndustry[item.Industry] = (byIndustry[item.Industry] || 0) + 1;
+      }
+      
       if (item.Canton) byCanton[item.Canton] = (byCanton[item.Canton] || 0) + 1;
 
       const fundedStatus = item.Funded ? "Funded" : "Not Funded";
       byFunded[fundedStatus] = (byFunded[fundedStatus] || 0) + 1;
     });
 
-    // Fix Industry trends for companies - group by industry and year
-    const topIndustries = Object.entries(byIndustry)
-      .filter(([name]) => name !== "Unknown" && name !== "Other")
+    // Industry trends - only real industries
+    const realIndustries = Object.entries(byIndustry)
+      .filter(([name]) => name && name !== "Unknown")
       .sort((a, b) => b[1] - a[1])
       .slice(0, 4)
       .map(([name]) => name);
 
     const allYears = Array.from(new Set(currentData.map(d => d.Year).filter(Boolean))).sort((a, b) => a - b);
 
-    const industryTrends = topIndustries.map(industry => {
+    const industryTrends = realIndustries.map(industry => {
       const industryData = allYears.map(year => {
         const count = currentData.filter(d => d.Industry === industry && d.Year === year).length;
         return {
           year,
-          value: count, // Use 'value' to match chart expectations
+          value: count,
           count: count,
-          volume: 0, // Companies don't have volume
+          volume: 0,
           quarter: null
         };
       });
@@ -207,11 +199,12 @@ export const generateChartData = (
         .map(([year, count]) => ({
           year: parseInt(year),
           count,
-          volume: 0, // Companies don't have volume
+          volume: 0,
           label: year,
         }))
         .sort((a, b) => a.year - b.year),
       industries: Object.entries(byIndustry)
+        .filter(([name]) => name && name !== "Unknown")
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 10),
@@ -226,6 +219,7 @@ export const generateChartData = (
       industryTrends,
     };
   } else {
+    // DEALS - NO FAKE DATA
     const byYear = {},
       byYearVolume = {},
       byType = {},
@@ -245,62 +239,11 @@ export const generateChartData = (
         byAmount[item.AmountRange] = (byAmount[item.AmountRange] || 0) + 1;
       if (item.Canton) byCanton[item.Canton] = (byCanton[item.Canton] || 0) + 1;
       
-      // Group by industry for deals - use more reliable industry detection
-      let industry = "Technology"; // Default fallback
+      // ONLY use real industry data from JSON
+      const industry = item.Industry; // null if no real data
       
-      // Try to get industry from different possible fields
-      if (item.Industry && item.Industry !== "Unknown" && item.Industry.trim() !== "") {
-        industry = item.Industry.trim();
-      } else if (item.Vertical && item.Vertical !== "Unknown" && item.Vertical.trim() !== "") {
-        industry = item.Vertical.trim();
-      } else if (item.Sector && item.Sector !== "Unknown" && item.Sector.trim() !== "") {
-        industry = item.Sector.trim();
-      } else if (item.Company) {
-        // More sophisticated company name-based industry detection
-        const companyLower = item.Company.toLowerCase();
-        if (companyLower.includes('bio') || companyLower.includes('pharma') || companyLower.includes('medical')) {
-          industry = "Biotech";
-        } else if (companyLower.includes('fin') || companyLower.includes('bank') || companyLower.includes('payment')) {
-          industry = "FinTech";
-        } else if (companyLower.includes('energy') || companyLower.includes('solar') || companyLower.includes('clean')) {
-          industry = "Cleantech";
-        } else if (companyLower.includes('food') || companyLower.includes('restaurant') || companyLower.includes('delivery')) {
-          industry = "Consumer Products";
-        } else if (companyLower.includes('game') || companyLower.includes('sport') || companyLower.includes('entertainment')) {
-          industry = "Entertainment";
-        } else if (companyLower.includes('travel') || companyLower.includes('hotel') || companyLower.includes('transport')) {
-          industry = "Travel & Mobility";
-        } else if (companyLower.includes('real estate') || companyLower.includes('property') || companyLower.includes('construction')) {
-          industry = "Real Estate";
-        } else if (companyLower.includes('edu') || companyLower.includes('learn') || companyLower.includes('school')) {
-          industry = "EdTech";
-        } else if (item.Phase) {
-          // Map phases to different industries for variety
-          const phaseToIndustryMap = {
-            "Seed": "Technology",
-            "Series A": "FinTech", 
-            "Series B": "Biotech",
-            "Series C": "Consumer Products",
-            "Growth": "Cleantech",
-            "Later Stage": "Entertainment",
-            "Exit": "Travel & Mobility"
-          };
-          industry = phaseToIndustryMap[item.Phase] || "Technology";
-        } else if (item.Type) {
-          // Map deal types to industries for variety
-          const typeToIndustryMap = {
-            "VC": "Technology",
-            "PE": "Consumer Products",
-            "Acquisition": "FinTech",
-            "IPO": "Biotech",
-            "EXIT": "Cleantech"
-          };
-          industry = typeToIndustryMap[item.Type] || "Technology";
-        }
-      }
-
-      // Only process if we have valid year and quarter
-      if (item.Year && item.Quarter) {
+      // Only process deals that have REAL industry data
+      if (industry && item.Year && item.Quarter) {
         if (!byIndustryDeals[industry]) {
           byIndustryDeals[industry] = {};
         }
@@ -313,9 +256,9 @@ export const generateChartData = (
       }
     });
 
-    // Create quarterly industry trends for deals
+    // Industry trends - REAL DATA ONLY
     const dealIndustryTrends = Object.entries(byIndustryDeals)
-      .filter(([name]) => name !== "Unknown")
+      .filter(([name]) => name && name !== "Unknown")
       .map(([industry, yearQuarterData]) => ({
         name: industry,
         data: Object.entries(yearQuarterData)
@@ -328,22 +271,19 @@ export const generateChartData = (
               volume: data.volume
             };
           })
-          .filter(item => item.year && item.quarter) // Only include valid entries
+          .filter(item => item.year && item.quarter)
           .sort((a, b) => a.year - b.year || a.quarter - b.quarter)
       }))
-      .filter(industry => industry.data.length > 0) // Only include industries with data
+      .filter(industry => industry.data.length > 0)
       .sort((a, b) => {
         const totalA = a.data.reduce((sum, d) => sum + d.count, 0);
         const totalB = b.data.reduce((sum, d) => sum + d.count, 0);
         return totalB - totalA;
       })
-      .slice(0, 10); // Increased from 6 to 10 to show more industries
+      .slice(0, 10);
 
-    // Debug logging for deals
-    console.log("Total deals processed:", currentData.length);
-    console.log("Deals with valid year/quarter:", currentData.filter(d => d.Year && d.Quarter).length);
-    console.log("Industry breakdown for deals:", byIndustryDeals);
-    console.log("Final industry trends count:", dealIndustryTrends.length);
+    // Simple logging of what we actually found
+    console.log("Real industries found in data:", Object.keys(byIndustryDeals));
     
     return {
       timeline: Object.entries(byYear)
@@ -378,9 +318,6 @@ export const generateChartData = (
           year: d.Year,
         })),
       industryTrends: dealIndustryTrends,
-
     };
-
   }
-
 };
