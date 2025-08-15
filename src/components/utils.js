@@ -66,8 +66,45 @@ export const processCompanies = (companiesData) => {
   }));
 };
 
-export const processDeals = (dealsData) => {
-  return dealsData
+export const processDeals = (dealsData, companiesData = []) => {
+  // Create a comprehensive company lookup map
+  const companyLookup = new Map();
+  if (companiesData && Array.isArray(companiesData)) {
+    console.log("=== COMPANIES TABLE DEBUG ===");
+    console.log("Total companies in table:", companiesData.length);
+    console.log("Sample companies:", companiesData.slice(0, 5).map(c => ({
+      Title: c.Title,
+      Industry: c.Industry || "NO INDUSTRY"
+    })));
+    console.log("Companies with industries:", companiesData.filter(c => c.Industry && c.Industry.trim()).length);
+    
+    companiesData.forEach(company => {
+      if (company.Title) {
+        const title = company.Title.trim();
+        // Store multiple variations for better matching
+        companyLookup.set(title.toLowerCase(), company);
+        companyLookup.set(title.toLowerCase().replace(/\s+/g, ""), company); // No spaces
+        companyLookup.set(title.toLowerCase().replace(/[^\w\s]/g, ""), company); // No punctuation
+        
+        // Handle common company suffixes
+        const withoutSuffix = title.toLowerCase()
+          .replace(/\s+(ag|sa|ltd|inc|corp|gmbh|llc)$/i, "");
+        if (withoutSuffix !== title.toLowerCase()) {
+          companyLookup.set(withoutSuffix, company);
+        }
+      }
+    });
+  }
+
+  console.log(`Created company lookup with ${companyLookup.size} entries from ${companiesData.length} companies`);
+  
+  // Show some sample lookup entries
+  console.log("Sample lookup keys:", Array.from(companyLookup.keys()).slice(0, 10));
+
+  let mappingSuccessCount = 0;
+  let mappingFailCount = 0;
+
+  const processedDeals = dealsData
     .filter(
       (deal) => deal.Confidential !== "TRUE" && deal.Confidential !== true
     )
@@ -86,18 +123,48 @@ export const processDeals = (dealsData) => {
         }
       }
 
-      // ONLY use what's actually in the JSON - NO FAKE MAPPINGS
+      // INDUSTRY MAPPING - deals have NO industry fields, must map from companies
       let industry = null;
+      let mappingSource = "none";
       
-      // Check actual fields in order of preference
-      if (deal.Industry && deal.Industry.trim() && deal.Industry !== "Unknown") {
-        industry = deal.Industry.trim();
-      } else if (deal.Sector && deal.Sector.trim() && deal.Sector !== "Unknown") {
-        industry = deal.Sector.trim();
-      } else if (deal.Vertical && deal.Vertical.trim() && deal.Vertical !== "Unknown") {
-        industry = deal.Vertical.trim();
+      if (deal.Company) {
+        const companyName = deal.Company.trim();
+        
+        // Try exact match first
+        let matchedCompany = companyLookup.get(companyName.toLowerCase());
+        
+        if (!matchedCompany) {
+          // Try without spaces
+          matchedCompany = companyLookup.get(companyName.toLowerCase().replace(/\s+/g, ""));
+        }
+        
+        if (!matchedCompany) {
+          // Try without punctuation
+          matchedCompany = companyLookup.get(companyName.toLowerCase().replace(/[^\w\s]/g, ""));
+        }
+        
+        if (!matchedCompany) {
+          // Try without common suffixes
+          const withoutSuffix = companyName.toLowerCase()
+            .replace(/\s+(ag|sa|ltd|inc|corp|gmbh|llc)$/i, "");
+          matchedCompany = companyLookup.get(withoutSuffix);
+        }
+        
+        if (matchedCompany && matchedCompany.Industry && matchedCompany.Industry.trim()) {
+          industry = matchedCompany.Industry.trim();
+          mappingSource = "company_lookup";
+          mappingSuccessCount++;
+          console.log(`✅ Mapped: "${deal.Company}" → "${industry}"`);
+        } else {
+          mappingFailCount++;
+          // Only log first 5 failures to avoid spam
+          if (mappingFailCount <= 5) {
+            console.log(`❌ No mapping for: "${deal.Company}"`);
+          } else if (mappingFailCount === 6) {
+            console.log(`❌ ... and ${dealsData.length - 5} more unmapped deals`);
+          }
+        }
       }
-      // If none of the fields have real data, leave as null (no fake fallbacks)
 
       const rawAmount =
           deal.Amount ??
@@ -118,7 +185,8 @@ export const processDeals = (dealsData) => {
         Valuation: deal.Valuation ? parseFloat(deal.Valuation) : null,
         Year: year,
         Quarter: quarter,
-        Industry: industry, // Can be null if no real data
+        Industry: industry, // Mapped from companies data
+        MappingSource: mappingSource, // For debugging
         Canton: normalizeCanton(deal.Canton) || "Unknown",
         HasAmount: !!(parsedAmountM && parseFloat(parsedAmountM) > 0),
         HasValuation: !!(deal.Valuation && parseFloat(deal.Valuation) > 0),
@@ -137,6 +205,13 @@ export const processDeals = (dealsData) => {
           : "Unknown",
       };
     });
+
+  console.log("=== MAPPING SUMMARY ===");
+  console.log(`✅ Successfully mapped: ${mappingSuccessCount} deals`);
+  console.log(`❌ Failed to map: ${mappingFailCount} deals`);
+  console.log(`Success rate: ${((mappingSuccessCount / (mappingSuccessCount + mappingFailCount)) * 100).toFixed(1)}%`);
+
+  return processedDeals;
 };
 
 export const generateChartData = (
@@ -167,11 +242,10 @@ export const generateChartData = (
       byFunded[fundedStatus] = (byFunded[fundedStatus] || 0) + 1;
     });
 
-    // Industry trends - only real industries
+    // Industry trends - only real industries (no limit here, let charts decide)
     const realIndustries = Object.entries(byIndustry)
       .filter(([name]) => name && name !== "Unknown")
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
       .map(([name]) => name);
 
     const allYears = Array.from(new Set(currentData.map(d => d.Year).filter(Boolean))).sort((a, b) => a - b);
@@ -206,8 +280,7 @@ export const generateChartData = (
       industries: Object.entries(byIndustry)
         .filter(([name]) => name && name !== "Unknown")
         .map(([name, value]) => ({ name, value }))
-        .sort((a, b) => b.value - a.value)
-        .slice(0, 10),
+        .sort((a, b) => b.value - a.value),
       cantons: Object.entries(byCanton)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
@@ -280,7 +353,7 @@ export const generateChartData = (
         const totalB = b.data.reduce((sum, d) => sum + d.count, 0);
         return totalB - totalA;
       })
-      .slice(0, 10);
+              .slice(0, 15); // Keep top 15 for performance
 
     // Simple logging of what we actually found
     console.log("Real industries found in data:", Object.keys(byIndustryDeals));

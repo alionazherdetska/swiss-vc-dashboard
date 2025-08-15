@@ -104,40 +104,84 @@ const Dashboard = () => {
     }
   }, []);
 
-  // Load and process data
   useEffect(() => {
     const loadData = async () => {
       try {
         let jsonData;
-
+  
         if (window.startupData) {
           jsonData = window.startupData;
         } else {
           jsonData = SAMPLE_DATA;
         }
-
-        // Process Companies data
+  
+        console.log("=== RAW DATA DEBUG ===");
+        console.log("Full JSON structure:", Object.keys(jsonData));
+        console.log("Companies array exists:", !!jsonData.Companies);
+        console.log("Companies array length:", jsonData.Companies?.length || 0);
+        console.log("Deals array exists:", !!jsonData.Deals);
+        console.log("Deals array length:", jsonData.Deals?.length || 0);
+        
+        if (jsonData.Companies && jsonData.Companies.length > 0) {
+          console.log("Sample companies:", jsonData.Companies.slice(0, 3));
+          console.log("Companies with industry data:", 
+            jsonData.Companies.filter(c => c.Industry && c.Industry.trim()).length
+          );
+        }
+  
+        let processedCompanies = [];
+        let processedDeals = [];
+  
+        // Process Companies data first
         if (jsonData.Companies) {
-          const processedCompanies = processCompanies(jsonData.Companies);
+          processedCompanies = processCompanies(jsonData.Companies);
           setCompanies(processedCompanies);
+          console.log("✅ Processed companies:", processedCompanies.length);
+          console.log("Companies with industries after processing:", 
+            processedCompanies.filter(c => c.Industry && c.Industry !== "Unknown").length
+          );
+        } else {
+          console.log("❌ No Companies array in JSON data");
         }
-
-        // Process Deals data
+  
+        // Process Deals data WITH company mapping
         if (jsonData.Deals) {
-          const processedDeals = processDeals(jsonData.Deals);
+          console.log("🔄 Processing deals with companies data...");
+          console.log("Passing", processedCompanies.length, "companies to processDeals");
+          
+          processedDeals = processDeals(jsonData.Deals, processedCompanies);
           setDeals(processedDeals);
+          
+          // Log detailed mapping results
+          const mappedDeals = processedDeals.filter(d => d.Industry);
+          const keywordDeals = processedDeals.filter(d => d.MappingSource === "keyword_detection");
+          const companyDeals = processedDeals.filter(d => d.MappingSource === "company_lookup");
+          
+          console.log("=== FINAL MAPPING RESULTS ===");
+          console.log(`📊 Total deals processed: ${processedDeals.length}`);
+          console.log(`✅ Deals with industry: ${mappedDeals.length}`);
+          console.log(`🏢 Company lookup success: ${companyDeals.length}`);
+          console.log(`🔍 Keyword detection success: ${keywordDeals.length}`);
+          console.log(`❌ No industry assigned: ${processedDeals.length - mappedDeals.length}`);
+          
+          if (mappedDeals.length > 0) {
+            const industries = [...new Set(mappedDeals.map(d => d.Industry))];
+            console.log(`🎯 Industries found: ${industries.join(", ")}`);
+          }
+        } else {
+          console.log("❌ No Deals array in JSON data");
         }
-
+  
         setLoading(false);
       } catch (error) {
-        console.error("Error loading data:", error);
+        console.error("❌ Error loading data:", error);
         setLoading(false);
       }
     };
-
+  
     loadData();
   }, []);
-
+  
   // Generate filter options
   const filterOptions = useMemo(() => {
     const companyOptions = companies.length
