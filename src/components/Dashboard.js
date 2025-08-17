@@ -418,7 +418,7 @@ const Dashboard = () => {
 
   return (
     <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-8xl mx-auto">
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleDarkMode}
@@ -504,7 +504,7 @@ const Dashboard = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Filters Panel */}
           <div className="lg:col-span-1">
             <FilterPanel
@@ -519,7 +519,7 @@ const Dashboard = () => {
           </div>
 
           {/* Charts Panel */}
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-4">
             <div className={`rounded-lg shadow-sm p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
               {/* Chart Type Selector */}
               <ChartSelector

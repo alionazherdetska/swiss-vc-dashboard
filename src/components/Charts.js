@@ -132,6 +132,7 @@ export const QuarterlyAnalysisChart = ({
     const [leftMode, setLeftMode] = useState("line");   // "line" | "column"
     const [rightMode, setRightMode] = useState("line"); // "line" | "column"
     const [showTotal, setShowTotal] = useState(true);
+    const [showLabels, setShowLabels] = useState(false); // Fixed: Changed to false by default
 
     // ---- helpers ----
     const sanitizeKey = (s) =>
@@ -145,8 +146,6 @@ export const QuarterlyAnalysisChart = ({
         borderRadius: "8px",
         color: isDark ? "#F3F4F6" : "#1F2937",
     };
-
-    const [showLabels, setShowLabels] = useState(true);
 
     function useIndustryColor() {
         const colorMapRef = useRef(new Map(Object.entries(FIXED_INDUSTRY_COLORS)));
@@ -162,6 +161,7 @@ export const QuarterlyAnalysisChart = ({
 
         return getColor;
     }
+    
     // Pick source: prefer "deals", else try "data"
     const dealsSource = useMemo(() => {
         if (Array.isArray(deals)) return deals;
@@ -219,8 +219,7 @@ export const QuarterlyAnalysisChart = ({
 
     const colorOf = useIndustryColor();
 
-
-    // Renderers
+    // Fixed renderers - removed LabelList from inside
     const renderStackedBars = (metricSuffix) =>
         industries.map((ind) => {
             const key = `${sanitizeKey(ind)}__${metricSuffix}`;
@@ -232,23 +231,7 @@ export const QuarterlyAnalysisChart = ({
                     fill={colorOf(ind)}
                     name={ind}
                     radius={[3, 3, 0, 0]}
-                >
-                    {/*<LabelList*/}
-                    {/*    dataKey={key}*/}
-                    {/*    position="top"*/}
-                    {/*    style={{ fontSize: 10, fill: isDark ? "#E5E7EB" : "#374151" }}*/}
-                    {/*    formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}*/}
-                    {/*/>*/}
-                    {showLabels && (
-                        <LabelList
-                            dataKey={key}
-                            position="top"
-                            offset={6}
-                            style={{ fontSize: 10, fill: isDark ? "#E5E7EB" : "#374151", pointerEvents: "none" }}
-                            formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
-                        />
-                    )}
-                </Bar>
+                />
             );
         });
 
@@ -264,78 +247,83 @@ export const QuarterlyAnalysisChart = ({
                     strokeWidth={2}
                     dot={{ r: 3 }}
                     name={ind}
-                >
-                    {/*<LabelList*/}
-                    {/*    dataKey={key}*/}
-                    {/*    position="top"*/}
-                    {/*    style={{ fontSize: 10, fill: isDark ? "#E5E7EB" : "#374151" }}*/}
-                    {/*    formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}*/}
-                    {/*/>*/}
-                </Line>
-            );
-        });
-    const renderStackedBarLabels = (metricSuffix) =>
-        industries.map((ind) => {
-            const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-            return (
-                <Bar
-                    key={`${key}__labels`}
-                    dataKey={key}
-                    stackId="a"
-                    fill="transparent"
-                    stroke="transparent"
-                    isAnimationActive={false}
-                >
-                    <LabelList
-                        dataKey={key}
-                        position="top"
-                        offset={6}
-                        style={{
-                            fontSize: 10,                      // smaller labels
-                            fill: isDark ? "#E5E7EB" : "#374151",
-                            pointerEvents: "none"              // tooltips stay responsive
-                        }}
-                        formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
-                    />
-                </Bar>
+                />
             );
         });
 
-    const renderLineLabels = (metricSuffix) =>
-        industries.map((ind) => {
-            const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-            return (
-                <Line
-                    key={`${key}__labels`}
-                    type="monotone"
-                    dataKey={key}
-                    stroke="transparent"
-                    dot={false}
-                    isAnimationActive={false}
-                >
-                    <LabelList
-                        dataKey={key}
-                        position="top"
-                        offset={6}
-                        style={{
-                            fontSize: 10,
-                            fill: isDark ? "#E5E7EB" : "#374151",
-                            pointerEvents: "none"
-                        }}
-                        formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
-                    />
-                </Line>
-            );
-        });
-    const volumeMax = React.useMemo(
-        () => Math.max(0, ...rows.map(r => r.totalVolume || 0)),
-        [rows]
-    );
+    // Separate label renderers
+  const renderStackedBarLabels = (metricSuffix) =>
+    industries.map((ind) => {
+      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+      return (
+        <Bar
+          key={`${key}__labels`}
+          dataKey={key}
+          stackId="a"
+          fill="transparent"
+          stroke="transparent"
+          isAnimationActive={false}
+          legendType="none"
+        >
+          <LabelList
+            dataKey={key}
+            position="top"
+            offset={6}
+            style={{
+              fontSize: 10,
+              fill: isDark ? "#E5E7EB" : "#374151",
+              pointerEvents: "none"
+            }}
+            formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
+          />
+        </Bar>
+      );
+    });
 
-    // const countMax = React.useMemo(
-    //     () => Math.max(0, ...rows.map(r => r.totalCount || 0)),
-    //     [rows]
-    // );
+  const renderLineLabels = (metricSuffix) =>
+    industries.map((ind) => {
+      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+      return (
+        <Line
+          key={`${key}__labels`}
+          type="monotone"
+          dataKey={key}
+          stroke="transparent"
+          dot={false}
+          isAnimationActive={false}
+          legendType="none"
+        >
+          <LabelList
+            dataKey={key}
+            position="top"
+            offset={6}
+            style={{
+              fontSize: 10,
+              fill: isDark ? "#E5E7EB" : "#374151",
+              pointerEvents: "none"
+            }}
+            formatter={(v) => (metricSuffix === "volume" ? (+v).toFixed(1) : v)}
+          />
+        </Line>
+      );
+    });
+
+  // Calculate max for Y axis: if showTotal is on, use totalVolume, else use max of all industry volumes
+  const volumeMax = React.useMemo(() => {
+    if (showTotal) {
+      return Math.max(0, ...rows.map(r => r.totalVolume || 0));
+    } else {
+      // Find max of all industry volumes
+      let max = 0;
+      for (const r of rows) {
+        for (const ind of industries) {
+          const vKey = `${sanitizeKey(ind)}__volume`;
+          if (r[vKey] && r[vKey] > max) max = r[vKey];
+        }
+      }
+      return max;
+    }
+  }, [rows, industries, showTotal]);
 
     return (
         <div className="space-y-4">
@@ -394,8 +382,7 @@ export const QuarterlyAnalysisChart = ({
                         Investment Volume vs Year (CHF M)
                     </h3>
                     <ResponsiveContainer width="100%" height={420}>
-                        <ComposedChart data={rows} margin={CHART_MARGIN}  style={{ overflow: "visible" }}  // allow labels to render outside chart bounds
-                        >
+                        <ComposedChart data={rows} margin={CHART_MARGIN} style={{ overflow: "visible" }}>
                             <defs>
                                 <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
                                     <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
@@ -407,24 +394,30 @@ export const QuarterlyAnalysisChart = ({
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
                             <XAxis dataKey="year" stroke={axisStroke}/>
-                            <YAxis
-                                stroke={axisStroke}
-                                domain={[0, Math.ceil(volumeMax * 1.1)]}   // <- fixed, padded domain
-                                allowDataOverflow                          // keeps range stable
-                                label={{
-                                    value: "Investment Volume CHF (M)",
-                                    angle: -90,
-                                    position: "outsideLeft",
-                                    offset: 50,
-                                    fill: axisStroke
-                                }}
-                            />
+                            <YAxis 
+                              stroke={axisStroke}
+                              domain={[0, Math.ceil(volumeMax * 1.1)]}
+                              allowDataOverflow
+                              label={{
+                                  value: "Investment Volume CHF (M)",
+                                  angle: -90,
+                                  position: "insideLeft",
+                                  fill: axisStroke,
+                                  dx: "-1.5em",
+                                  dy: "3em", // Move label down
+                                  style: { textAnchor: 'middle' }
+                              }} 
+                          />
                             <Tooltip
                                 contentStyle={tooltipStyle}
                                 formatter={(v, name) => [`${(+v).toFixed(1)}M CHF`, name]}
                             />
                             <Legend/>
-                            {leftMode === "column" ? renderStackedBars("volume", showLabels) : renderLines("volume")}
+                            
+                            {/* Main chart elements */}
+                            {leftMode === "column" ? renderStackedBars("volume") : renderLines("volume")}
+                            
+                            {/* Total line */}
                             {showTotal && (
                                 <Line
                                     type="monotone"
@@ -436,11 +429,11 @@ export const QuarterlyAnalysisChart = ({
                                     filter="url(#glow-red)"
                                 />
                             )}
+                            
+                            {/* Labels only when enabled */}
                             {showLabels && (leftMode === "column"
                                 ? renderStackedBarLabels("volume")
                                 : renderLineLabels("volume"))}
-                            {showLabels && leftMode === "line" && renderLineLabels("volume")}
-
                         </ComposedChart>
                     </ResponsiveContainer>
                 </div>
@@ -451,20 +444,31 @@ export const QuarterlyAnalysisChart = ({
                     Number of Deals vs Year
                     </h3>
                     <ResponsiveContainer width="100%" height={420}>
-                        <ComposedChart data={rows} margin={CHART_MARGIN}  style={{ overflow: "visible" }}  // allow labels to render outside chart bounds
-                        >
+                        <ComposedChart data={rows} margin={CHART_MARGIN} style={{ overflow: "visible" }}>
                             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                             <XAxis dataKey="year" stroke={axisStroke} />
                             <YAxis
                                 stroke={axisStroke}
-                                label={{ value: "Number of Deals", angle: -90, position: "outerLeft", fill: axisStroke, offset:30 }}
+                                label={{ 
+                                    value: "Number of Deals", 
+                                    angle: -90, 
+                                    position: "insideLeft", 
+                                    fill: axisStroke, 
+                                    dx: "-1.4em",
+                                    dy: "3em", // Move label down
+                                    style: { textAnchor: 'middle' } 
+                                }}
                             />
                             <Tooltip
                                 contentStyle={tooltipStyle}
                                 formatter={(v, name) => [v, name]}
                             />
                             <Legend />
+                            
+                            {/* Main chart elements */}
                             {rightMode === "column" ? renderStackedBars("count") : renderLines("count")}
+                            
+                            {/* Total line */}
                             {showTotal && (
                                 <Line
                                     type="monotone"
@@ -473,11 +477,12 @@ export const QuarterlyAnalysisChart = ({
                                     strokeWidth={3}
                                     dot={false}
                                     name="Total Deals"
-                                    filter="url(#glow-red)"     // <— the glow
-
+                                    filter="url(#glow-red)"
                                 />
                             )}
-                            {showLabels && (leftMode === "column"
+                            
+                            {/* Labels only when enabled - fixed to use rightMode instead of leftMode */}
+                            {showLabels && (rightMode === "column"
                                 ? renderStackedBarLabels("count")
                                 : renderLineLabels("count"))}
                         </ComposedChart>
