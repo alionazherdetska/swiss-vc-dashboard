@@ -490,10 +490,12 @@ const createRenderFunctions = (
                 </filter>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
-              <XAxis 
-                dataKey="year" 
+              <XAxis
+                type="category"
+                dataKey="year"
                 stroke={axisStroke}
                 fontSize={16}
+                padding={{ left: 24, right: 24 }}
               />
               <YAxis 
                 stroke={axisStroke}
@@ -657,10 +659,12 @@ const createRenderFunctions = (
                 </filter>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
-              <XAxis 
-                dataKey="year" 
+              <XAxis
+                type="category"
+                dataKey="year"
                 stroke={axisStroke}
                 fontSize={isExpandedView ? 14 : 12}
+                padding={{ left: isExpandedView ? 24 : 18, right: isExpandedView ? 24 : 18 }}
               />
               <YAxis 
                 stroke={axisStroke}
@@ -715,10 +719,12 @@ const createRenderFunctions = (
               style={{ overflow: "visible" }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-              <XAxis 
-                dataKey="year" 
+              <XAxis
+                type="category"
+                dataKey="year"
                 stroke={axisStroke}
                 fontSize={isExpandedView ? 14 : 12}
+                padding={{ left: isExpandedView ? 24 : 18, right: isExpandedView ? 24 : 18 }}
               />
               <YAxis
                 stroke={axisStroke}
