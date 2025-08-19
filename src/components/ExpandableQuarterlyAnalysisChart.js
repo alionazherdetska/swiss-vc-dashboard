@@ -11,6 +11,7 @@ import {
   ComposedChart,
   LabelList,
 } from "recharts";
+
 import { Maximize2, X } from "lucide-react";
 
 const CHART_MARGIN = { top: 50, right: 50, left: 60, bottom: 60 };
@@ -229,136 +230,195 @@ export const ExpandableQuarterlyAnalysisChart = ({
     return max;
   }, [rows]);
 
-  // Chart rendering functions
-  const createRenderFunctions = (mode, metricSuffix, showLabelsEnabled, isExpandedView = false) => {
-    const renderBars = () =>
-      industries.map((ind) => {
-        const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-        return (
-          <Bar
-            key={key}
-            dataKey={key}
-            // stacked bars: use a distinct stackId per metric (volume/count)
-            stackId={`stack-${metricSuffix}`}
-            fill={colorOf(ind)}
-            name={ind}
-            // widen bars: larger sizes for expanded and compact views
-            barSize={isExpandedView ? 36 : 28}
-            radius={[0, 0, 0, 0]}
-          />
-        );
-      });
+  const contrastTextOn = (hex) => {
+  if (!hex || !hex.startsWith("#")) return "#111827";
+  let c = hex.slice(1);
+  if (c.length === 3) c = c.split("").map(ch => ch + ch).join("");
+  const r = parseInt(c.slice(0,2), 16);
+  const g = parseInt(c.slice(2,4), 16);
+  const b = parseInt(c.slice(4,6), 16);
+  // YIQ
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 140 ? "#111827" : "#FFFFFF"; // dark text on light bg, white on dark
+};
 
-    const renderLines = () =>
-      industries.map((ind) => {
-        const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-        return (
-          <Line
-            key={key}
-            type="linear"
-            dataKey={key}
-            stroke={colorOf(ind)}
-            strokeWidth={isExpandedView ? 3 : 2}
-            dot={{ r: isExpandedView ? 5 : 3 }}
-            name={ind}
-          />
-        );
-      });
 
-    const renderBarLabels = () => {
-      // show labels only for the selected label year (prefer 2024, else last year)
-      const lastYear = rows && rows.length ? rows[rows.length - 1].year : undefined;
-      const labelYearPreferred = 2024;
-      const labelYear = rows && rows.some(r => r.year === labelYearPreferred) ? labelYearPreferred : lastYear;
-      const top5Set = new Set((typeof top5 !== 'undefined' && top5) ? top5 : []);
-      return industries.map((ind) => {
-        const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-        return (
-          <Bar
-            key={`${key}__labels`}
-            dataKey={key}
-            fill="transparent"
-            stroke="transparent"
-            isAnimationActive={false}
-            legendType="none"
-            // prevent the Bar geometry from rendering; we only want the labels
-            shape={() => null}
-          >
-            <LabelList
-              dataKey={key}
-              // custom renderer to place the label to the right of the bar and align vertically
-              content={(props) => {
-                const { x, y, value, index, payload } = props;
-                // robust year extraction: prefer payload, fall back to rows[index]
-                const candidateYear = (payload && (payload.year ?? payload.Year));
-                const fallbackYear = (typeof index === 'number' && rows && rows[index]) ? rows[index].year : undefined;
-                const payloadYear = Number(candidateYear ?? fallbackYear);
-                // only render labels for industries in top5 and for the chosen labelYear
-                if (!top5Set.has(ind) || labelYear === undefined || payloadYear !== Number(labelYear)) return null;
-                const display = metricSuffix === "volume" ? (Number(value) || 0).toFixed(1) : (value != null ? String(value) : "");
-                const tx = (x || 0) + (isExpandedView ? 8 : 6);
-                const ty = (y || 0);
-                const fill = isDark ? "#E5E7EB" : "#374151";
-                return (
-                  <text x={tx} y={ty} fill={fill} fontSize={isExpandedView ? 12 : 10} textAnchor="start" alignmentBaseline="middle">
-                    {display}
-                  </text>
-                );
-              }}
-            />
-          </Bar>
-        );
-      });
-    };
+const createRenderFunctions = (
+  mode,
+  metricSuffix,
+  showLabelsEnabled,
+  isExpandedView = false
+) => {
+  // Helpers local to this function so it's copy-paste ready
+  const totalKey = metricSuffix === "volume" ? "totalVolume" : "totalCount";
+  const barSize = isExpandedView ? 48 : 36;
+  const MIN_SHARE = 0.15;   // show label if segment ≥15% of that year's total
+  const MIN_PX = 18;        // and the segment is tall enough in pixels
 
-    const renderLineLabels = () => {
-      const lastYear = rows && rows.length ? rows[rows.length - 1].year : undefined;
-      const labelYearPreferred = 2024;
-      const labelYear = rows && rows.some(r => r.year === labelYearPreferred) ? labelYearPreferred : lastYear;
-      const top5Set = new Set((typeof top5 !== 'undefined' && top5) ? top5 : []);
-      return industries.map((ind) => {
-        const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-        return (
-          <Line
-            key={`${key}__labels`}
-            type="linear"
-            dataKey={key}
-            stroke="transparent"
-            dot={false}
-            isAnimationActive={false}
-            legendType="none"
-          >
-            <LabelList
-              dataKey={key}
-              content={(props) => {
-                const { x, y, value, index, payload } = props;
-                const candidateYear = (payload && (payload.year ?? payload.Year));
-                const fallbackYear = (typeof index === 'number' && rows && rows[index]) ? rows[index].year : undefined;
-                const payloadYear = Number(candidateYear ?? fallbackYear);
-                if (!top5Set.has(ind) || labelYear === undefined || payloadYear !== Number(labelYear)) return null;
-                const display = metricSuffix === "volume" ? (Number(value) || 0).toFixed(1) : (value != null ? String(value) : "");
-                const tx = (x || 0) + (isExpandedView ? 8 : 6);
-                const ty = (y || 0);
-                const fill = isDark ? "#E5E7EB" : "#374151";
-                return (
-                  <text x={tx} y={ty} fill={fill} fontSize={isExpandedView ? 12 : 10} textAnchor="start" alignmentBaseline="middle">
-                    {display}
-                  </text>
-                );
-              }}
-            />
-          </Line>
-        );
-      });
-    };
-
-    return {
-      main: mode === "column" ? renderBars() : renderLines(),
-      labels: showLabelsEnabled 
-        ? (mode === "column" ? renderBarLabels() : renderLineLabels())
-        : null
-    };
+  const formatK = (n) => {
+    if (metricSuffix === "count") return `${n ?? 0}`;
+    const v = Number(n) || 0;
+    return v >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `${v}`;
   };
+
+  const contrastTextOn = (hex) => {
+    if (!hex || !hex.startsWith("#")) return "#111827";
+    let c = hex.slice(1);
+    if (c.length === 3) c = c.split("").map(ch => ch + ch).join("");
+    const r = parseInt(c.slice(0,2), 16);
+    const g = parseInt(c.slice(2,4), 16);
+    const b = parseInt(c.slice(4,6), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 140 ? "#111827" : "#FFFFFF"; // dark text on light bg, white on dark
+  };
+
+  // --- main geometry ---
+  const renderBars = () =>
+    industries.map((ind) => {
+      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+      return (
+        <Bar
+          key={key}
+          dataKey={key}
+          stackId={`stack-${metricSuffix}`}
+          fill={colorOf(ind)}
+          name={ind}
+          barSize={barSize}
+          radius={[0, 0, 0, 0]}
+        />
+      );
+    });
+
+  const renderLines = () =>
+    industries.map((ind) => {
+      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+      return (
+        <Line
+          key={key}
+          type="linear"
+          dataKey={key}
+          stroke={colorOf(ind)}
+          strokeWidth={isExpandedView ? 3 : 2}
+          dot={{ r: isExpandedView ? 5 : 3 }}
+          name={ind}
+        />
+      );
+    });
+
+  // --- labels layer (render LAST in the chart to be "on top") ---
+  const renderBarLabels = () => {
+    if (!showLabelsEnabled) return null;
+
+    // Total labels at the top of each stacked bar
+    const totalLabels = (
+      <Bar
+        key={`_totals_${metricSuffix}`}
+        dataKey={totalKey}
+        fill="transparent"
+        stroke="transparent"
+        isAnimationActive={false}
+        legendType="none"
+        shape={() => null}
+      >
+        <LabelList
+          dataKey={totalKey}
+          position="top"
+          offset={isExpandedView ? 10 : 8}
+          content={({ x, y, value }) => {
+            if (x == null || y == null) return null;
+            const fill = isDark ? "#E5E7EB" : "#111827";
+            return (
+              <text
+                x={x}
+                y={y - (isExpandedView ? 6 : 4)}
+                fill={fill}
+                fontWeight="700"
+                fontSize={isExpandedView ? 14 : 12}
+                textAnchor="middle"
+                pointerEvents="none"
+              >
+                {formatK(value)}
+              </text>
+            );
+          }}
+        />
+      </Bar>
+    );
+
+    const segmentLabels = industries.map((ind) => {
+  const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+  const segColor = colorOf(ind);
+  const textFill = contrastTextOn(segColor);
+  const outline = textFill === "#FFFFFF" ? "#000000" : "#FFFFFF";
+
+  return (
+    <Bar
+      key={`${key}__labels`}
+      dataKey={key}
+      // 🔧 add this line:
+      stackId={`stack-${metricSuffix}`}   // same stack as the real bars
+      barSize={isExpandedView ? 48 : 36}  // optional, but helps alignment
+      fill="transparent"
+      stroke="transparent"
+      isAnimationActive={false}
+      legendType="none"
+      shape={() => null}
+    >
+      <LabelList
+        dataKey={key}
+        content={({ x, y, width, height, value, index }) => {
+              if (
+                x == null || y == null || width == null || height == null || index == null
+              ) return null;
+
+              const row = rows[index];
+              if (!row) return null;
+
+              const total = Number(row[totalKey]) || 0;
+              const v = Number(value) || 0;
+              if (total <= 0) return null;
+
+              const share = v / total;
+              if (share < MIN_SHARE || height < MIN_PX) return null;
+
+              const cx = x + width / 2;
+              const cy = y + height / 2;
+
+              return (
+                <text
+                  x={cx}
+                  y={cy}
+                  fill={textFill}                 // high-contrast text
+                  stroke={outline}               // thin outline for readability
+                  strokeWidth={isExpandedView ? 0.7 : 0.6}
+                  fontSize={isExpandedView ? 12 : 10}
+                  fontWeight="600"
+                  textAnchor="middle"
+                  alignmentBaseline="central"
+                  pointerEvents="none"
+                >
+                  {formatK(v)}
+                </text>
+              );
+            }}
+          />
+        </Bar>
+      );
+    });
+
+    return [totalLabels, ...segmentLabels];
+  };
+
+  const renderLineLabels = () => null; // no labels for line mode
+
+  return {
+    main: mode === "column" ? renderBars() : renderLines(),
+    // place this AFTER the total line in <ComposedChart> so labels are on top
+    labels: mode === "column" ? renderBarLabels() : renderLineLabels(),
+  };
+};
+
+
 
   const ExpandedChartContent = () => {
     const isVolumeChart = expandedChart === "volume";
