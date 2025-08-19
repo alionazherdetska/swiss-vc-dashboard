@@ -252,8 +252,15 @@ const createRenderFunctions = (
   // Helpers local to this function so it's copy-paste ready
   const totalKey = metricSuffix === "volume" ? "totalVolume" : "totalCount";
   const barSize = isExpandedView ? 48 : 36;
-  const MIN_SHARE = 0.15;   // show label if segment ≥15% of that year's total
-  const MIN_PX = 18;        // and the segment is tall enough in pixels
+  // Label visibility thresholds:
+  // - show label if segment >= MIN_SHARE of that year's total AND the segment
+  //   has at least MIN_PX pixels height.
+  // - top5 industries are allowed a smaller threshold so prominent industries
+  //   still show labels even when their share is slightly below MIN_SHARE.
+  const MIN_SHARE = 0.10;   // show label if segment ≥10% of that year's total
+  const MIN_PX = 12;        // and the segment is tall enough in pixels
+  const TOP5_MIN_SHARE = 0.06; // for top5 industries allow smaller share
+  const TOP5_MIN_PX = 10;      // and a smaller pixel height
 
   const formatK = (n) => {
     if (metricSuffix === "count") return `${n ?? 0}`;
@@ -309,13 +316,19 @@ const createRenderFunctions = (
                 if (total <= 0) return null;
 
                 const share = v / total;
-                if (share < MIN_SHARE || height < MIN_PX) return null;
+                // Allow labels for segments that meet the default thresholds,
+                // or for top5 industries that meet the relaxed thresholds.
+                const meetsDefault = share >= MIN_SHARE && height >= MIN_PX;
+                const meetsTop5 = Array.isArray(top5) && top5.includes(ind) && share >= TOP5_MIN_SHARE && height >= TOP5_MIN_PX;
+                if (!(meetsDefault || meetsTop5)) return null;
 
                 const cx = x + width / 2;
                 const cy = y + height / 2;
                 const segColor = colorOf(ind);
-                const textFill = contrastTextOn(segColor);
-                const outline = textFill === "#FFFFFF" ? "#000000" : "#FFFFFF";
+                // For volume labels, force black text (no outline). For others, pick a contrast outline.
+                const textFill = metricSuffix === 'volume' ? '#000000' : contrastTextOn(segColor);
+                const outline = metricSuffix === 'volume' ? 'none' : (textFill === "#FFFFFF" ? "#000000" : "#FFFFFF");
+                const strokeWidthVal = outline === 'none' ? 0 : (isExpandedView ? 0.7 : 0.6);
 
                 return (
                   <text
@@ -323,7 +336,7 @@ const createRenderFunctions = (
                     y={cy}
                     fill={textFill}
                     stroke={outline}
-                    strokeWidth={isExpandedView ? 0.7 : 0.6}
+                    strokeWidth={strokeWidthVal}
                     fontSize={isExpandedView ? 12 : 10}
                     fontWeight="600"
                     textAnchor="middle"
@@ -377,12 +390,12 @@ const createRenderFunctions = (
           offset={isExpandedView ? 10 : 8}
           content={({ x, y, value }) => {
             if (x == null || y == null) return null;
-            const fill = isDark ? "#E5E7EB" : "#111827";
+      const totalFill = metricSuffix === 'volume' ? '#000000' : (isDark ? "#E5E7EB" : "#111827");
             return (
               <text
                 x={x}
-                y={y - (isExpandedView ? 6 : 4)}
-                fill={fill}
+        y={y - (isExpandedView ? 6 : 4)}
+        fill={totalFill}
                 fontWeight="700"
                 fontSize={isExpandedView ? 14 : 12}
                 textAnchor="middle"
