@@ -14,12 +14,12 @@ import {
   IndustryTrendsChart,
   FundingAnalysisChart,
   PhaseAnalysisChart,
-  QuarterlyAnalysisChart,
 } from "./Charts.js";
 import { Building2, Handshake } from "./CustomIcons.js";
 import { processCompanies, processDeals, generateChartData } from "./utils";
 import { SAMPLE_DATA, getChartOptions, VOLUME_OPTIONS } from "./constants";
 import { COLOR_PALETTE, FIXED_INDUSTRY_COLORS } from "./colors";
+import ExpandableQuarterlyAnalysisChart from "./ExpandableQuarterlyAnalysisChart.js";
 
 
 const Dashboard = () => {
@@ -360,7 +360,7 @@ const Dashboard = () => {
         );
       case "quarterly-analysis":
         return (
-            <QuarterlyAnalysisChart
+            <ExpandableQuarterlyAnalysisChart
                 deals={filteredDeals}
                 isDark={isDark}
                 colorOf={getIndustryColor}   // pass down
