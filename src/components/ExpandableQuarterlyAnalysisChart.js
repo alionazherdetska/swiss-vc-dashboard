@@ -642,12 +642,127 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                   }} 
                 />
                 <Tooltip
-                  wrapperStyle={{ pointerEvents: 'none', zIndex: 9999, position: 'fixed' }}
-                  contentStyle={{
-                    ...tooltipStyle,
-                    transform: 'translateY(60px)' // Move tooltip down further to avoid legend overlap
+                  wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
+                  // Custom content: show top5 first, then the rest of industries below
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload || !Array.isArray(payload)) return null;
+
+                    // Resolve payload names back to the original industry labels in `industries`.
+                    // Build a sanitized lookup with multiple canonical forms so variants like
+                    // 'Micro_Nano', 'Micro__Nano', 'Micro / Nano' all map to the same label.
+                    const makeKey = (s) => sanitizeKey(String(s || '')).replace(/_+/g, '_').toLowerCase();
+                    const sanitizedMap = new Map();
+                    industries.forEach((ind) => {
+                      const k = makeKey(ind);
+                      sanitizedMap.set(k, ind);
+                      sanitizedMap.set(k.replace(/_/g, ' '), ind);
+                      sanitizedMap.set(k.replace(/_/g, ''), ind);
+                    });
+
+                    const resolveBase = (name) => {
+                      if (!name) return '';
+                      // strip known suffixes
+                      let s = String(name).replace(/(__|_)?count$/i, '').replace(/(__|_)?volume$/i, '');
+                      s = s.replace(/^_+|_+$/g, '');
+                      const collapsed = s.replace(/_+/g, ' ').replace(/\s+/g, ' ').trim();
+
+                      // direct match against display names
+                      const direct = industries.find(ind => ind && ind.toLowerCase() === collapsed.toLowerCase());
+                      if (direct) return direct;
+
+                      const candidates = [collapsed, name, s];
+                      for (const cand of candidates) {
+                        const k = makeKey(cand);
+                        if (sanitizedMap.has(k)) return sanitizedMap.get(k);
+                        const kSpace = k.replace(/_/g, ' ');
+                        if (sanitizedMap.has(kSpace)) return sanitizedMap.get(kSpace);
+                        const kNo = k.replace(/_/g, '');
+                        if (sanitizedMap.has(kNo)) return sanitizedMap.get(kNo);
+                      }
+
+                      return collapsed;
+                    };
+
+                    const byBase = new Map();
+                    payload.forEach((p) => {
+                      if (!p || !p.name) return;
+                      const base = resolveBase(p.name);
+                      if (!byBase.has(base)) byBase.set(base, []);
+                      byBase.get(base).push(p);
+                    });
+
+                    // For each base, pick the preferred entry: prefer the one matching metricSuffix,
+                    // otherwise prefer the plain name, otherwise first available.
+                    const pickEntry = (entries) => {
+                      if (!entries || !entries.length) return null;
+                      const exact = entries.find(e => e.name === entries[0].name.replace(/(__|_)?count$/i, '').replace(/(__|_)?volume$/i, ''));
+                      // prefer match by metricSuffix
+                      const suffMatch = entries.find(e => new RegExp(`${metricSuffix}$`, 'i').test(e.name));
+                      return suffMatch || exact || entries[0];
+                    };
+
+                    // Build arrays of items with base name and chosen entry
+                    const allItems = [];
+                    byBase.forEach((entries, base) => {
+                      const chosen = pickEntry(entries);
+                      if (chosen) allItems.push({ base, entry: chosen });
+                    });
+
+                    // Build topItems according to top5 order if available, else highest values
+                    let topItems = [];
+                    if (Array.isArray(top5) && top5.length > 0) {
+                      topItems = top5.map((ind) => {
+                        const found = allItems.find(a => a.base === ind);
+                        return found || null;
+                      }).filter(Boolean);
+                    }
+                    if (topItems.length === 0) {
+                      topItems = allItems.slice().sort((a, b) => (b.entry.value || 0) - (a.entry.value || 0)).slice(0, 5);
+                    }
+
+                    const topBases = new Set(topItems.map(i => i.base));
+                    const otherItems = allItems.filter(i => !topBases.has(i.base)).sort((a, b) => (b.entry.value || 0) - (a.entry.value || 0));
+
+                    const headerStyle = {
+                      padding: '8px 12px',
+                      borderBottom: `1px solid ${isDark ? '#4B5563' : '#E2E8F0'}`,
+                      color: tooltipStyle.color,
+                      fontWeight: 700,
+                    };
+                    const rowStyle = { padding: '6px 12px', display: 'flex', gap: 8, alignItems: 'center', color: tooltipStyle.color };
+                    const otherRowStyle = { padding: '4px 12px', display: 'flex', gap: 8, alignItems: 'center', color: tooltipStyle.color, fontSize: 12, opacity: 0.95 };
+
+                    return (
+                      <div style={{ ...tooltipStyle, minWidth: 180, boxSizing: 'border-box' }}>
+                        <div style={headerStyle}>{label}</div>
+                        <div>
+                          {topItems.map((it) => (
+                            <div key={it.base} style={rowStyle}>
+                              <div style={{ width: 10, height: 10, borderRadius: 2, background: colorOf(it.base) }} />
+                              <div style={{ fontSize: 13 }}>
+                                <span style={{ color: colorOf(it.base), fontWeight: 600 }}>{it.base}</span>
+                                <span style={{ marginLeft: 8 }}>: {formatter(it.entry.value, it.base)[0]}</span>
+                              </div>
+                            </div>
+                          ))}
+
+                          {otherItems.length > 0 && (
+                            <div style={{ borderTop: `1px solid ${isDark ? '#4B5563' : '#E2E8F0'}`, marginTop: 6 }}>
+                              {otherItems.map((it) => (
+                                <div key={it.base} style={otherRowStyle}>
+                                  <div style={{ width: 8, height: 8, borderRadius: 2, background: colorOf(it.base) }} />
+                                  <div style={{ fontSize: 12 }}>
+                                    <span style={{ color: colorOf(it.base), fontWeight: 500 }}>{it.base}</span>
+                                    <span style={{ marginLeft: 6 }}>: {formatter(it.entry.value, it.base)[0]}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
                   }}
-                  formatter={formatter}
                 />
                 
                 {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true).main}
@@ -807,7 +922,7 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                 }} 
               />
               <Tooltip
-                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999, position: 'fixed' }}
+                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
                 contentStyle={tooltipStyle}
                 formatter={(v, name) => [`${(+v).toFixed(1)}M CHF`, name]}
               />
@@ -880,7 +995,7 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                 }}
               />
               <Tooltip
-                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999, position: 'fixed' }}
+                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
                 contentStyle={tooltipStyle}
                 formatter={(v, name) => [v, name]}
               />
