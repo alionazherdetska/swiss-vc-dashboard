@@ -325,20 +325,21 @@ const createRenderFunctions = (
                 const cx = x + width / 2;
                 const cy = y + height / 2;
                 const segColor = colorOf(ind);
-                // For volume labels, force black text (no outline). For others, pick a contrast outline.
-                const textFill = metricSuffix === 'volume' ? '#000000' : contrastTextOn(segColor);
-                const outline = metricSuffix === 'volume' ? 'none' : (textFill === "#FFFFFF" ? "#000000" : "#FFFFFF");
-                const strokeWidthVal = outline === 'none' ? 0 : (isExpandedView ? 0.7 : 0.6);
+                // Bar labels: always plain black, no stroke, font weight 600
+                const fillColor = '#000000';
+                const strokeColor = 'none';
+                const strokeWidthVal = 0;
+                const fontWeightVal = '600';
 
                 return (
                   <text
                     x={cx}
                     y={cy}
-                    fill={textFill}
-                    stroke={outline}
+                    fill={fillColor}
+                    stroke={strokeColor}
                     strokeWidth={strokeWidthVal}
                     fontSize={isExpandedView ? 12 : 10}
-                    fontWeight="600"
+                    fontWeight={fontWeightVal}
                     textAnchor="middle"
                     alignmentBaseline="central"
                     pointerEvents="none"
@@ -412,7 +413,80 @@ const createRenderFunctions = (
   return totalLabels;
   };
 
-  const renderLineLabels = () => null; // no labels for line mode
+  const renderLineLabels = () => {
+    if (!showLabelsEnabled) return null;
+    if (!rows || !rows.length) return null;
+
+    const lastIndex = rows.length - 1;
+
+    // For line mode we render invisible helpers (Bars) with LabelList children
+    // that only draw on the last data point and only for industries in top5.
+    return industries.map((ind) => {
+      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+      return (
+        <Bar
+          key={`_line_labels_${key}`}
+          dataKey={key}
+          fill="transparent"
+          stroke="transparent"
+          isAnimationActive={false}
+          legendType="none"
+          shape={() => null}
+        >
+          <LabelList
+            dataKey={key}
+            position="right"
+            content={({ x, y, width, height, value, index }) => {
+              // Only label the last year and only top5 industries
+              if (index !== lastIndex) return null;
+              if (!Array.isArray(top5) || !top5.includes(ind)) return null;
+              const v = Number(value) || 0;
+              if (v <= 0) return null;
+
+                // Position labels closer to the point and slightly above it:
+                // - smaller horizontal offset (labels sit nearer the chart)
+                // - lift labels by a few pixels so they appear 'on top' of the point
+                // smaller horizontal offset so labels sit closer to the point
+                const rightOffset = isExpandedView ? 12 : 0;
+                const lift = isExpandedView ? -12 : -8; // negative moves label up
+                const baseX = x != null ? x + (width || 0) : (x || 0);
+                const cx = baseX + rightOffset;
+                const cy = y != null ? (y + lift) : 0;
+
+              // Choose label color: for volume prefer black, otherwise contrast
+              const segColor = colorOf(ind);
+              const textFill = metricSuffix === 'volume' ? '#000000' : (contrastTextOn(segColor) || '#111827');
+
+              // guard: require numeric coords
+              if (Number.isNaN(cx) || Number.isNaN(cy)) return null;
+              // Use plain black text, normal weight, no stroke to avoid contrast artifacts
+              const fillColor = '#000000';
+              const strokeColor = 'none';
+              const strokeWidthVal = 0;
+              const fontWeightVal = '600';
+
+              return (
+                <text
+                  x={cx}
+                  y={cy}
+                  fill={fillColor}
+                  stroke={strokeColor}
+                  strokeWidth={strokeWidthVal}
+                  fontSize={isExpandedView ? 12 : 11}
+                  fontWeight={fontWeightVal}
+                  textAnchor="start"
+                  alignmentBaseline="central"
+                  pointerEvents="none"
+                >
+                  {formatK(v)}
+                </text>
+              );
+            }}
+          />
+        </Bar>
+      );
+    });
+  };
 
   return {
     main: mode === "column" ? renderBars() : renderLines(),
@@ -568,6 +642,7 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                   }} 
                 />
                 <Tooltip
+                  wrapperStyle={{ pointerEvents: 'none', zIndex: 9999, position: 'fixed' }}
                   contentStyle={{
                     ...tooltipStyle,
                     transform: 'translateY(60px)' // Move tooltip down further to avoid legend overlap
@@ -732,6 +807,7 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                 }} 
               />
               <Tooltip
+                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999, position: 'fixed' }}
                 contentStyle={tooltipStyle}
                 formatter={(v, name) => [`${(+v).toFixed(1)}M CHF`, name]}
               />
@@ -804,6 +880,7 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                 }}
               />
               <Tooltip
+                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999, position: 'fixed' }}
                 contentStyle={tooltipStyle}
                 formatter={(v, name) => [v, name]}
               />
