@@ -210,6 +210,25 @@ export const ExpandableQuarterlyAnalysisChart = ({
     return industryMax;
   }, [rows, industries]);
 
+  // When bars are stacked, the axis must accommodate the total per year.
+  const totalVolumeMax = React.useMemo(() => {
+    if (!rows || !rows.length) return 0;
+    let max = 0;
+    for (const r of rows) {
+      if (typeof r.totalVolume === "number" && isFinite(r.totalVolume) && r.totalVolume > max) max = r.totalVolume;
+    }
+    return max;
+  }, [rows]);
+
+  const totalCountMax = React.useMemo(() => {
+    if (!rows || !rows.length) return 0;
+    let max = 0;
+    for (const r of rows) {
+      if (typeof r.totalCount === "number" && isFinite(r.totalCount) && r.totalCount > max) max = r.totalCount;
+    }
+    return max;
+  }, [rows]);
+
   // Chart rendering functions
   const createRenderFunctions = (mode, metricSuffix, showLabelsEnabled, isExpandedView = false) => {
     const renderBars = () =>
@@ -219,10 +238,12 @@ export const ExpandableQuarterlyAnalysisChart = ({
           <Bar
             key={key}
             dataKey={key}
-            // grouped bars (no stacking) for column mode
+            // stacked bars: use a distinct stackId per metric (volume/count)
+            stackId={`stack-${metricSuffix}`}
             fill={colorOf(ind)}
             name={ind}
-            barSize={isExpandedView ? 24 : 16}
+            // widen bars: larger sizes for expanded and compact views
+            barSize={isExpandedView ? 36 : 28}
             radius={[0, 0, 0, 0]}
           />
         );
@@ -414,7 +435,11 @@ export const ExpandableQuarterlyAnalysisChart = ({
               <YAxis 
                 stroke={axisStroke}
                 fontSize={16}
-                domain={isVolumeChart ? [0, Math.ceil(volumeMax * 1.1)] : undefined}
+                domain={
+                  isVolumeChart
+                    ? [0, Math.ceil((expandedMode === 'column' ? totalVolumeMax : volumeMax) * 1.1)]
+                    : (expandedMode === 'column' ? [0, Math.ceil(totalCountMax * 1.1)] : undefined)
+                }
                 allowDataOverflow={isVolumeChart}
                 label={{
                   value: yAxisLabel,
@@ -577,7 +602,7 @@ export const ExpandableQuarterlyAnalysisChart = ({
               <YAxis 
                 stroke={axisStroke}
                 fontSize={isExpandedView ? 14 : 12}
-                domain={[0, Math.ceil(volumeMax * 1.1)]}
+                domain={[0, Math.ceil((leftModeState === 'column' ? totalVolumeMax : volumeMax) * 1.1)]}
                 allowDataOverflow
                 label={{
                   value: "Investment Volume CHF (M)",
@@ -635,6 +660,7 @@ export const ExpandableQuarterlyAnalysisChart = ({
               <YAxis
                 stroke={axisStroke}
                 fontSize={isExpandedView ? 14 : 12}
+                domain={rightModeState === 'column' ? [0, Math.ceil(totalCountMax * 1.1)] : undefined}
                 label={{ 
                   value: "Number of Deals", 
                   angle: -90, 
