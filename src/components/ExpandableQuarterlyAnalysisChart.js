@@ -258,7 +258,14 @@ const createRenderFunctions = (
   const formatK = (n) => {
     if (metricSuffix === "count") return `${n ?? 0}`;
     const v = Number(n) || 0;
-    return v >= 1000 ? `${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `${v}`;
+    // Round to 1 decimal to avoid long floating-point tails (e.g. 680.7000000000002)
+    if (v >= 1000) {
+      const k = v / 1000;
+      const kRounded = Math.round(k * 10) / 10;
+      return kRounded % 1 === 0 ? `${kRounded.toFixed(0)}k` : `${kRounded.toFixed(1)}k`;
+    }
+    const rounded = Math.round(v * 10) / 10;
+    return rounded % 1 === 0 ? `${rounded.toFixed(0)}` : `${rounded.toFixed(1)}`;
   };
 
   const contrastTextOn = (hex) => {
@@ -285,7 +292,51 @@ const createRenderFunctions = (
           name={ind}
           barSize={barSize}
           radius={[0, 0, 0, 0]}
-        />
+        >
+          {showLabelsEnabled && (
+            <LabelList
+              dataKey={key}
+              content={({ x, y, width, height, value, index }) => {
+                if (
+                  x == null || y == null || width == null || height == null || index == null
+                ) return null;
+
+                const row = rows[index];
+                if (!row) return null;
+
+                const total = Number(row[totalKey]) || 0;
+                const v = Number(value) || 0;
+                if (total <= 0) return null;
+
+                const share = v / total;
+                if (share < MIN_SHARE || height < MIN_PX) return null;
+
+                const cx = x + width / 2;
+                const cy = y + height / 2;
+                const segColor = colorOf(ind);
+                const textFill = contrastTextOn(segColor);
+                const outline = textFill === "#FFFFFF" ? "#000000" : "#FFFFFF";
+
+                return (
+                  <text
+                    x={cx}
+                    y={cy}
+                    fill={textFill}
+                    stroke={outline}
+                    strokeWidth={isExpandedView ? 0.7 : 0.6}
+                    fontSize={isExpandedView ? 12 : 10}
+                    fontWeight="600"
+                    textAnchor="middle"
+                    alignmentBaseline="central"
+                    pointerEvents="none"
+                  >
+                    {formatK(v)}
+                  </text>
+                );
+              }}
+            />
+          )}
+        </Bar>
       );
     });
 
@@ -345,68 +396,7 @@ const createRenderFunctions = (
       </Bar>
     );
 
-    const segmentLabels = industries.map((ind) => {
-  const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-  const segColor = colorOf(ind);
-  const textFill = contrastTextOn(segColor);
-  const outline = textFill === "#FFFFFF" ? "#000000" : "#FFFFFF";
-
-  return (
-    <Bar
-      key={`${key}__labels`}
-      dataKey={key}
-      // 🔧 add this line:
-      stackId={`stack-${metricSuffix}`}   // same stack as the real bars
-      barSize={isExpandedView ? 48 : 36}  // optional, but helps alignment
-      fill="transparent"
-      stroke="transparent"
-      isAnimationActive={false}
-      legendType="none"
-      shape={() => null}
-    >
-      <LabelList
-        dataKey={key}
-        content={({ x, y, width, height, value, index }) => {
-              if (
-                x == null || y == null || width == null || height == null || index == null
-              ) return null;
-
-              const row = rows[index];
-              if (!row) return null;
-
-              const total = Number(row[totalKey]) || 0;
-              const v = Number(value) || 0;
-              if (total <= 0) return null;
-
-              const share = v / total;
-              if (share < MIN_SHARE || height < MIN_PX) return null;
-
-              const cx = x + width / 2;
-              const cy = y + height / 2;
-
-              return (
-                <text
-                  x={cx}
-                  y={cy}
-                  fill={textFill}                 // high-contrast text
-                  stroke={outline}               // thin outline for readability
-                  strokeWidth={isExpandedView ? 0.7 : 0.6}
-                  fontSize={isExpandedView ? 12 : 10}
-                  fontWeight="600"
-                  textAnchor="middle"
-                  alignmentBaseline="central"
-                  pointerEvents="none"
-                >
-                  {formatK(v)}
-                </text>
-              );
-            }}
-          />
-        </Bar>
-      );
-    });
-
-    return [totalLabels, ...segmentLabels];
+  return totalLabels;
   };
 
   const renderLineLabels = () => null; // no labels for line mode
