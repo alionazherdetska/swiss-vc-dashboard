@@ -421,12 +421,61 @@ const createRenderFunctions = (
   };
 };
 
+// Custom Legend Component
+const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverlay = false }) => {
+  if (isOverlay) {
+    // Overlay legend positioned higher above the chart
+    return (
+      <div 
+        className={`absolute -top-4 right-4 p-4 rounded-lg shadow-lg ${isDark ? "bg-gray-800/90" : "bg-white/90"} backdrop-blur-sm border ${isDark ? "border-gray-600" : "border-gray-200"} max-w-80 z-10`}
+      >
+        <h4 className={`text-sm font-semibold mb-3 text-left ${isDark ? "text-gray-200" : "text-gray-700"}`}>
+          Sectors
+        </h4>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+          {industries.map((industry) => (
+            <div key={industry} className="flex items-center gap-2">
+              <div 
+                className="w-3 h-3 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: colorOf(industry) }}
+              />
+              <span className={`text-xs ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                {industry}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`p-4 rounded-lg ${isDark ? "bg-gray-800" : "bg-gray-50"} ${isCompact ? 'w-48' : ''}`}>
+      <h4 className={`text-sm font-semibold mb-3 ${isDark ? "text-gray-200" : "text-gray-700"}`}>
+        Sectors
+      </h4>
+      <div className={isCompact ? "space-y-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2"}>
+        {industries.map((industry) => (
+          <div key={industry} className="flex items-center gap-2">
+            <div 
+              className="w-4 h-4 rounded-sm flex-shrink-0"
+              style={{ backgroundColor: colorOf(industry) }}
+            />
+            <span className={`text-sm ${isCompact ? '' : 'truncate'} ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+              {industry}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 
 
   const ExpandedChartContent = () => {
     const isVolumeChart = expandedChart === "volume";
     const metricSuffix = isVolumeChart ? "volume" : "count";
-    const chartTitle = isVolumeChart ? "Investment Volume vs Year (CHF M)" : "Number of Deals vs Year";
     const yAxisLabel = isVolumeChart ? "Investment Volume CHF (M)" : "Number of Deals";
     const totalDataKey = isVolumeChart ? "totalVolume" : "totalCount";
     const formatter = isVolumeChart 
@@ -452,94 +501,120 @@ const createRenderFunctions = (
           <label className="flex items-center gap-2 ml-auto">
             <input
               type="checkbox"
-              checked={expandedShowTotal}
-              onChange={(e) => setExpandedShowTotal(e.target.checked)}
-              className="text-red-600 focus:ring-red-500"
-            />
-            <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show total line</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
               checked={expandedShowLabels}
               onChange={(e) => setExpandedShowLabels(e.target.checked)}
               className="text-red-600 focus:ring-red-500"
             />
             <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show data labels</span>
           </label>
+
+          {expandedMode === "column" && (
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={expandedShowTotal}
+                onChange={(e) => setExpandedShowTotal(e.target.checked)}
+                className="text-red-600 focus:ring-red-500"
+              />
+              <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show total line</span>
+            </label>
+          )}
         </div>
 
         {/* Expanded Chart */}
         <div className="space-y-2">
-          <h3 className={`text-xl font-bold text-center ${isDark ? "text-gray-200" : "text-gray-800"}`}>
-            {chartTitle}
-          </h3>
-          <ResponsiveContainer width="100%" height={700}>
-            <ComposedChart 
-              data={rows} 
-              margin={{ top: 80, right: 80, left: 80, bottom: 80 }}
-              style={{ overflow: "visible" }}
-            >
-              <defs>
-                <filter id="glow-black-expanded" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
-              <XAxis
-                type="category"
-                dataKey="year"
-                stroke={axisStroke}
-                fontSize={16}
-                padding={{ left: 24, right: 24 }}
-              />
-              <YAxis 
-                stroke={axisStroke}
-                fontSize={16}
-                domain={
-                  isVolumeChart
-                    ? [0, Math.ceil((expandedMode === 'column' ? totalVolumeMax : volumeMax) * 1.1)]
-                    : (expandedMode === 'column' ? [0, Math.ceil(totalCountMax * 1.1)] : undefined)
-                }
-                allowDataOverflow={isVolumeChart}
-                label={{
-                  value: yAxisLabel,
-                  angle: -90,
-                  position: "insideLeft",
-                  fill: axisStroke,
-                  fontSize: 16,
-                  dx: "-2.5em",
-                  dy: "4.5em",
-                  style: { textAnchor: 'middle' }
-                }} 
-              />
-              <Tooltip
-                contentStyle={tooltipStyle}
-                formatter={formatter}
-              />
-              <Legend/>
-              
-              {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true).main}
-              
-              {expandedShowTotal && (
-                <Line
-                  type="linear"
-                  dataKey={totalDataKey}
-                  stroke="#000000"
-                  strokeWidth={5}
-                  dot={false}
-                  name={isVolumeChart ? "Total Volume" : "Total Deals"}
-                  filter="url(#glow-black-expanded)"
+          <div className="relative">
+            <ResponsiveContainer width="100%" height={800}>
+              <ComposedChart 
+                data={rows} 
+                margin={{ top: 80, right: 80, left: 80, bottom: 80 }}
+                style={{ overflow: "visible" }}
+              >
+                <defs>
+                  <filter id="glow-black-expanded" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
+                <XAxis
+                  type="category"
+                  dataKey="year"
+                  stroke={axisStroke}
+                  fontSize={16}
+                  padding={{ left: 24, right: 24 }}
                 />
-              )}
-              
-              {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true).labels}
-            </ComposedChart>
-          </ResponsiveContainer>
+                <YAxis 
+                  stroke={axisStroke}
+                  fontSize={16}
+                  domain={
+                    isVolumeChart
+                      ? [0, Math.ceil((expandedMode === 'column' ? totalVolumeMax : volumeMax) * 1.1)]
+                      : (expandedMode === 'column' ? [0, Math.ceil(totalCountMax * 1.1)] : undefined)
+                  }
+                  allowDataOverflow={isVolumeChart}
+                  label={{
+                    value: yAxisLabel,
+                    angle: -90,
+                    position: "insideLeft",
+                    fill: axisStroke,
+                    fontSize: 16,
+                    dx: "-2.5em",
+                    dy: "4.5em",
+                    style: { textAnchor: 'middle' }
+                  }} 
+                />
+                <Tooltip
+                  contentStyle={{
+                    ...tooltipStyle,
+                    transform: 'translateY(60px)' // Move tooltip down further to avoid legend overlap
+                  }}
+                  formatter={formatter}
+                />
+                
+                {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true).main}
+                
+                {expandedShowTotal && expandedMode === "column" && (
+                  <Line
+                    type="linear"
+                    dataKey={totalDataKey}
+                    stroke="#000000"
+                    strokeWidth={5}
+                    dot={false}
+                    name={isVolumeChart ? "Total Volume" : "Total Deals"}
+                    filter="url(#glow-black-expanded)"
+                  />
+                )}
+                
+                {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true).labels}
+              </ComposedChart>
+            </ResponsiveContainer>
+            
+            {/* Left side overlay legend inside the chart */}
+            <div 
+              className={`absolute top-20 left-40 p-3 rounded-lg shadow-lg ${isDark ? "bg-gray-800" : "bg-white"} border ${isDark ? "border-gray-600" : "border-gray-200"} max-w-80 z-10`}
+            >
+              <h4 className={`text-xs font-semibold mb-2 text-left ${isDark ? "text-gray-200" : "text-gray-700"}`}>
+                Sectors
+              </h4>
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                {industries.map((industry) => (
+                  <div key={industry} className="flex items-center gap-1.5">
+                    <div 
+                      className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: colorOf(industry) }}
+                    />
+                    <span className={`text-xs ${isDark ? "text-gray-300" : "text-gray-600"}`}>
+                      {industry}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -583,56 +658,16 @@ const createRenderFunctions = (
           </select>
         </div>
 
-        <label className="flex items-center gap-2 ml-auto">
-          <input
-            type="checkbox"
-            checked={showTotalState}
-            onChange={(e) => onShowTotalChange(e.target.checked)}
-            className="text-red-600 focus:ring-red-500"
-          />
-          <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show total line</span>
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={showLabelsState}
-            onChange={(e) => onShowLabelsChange(e.target.checked)}
-            className="text-red-600 focus:ring-red-500"
-          />
-          <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show data labels</span>
-        </label>
-
-        {!isExpandedView && (
-          <>
-            <button
-              onClick={() => {
-                setExpandedChart("volume");
-                setIsExpanded(true);
-              }}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isDark 
-                  ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                  : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
-            >
-              <Maximize2 className="h-4 w-4" />
-              Expand Volume Chart
-            </button>
-            <button
-              onClick={() => {
-                setExpandedChart("count");
-                setIsExpanded(true);
-              }}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isDark 
-                  ? "bg-green-600 hover:bg-green-700 text-white" 
-                  : "bg-green-600 hover:bg-green-700 text-white"
-              }`}
-            >
-              <Maximize2 className="h-4 w-4" />
-              Expand Count Chart
-            </button>
-          </>
+        {(leftModeState === 'column' || rightModeState === 'column') && (
+          <label className="flex items-center gap-2 ml-auto">
+            <input
+              type="checkbox"
+              checked={showTotalState}
+              onChange={(e) => onShowTotalChange(e.target.checked)}
+              className="text-red-600 focus:ring-red-500"
+            />
+            <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show total line</span>
+          </label>
         )}
       </div>
 
@@ -640,9 +675,23 @@ const createRenderFunctions = (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* LEFT: Volume Chart */}
         <div className="space-y-2 relative">
-          <h3 className={`text-lg font-semibold text-center ${isDark ? "text-gray-200" : "text-gray-800"}`}>
-            Investment Volume vs Year (CHF M)
-          </h3>
+          <div className="flex items-center justify-center gap-2">
+            <h3 className={`text-lg font-semibold ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+              Investment Volume vs Year (CHF M)
+            </h3>
+            {!isExpandedView && (
+              <button
+                onClick={() => {
+                  setExpandedChart("volume");
+                  setIsExpanded(true);
+                }}
+                className={`p-2 rounded-md transition-colors bg-blue-600 hover:bg-blue-700 text-white shadow-md`}
+                title="Expand Volume Chart"
+              >
+                <Maximize2 className="h-5 w-5" />
+              </button>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={isExpandedView ? 600 : 420}>
             <ComposedChart 
               data={rows} 
@@ -686,11 +735,10 @@ const createRenderFunctions = (
                 contentStyle={tooltipStyle}
                 formatter={(v, name) => [`${(+v).toFixed(1)}M CHF`, name]}
               />
-              <Legend/>
               
               {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView).main}
               
-              {showTotalState && (
+              {showTotalState && leftModeState === 'column' && (
                 <Line
                   type="linear"
                   dataKey="totalVolume"
@@ -709,9 +757,23 @@ const createRenderFunctions = (
 
         {/* RIGHT: Count Chart */}
         <div className="space-y-2 relative">
-          <h3 className={`text-lg font-semibold text-center ${isDark ? "text-gray-200" : "text-gray-800"}`}>
-            Number of Deals vs Year
-          </h3>
+          <div className="flex items-center justify-center gap-2">
+            <h3 className={`text-lg font-semibold ${isDark ? "text-gray-200" : "text-gray-800"}`}>
+              Number of Deals vs Year
+            </h3>
+            {!isExpandedView && (
+              <button
+                onClick={() => {
+                  setExpandedChart("count");
+                  setIsExpanded(true);
+                }}
+                className={`p-2 rounded-md transition-colors bg-green-600 hover:bg-green-700 text-white shadow-md`}
+                title="Expand Count Chart"
+              >
+                <Maximize2 className="h-5 w-5" />
+              </button>
+            )}
+          </div>
           <ResponsiveContainer width="100%" height={isExpandedView ? 600 : 420}>
             <ComposedChart 
               data={rows} 
@@ -745,11 +807,10 @@ const createRenderFunctions = (
                 contentStyle={tooltipStyle}
                 formatter={(v, name) => [v, name]}
               />
-              <Legend />
               
               {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView).main}
               
-              {showTotalState && (
+              {showTotalState && rightModeState === 'column' && (
                 <Line
                   type="linear"
                   dataKey="totalCount"
@@ -765,6 +826,15 @@ const createRenderFunctions = (
             </ComposedChart>
           </ResponsiveContainer>
         </div>
+      </div>
+      
+      {/* Centered Legend for dual chart view */}
+      <div className="flex justify-center">
+        <CustomLegend 
+          industries={industries} 
+          colorOf={colorOf} 
+          isDark={isDark} 
+        />
       </div>
     </div>
   );
