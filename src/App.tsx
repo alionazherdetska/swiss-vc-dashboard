@@ -28,7 +28,6 @@ export function App() {
         if (!jsonData.Companies && !jsonData.Deals) {
           // If it's a direct array, treat it as deals data for backward compatibility
           if (Array.isArray(jsonData)) {
-            console.log("Found direct array, treating as deals data");
             window.startupData = { Companies: [], Deals: jsonData };
           } else {
             throw new Error(
@@ -36,14 +35,6 @@ export function App() {
             );
           }
         } else {
-          console.log("Found structured data:");
-          if (jsonData.Companies) {
-            console.log("- Companies:", jsonData.Companies.length);
-          }
-          if (jsonData.Deals) {
-            console.log("- Deals:", jsonData.Deals.length);
-          }
-
           // Store the structured data globally
           window.startupData = jsonData;
         }
@@ -54,11 +45,8 @@ export function App() {
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         setLoadingProgress("Finalizing dashboard...");
-
-        console.log("Dashboard ready with structured data");
         setLoading(false);
       } catch (error) {
-        console.error("Error loading data:", error);
         setError(error.message);
         setLoading(false);
       }
@@ -95,7 +83,7 @@ export function App() {
     );
   }
 
-  if (error) {
+   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md p-6">
@@ -127,7 +115,7 @@ export function App() {
                 <code>
                   {"{"}"Companies": [...], "Deals": [...]{"}"}
                 </code>
-              </li>
+                </li>
               <li>• Refresh the page to retry</li>
               <li>• Check browser console for additional errors</li>
             </ul>

@@ -1,291 +1,134 @@
-import { BarChart3, Moon, Sun } from "lucide-react";
-import React, {useState, useEffect, useMemo, useRef, useCallback} from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 
-// Import our modular components
+// Panels / components you still use
 import FilterPanel from "./FilterPanel.js";
 import MetricsCards from "./MetricsCards.js";
-import { TopIndustriesBarChart } from "./Charts.js";
-import ChartSelector from "./ChartSelector.js";
-import InsightsPanel from "./InsightsPanel.js";
-import {
-  TimelineChart,
-  IndustryDistributionChart,
-  GeographicDistributionChart,
-  IndustryTrendsChart,
-  FundingAnalysisChart,
-  PhaseAnalysisChart,
-} from "./Charts.js";
-import { Building2, Handshake } from "./CustomIcons.js";
-import { processCompanies, processDeals, generateChartData } from "./utils";
-import { SAMPLE_DATA, getChartOptions, VOLUME_OPTIONS } from "./constants";
-import { COLOR_PALETTE, FIXED_INDUSTRY_COLORS } from "./colors";
+import { TimelineChart } from "./Charts.js";
 import ExpandableQuarterlyAnalysisChart from "./ExpandableQuarterlyAnalysisChart.js";
 
+// Utilities / data
+import { processCompanies, processDeals, generateChartData } from "./utils";
+import { SAMPLE_DATA } from "./constants";
+import { COLOR_PALETTE, FIXED_INDUSTRY_COLORS } from "./colors";
+import { Building2 } from "./CustomIcons.js";
 
 const Dashboard = () => {
+  // Companies only for mapping; UI is deals-only
   const [companies, setCompanies] = useState([]);
   const [deals, setDeals] = useState([]);
-  const [activeTab, setActiveTab] = useState("companies");
+  const [loading, setLoading] = useState(true);
+
+  // Filters
   const [filters, setFilters] = useState({
     industries: [],
-    ceoGenders: [],
+    ceoGenders: [], // unused visually; harmless to keep
     cantons: [],
     yearRange: [2012, 2025],
     dealTypes: [],
     phases: [],
   });
-  const [activeChartType, setActiveChartType] = useState("timeline");
-  const [loading, setLoading] = useState(true);
-  const [isDark, setIsDark] = useState(false);
-  const [showVolume, setShowVolume] = useState(false);
-  const [selectedIndustry, setSelectedIndustry] = useState("");
-// Import utilities and constants
 
+  // Tab-like chart selector: "timeline" or "quarterly"
+  const [activeChart, setActiveChart] = useState("timeline"); // default open
 
-  // keep a stable map that starts with your fixed colors
+  // For industry colors (used in quarterly analysis)
   const colorMapRef = useRef(new Map(Object.entries(FIXED_INDUSTRY_COLORS)));
-
   const ALIASES = {
     "med tech": "MedTech",
-    "medtech": "MedTech",
+    medtech: "MedTech",
     "fin tech": "FinTech",
-    "cleantech": "Cleantech",
-    "ict": "ICT",
-    // add common variants you see
+    cleantech: "Cleantech",
+    ict: "ICT",
   };
-
   const normalizeIndustry = (raw) => {
     if (!raw) return null;
     const s = String(raw).trim();
     const key = s.toLowerCase().replace(/\s+/g, " ");
     const alias = ALIASES[key];
     if (alias) return alias;
-
-    // Title-case canonicalization fallback
     return s
-        .replace(/\s*\(.*?\)/g, "")
-        .split(/\s+/)
-        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ");
+      .replace(/\s*\(.*?\)/g, "")
+      .split(/\s+/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
   };
-
   const getIndustryColor = useCallback((name) => {
     const norm = normalizeIndustry(name);
-    if (!norm) return "#7F8C8D"; // neutral gray for unknown
-
-    if (colorMapRef.current.has(norm)) {
-      return colorMapRef.current.get(norm);
-    }
-    // assign next fallback color and remember it (stable across filters)
+    if (!norm) return "#7F8C8D";
+    if (colorMapRef.current.has(norm)) return colorMapRef.current.get(norm);
     const next = COLOR_PALETTE[colorMapRef.current.size % COLOR_PALETTE.length];
     colorMapRef.current.set(norm, next);
     return next;
   }, []);
 
-
-  // Dark mode toggle
-  const toggleDarkMode = () => {
-    setIsDark(!isDark);
-    if (!isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
-    }
-  };
-
-  // Initialize dark mode from localStorage
-  useEffect(() => {
-    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDark(savedDarkMode);
-    if (savedDarkMode) {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
+  // Load & process data (companies only for mapping)
   useEffect(() => {
     const loadData = async () => {
       try {
-        let jsonData;
-  
-        if (window.startupData) {
-          jsonData = window.startupData;
-        } else {
-          jsonData = SAMPLE_DATA;
-        }
-  
-        console.log("=== RAW DATA DEBUG ===");
-        console.log("Full JSON structure:", Object.keys(jsonData));
-        console.log("Companies array exists:", !!jsonData.Companies);
-        console.log("Companies array length:", jsonData.Companies?.length || 0);
-        console.log("Deals array exists:", !!jsonData.Deals);
-        console.log("Deals array length:", jsonData.Deals?.length || 0);
-        
-        if (jsonData.Companies && jsonData.Companies.length > 0) {
-          console.log("Sample companies:", jsonData.Companies.slice(0, 3));
-          console.log("Companies with industry data:", 
-            jsonData.Companies.filter(c => c.Industry && c.Industry.trim()).length
-          );
-        }
-  
+        const jsonData = window.startupData || SAMPLE_DATA;
+
         let processedCompanies = [];
         let processedDeals = [];
-  
-        // Process Companies data first
+
         if (jsonData.Companies) {
           processedCompanies = processCompanies(jsonData.Companies);
           setCompanies(processedCompanies);
-          console.log("✅ Processed companies:", processedCompanies.length);
-          console.log("Companies with industries after processing:", 
-            processedCompanies.filter(c => c.Industry && c.Industry !== "Unknown").length
-          );
-        } else {
-          console.log("❌ No Companies array in JSON data");
         }
-  
-        // Process Deals data WITH company mapping
+
         if (jsonData.Deals) {
-          console.log("🔄 Processing deals with companies data...");
-          console.log("Passing", processedCompanies.length, "companies to processDeals");
-          
           processedDeals = processDeals(jsonData.Deals, processedCompanies);
           setDeals(processedDeals);
-          
-          // Log detailed mapping results
-          const mappedDeals = processedDeals.filter(d => d.Industry);
-          const keywordDeals = processedDeals.filter(d => d.MappingSource === "keyword_detection");
-          const companyDeals = processedDeals.filter(d => d.MappingSource === "company_lookup");
-          
-          console.log("=== FINAL MAPPING RESULTS ===");
-          console.log(`📊 Total deals processed: ${processedDeals.length}`);
-          console.log(`✅ Deals with industry: ${mappedDeals.length}`);
-          console.log(`🏢 Company lookup success: ${companyDeals.length}`);
-          console.log(`🔍 Keyword detection success: ${keywordDeals.length}`);
-          console.log(`❌ No industry assigned: ${processedDeals.length - mappedDeals.length}`);
-          
-          if (mappedDeals.length > 0) {
-            const industries = [...new Set(mappedDeals.map(d => d.Industry))];
-            console.log(`🎯 Industries found: ${industries.join(", ")}`);
-          }
-        } else {
-          console.log("❌ No Deals array in JSON data");
         }
-  
+
         setLoading(false);
-      } catch (error) {
-        console.error("❌ Error loading data:", error);
+      } catch {
         setLoading(false);
       }
     };
-  
+
     loadData();
   }, []);
-  
-  // Generate filter options
+
+  // Filter options: deals-only
   const filterOptions = useMemo(() => {
-    const companyOptions = companies.length
-      ? {
-          industries: [
-            ...new Set(
-              companies.map((d) => d.Industry).filter((i) => i && i !== "Other")
-            ),
-          ].sort(),
-          years: [
-            ...new Set(companies.map((d) => d.Year).filter((y) => y)),
-          ].sort(),
-          ceoGenders: [
-            ...new Set(
-              companies
-                .map((d) => d["Gender CEO"] || d.GenderCEO)
-                .filter((g) => g && g !== "Unknown")
-            ),
-          ].sort(),
-        }
-      : { industries: [], years: [] };
+    if (!deals.length) {
+      return { dealTypes: [], phases: [], dealYears: [], industries: [] };
+    }
+    return {
+      dealTypes: [...new Set(deals.map((d) => d.Type).filter(Boolean))].sort(),
+      phases: [...new Set(deals.map((d) => d.Phase).filter(Boolean))].sort(),
+      dealYears: [...new Set(deals.map((d) => d.Year).filter(Boolean))].sort(),
+      industries: [...new Set(deals.map((d) => d.Industry).filter(Boolean))].sort(),
+    };
+  }, [deals]);
 
-    const dealOptions = deals.length
-      ? {
-          dealTypes: [
-            ...new Set(deals.map((d) => d.Type).filter((t) => t)),
-          ].sort(),
-          phases: [
-            ...new Set(deals.map((d) => d.Phase).filter((p) => p)),
-          ].sort(),
-          dealYears: [
-            ...new Set(deals.map((d) => d.Year).filter((y) => y)),
-          ].sort(),
-        }
-      : { dealTypes: [], phases: [], dealYears: [] };
-
-    return { ...companyOptions, ...dealOptions };
-  }, [companies, deals]);
-
-  // Apply filters
-  const filteredCompanies = useMemo(() => {
-    return companies.filter((item) => {
-
-      if (
-        filters.industries.length &&
-        !filters.industries.includes(item.Industry)
-      )
-        return false;
-      if (
-        filters.ceoGenders.length &&
-        !filters.ceoGenders.includes(item["Gender CEO"] || item.GenderCEO)
-      )
-        return false;
-      if (filters.cantons.length && !filters.cantons.includes(item.Canton))
-        return false;
-      if (
-        item.Year &&
-        (item.Year < filters.yearRange[0] || item.Year > filters.yearRange[1])
-      )
-        return false;
-      return true;
-    });
-  }, [companies, filters]);
-
+  // Apply filters (deals only)
   const filteredDeals = useMemo(() => {
     return deals.filter((item) => {
-
-      if (filters.dealTypes.length && !filters.dealTypes.includes(item.Type))
-        return false;
-      if (filters.phases.length && !filters.phases.includes(item.Phase))
-        return false;
-      if (filters.cantons.length && !filters.cantons.includes(item.Canton))
-        return false;
-      if (
-        item.Year &&
-        (item.Year < filters.yearRange[0] || item.Year > filters.yearRange[1])
-      )
-        return false;
+      if (filters.industries.length && !filters.industries.includes(item.Industry)) return false;
+      if (filters.dealTypes.length && !filters.dealTypes.includes(item.Type)) return false;
+      if (filters.phases.length && !filters.phases.includes(item.Phase)) return false;
+      if (filters.cantons.length && !filters.cantons.includes(item.Canton)) return false;
+      if (item.Year && (item.Year < filters.yearRange[0] || item.Year > filters.yearRange[1])) return false;
       return true;
     });
   }, [deals, filters]);
 
-  // Generate chart data
+  // Chart data (deals-only)
   const chartData = useMemo(() => {
-    return generateChartData(activeTab, filteredCompanies, filteredDeals);
-  }, [activeTab, filteredCompanies, filteredDeals]);
-  console.log("timeline sample:", chartData.timeline?.[0]);
+    return generateChartData("deals", [], filteredDeals);
+  }, [filteredDeals]);
 
-
-  // Filter update functions
-  const updateFilter = (key, value) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const toggleArrayFilter = (key, value) => {
+  // Filter helpers
+  const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
+  const toggleArrayFilter = (key, value) =>
     setFilters((prev) => ({
       ...prev,
       [key]: prev[key].includes(value)
         ? prev[key].filter((item) => item !== value)
         : [...prev[key], value],
     }));
-  };
-
-  const resetFilters = () => {
+  const resetFilters = () =>
     setFilters({
       industries: [],
       cantons: [],
@@ -294,213 +137,34 @@ const Dashboard = () => {
       dealTypes: [],
       phases: [],
     });
-  };
-
-  // Chart rendering function
-  const renderChart = () => {
-    const chartOptions = getChartOptions(activeTab);
-
-    switch (activeChartType) {
-      case "timeline":
-        return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Left: Sum of invested capital */}
-              <TimelineChart
-                  data={chartData.timeline}
-                  showVolume={true}
-                  isDark={isDark}
-                  title="Overall Sum of Invested Capital by Year"
-                  yLabel="Invested Capital CHF (M)"                 // exact Y-axis label you asked for
-              />
-
-              {/* Right: Count of deals */}
-              <TimelineChart
-                  data={chartData.timeline}
-                  showVolume={false}
-                  isDark={isDark}
-                  title="Overall Number of Deals by Year"
-                  yLabel="Number of Deals"
-              />
-            </div>
-        );
-
-
-
-      case "industry-distribution":
-        let industryData =
-          activeTab === "companies"
-            ? chartData.industries || []
-            : chartData.types || [];
-        industryData = industryData.filter((d) => d.name !== "Unknown");
-        return (
-          <IndustryDistributionChart
-            data={industryData}
-            activeTab={activeTab}
-            isDark={isDark}
-          />
-        );
-      case "top-industries-bar":
-        return (
-          <TopIndustriesBarChart
-            data={activeTab === "companies" ? chartData.industries : chartData.types}
-            isDark={isDark}
-          />
-        );
-      case "geographic-distribution":
-        return <GeographicDistributionChart data={chartData.cantons} isDark={isDark} />;
-      case "industry-trends":
-        return (
-          <IndustryTrendsChart
-            data={chartData.industryTrends}
-            filters={filters}
-            filterOptions={filterOptions}
-            activeTab={activeTab}
-            isDark={isDark}
-          />
-        );
-      case "quarterly-analysis":
-        return (
-            <ExpandableQuarterlyAnalysisChart
-                deals={filteredDeals}
-                isDark={isDark}
-                colorOf={getIndustryColor}   // pass down
-            />
-        );
-
-      case "funding-analysis":
-        if (activeTab === "companies") {
-          return (
-            <FundingAnalysisChart
-              data={chartData.funded}
-              activeTab={activeTab}
-              isDark={isDark}
-            />
-          );
-        } else {
-          return (
-            <FundingAnalysisChart
-              data={chartData.scatter}
-              activeTab={activeTab}
-              isDark={isDark}
-            />
-          );
-        }
-      case "phase-analysis":
-        const phaseData = chartData.phases || chartData.amounts || [];
-        return <PhaseAnalysisChart data={phaseData} isDark={isDark} />;
-      default:
-        return (
-          <div className="h-96 flex items-center justify-center text-gray-500">
-            <div className="text-center">
-              <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>Select a visualization type</p>
-            </div>
-          </div>
-        );
-    }
-  };
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4 ${isDark ? 'border-blue-400' : 'border-red-600'}`}></div>
-          <p className={isDark ? 'text-gray-300' : 'text-gray-600'}>
-            Loading Swiss startup ecosystem data...
-          </p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading Swiss startup ecosystem data...</p>
         </div>
       </div>
     );
   }
 
-  const currentData =
-    activeTab === "companies" ? filteredCompanies : filteredDeals;
-
   return (
-    <div className={`min-h-screen p-4 md:p-8 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className="min-h-screen p-4 md:p-8 bg-gray-50">
       <div className="max-w-8xl mx-auto">
-        {/* Dark Mode Toggle */}
-        <button
-          onClick={toggleDarkMode}
-          className="fixed top-4 right-4 z-50 p-3 rounded-full border transition-all duration-300 hover:scale-105"
-          style={{
-            background: isDark ? '#1F2937' : '#ffffff',
-            borderColor: isDark ? '#374151' : '#E5E7EB',
-            color: isDark ? '#F9FAFB' : '#1F2937',
-            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-          }}
-          title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-        >
-          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
-
         {/* Header */}
-        <div className={`rounded-lg shadow-sm mb-6 p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-          <div className="flex items-center mb-2">
-            <img
-              src="/logo.png"
-              alt="Swiss Startup Ecosystem Logo"
-              className="h-24 mr-6 mb-4 mt-4"
-              style={{ minWidth: "4rem" }}
-            />
-            <div>
-              <h1 className={`text-3xl font-bold ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
-                Swiss Startup Ecosystem Dashboard
-              </h1>
-              <p className={`text-lg mt-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-                Analysis of {companies.length.toLocaleString()} companies and{" "}
-                {deals.length.toLocaleString()} deals
-              </p>
-            </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className={`flex space-x-2 p-1 rounded-lg mb-6 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}`}>
-            <button
-              onClick={() => {
-                setActiveTab("companies");
-                setActiveChartType("timeline");
-              }}
-              className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
-                activeTab === "companies"
-                  ? isDark 
-                    ? "bg-gray-600 text-red-400 shadow-sm border border-red-600"
-                    : "bg-white text-red-600 shadow-sm border border-red-200"
-                  : isDark
-                    ? "text-gray-300 hover:text-gray-100"
-                    : "text-gray-600 hover:text-gray-800"
-              }`}
-            >
-              <Building2 className="h-4 w-4 inline mr-2" />
-              Companies ({companies.length.toLocaleString()})
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab("deals");
-                setActiveChartType("timeline");
-              }}
-              className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
-                activeTab === "deals"
-                  ? isDark 
-                    ? "bg-gray-600 text-red-400 shadow-sm border border-red-600"
-                    : "bg-white text-red-600 shadow-sm border border-red-200"
-                  : isDark
-                    ? "text-gray-300 hover:text-gray-100"
-                    : "text-gray-600 hover:text-gray-800"
-              }`}
-            >
-              <Handshake className="h-4 w-4 inline mr-2" />
+        <div className="rounded-lg shadow-sm mb-6 p-6 border bg-white border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-800">
               Deals ({deals.length.toLocaleString()})
-            </button>
+            </h2>
           </div>
 
-          {/* Key Metrics Cards */}
           <MetricsCards
-            activeTab={activeTab}
-            filteredCompanies={filteredCompanies}
+            activeTab="deals"
+            filteredCompanies={[]}
             filteredDeals={filteredDeals}
             filterOptions={filterOptions}
-            isDark={isDark}
           />
         </div>
 
@@ -510,65 +174,68 @@ const Dashboard = () => {
             <FilterPanel
               filters={filters}
               filterOptions={filterOptions}
-              activeTab={activeTab}
+              activeTab="deals"
               updateFilter={updateFilter}
               toggleArrayFilter={toggleArrayFilter}
               resetFilters={resetFilters}
-              isDark={isDark}
             />
           </div>
 
-          {/* Charts Panel */}
+          {/* Charts Panel with tab-like chart selector */}
           <div className="lg:col-span-4">
-            <div className={`rounded-lg shadow-sm p-6 border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-              {/* Chart Type Selector */}
-              <ChartSelector
-                activeTab={activeTab}
-                activeChartType={activeChartType}
-                setActiveChartType={setActiveChartType}
-                isDark={isDark}
-              />
-
-              {/* Chart Title */}
-              <div className="mb-4">
-                <h3 className={`text-lg font-medium ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-                  {getChartOptions(activeTab).find(
-                    (opt) => opt.key === activeChartType
-                  )?.name || "Chart"}
-                </h3>
-                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                  {activeTab === "companies" ? "Company" : "Deal"} data
-                  visualization
-                </p>
+            <div className="rounded-lg shadow-sm p-6 border bg-white border-gray-200">
+              {/* Tab bar */}
+              <div className="flex space-x-2 p-1 rounded-lg mb-6 bg-gray-100">
+                <button
+                  onClick={() => setActiveChart("timeline")}
+                  className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
+                    activeChart === "timeline"
+                      ? "bg-white text-red-600 shadow-sm border border-red-200"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  title="Show timeline charts"
+                >
+                  Timeline
+                </button>
+                <button
+                  onClick={() => setActiveChart("quarterly")}
+                  className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
+                    activeChart === "quarterly"
+                      ? "bg-white text-red-600 shadow-sm border border-red-200"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                  title="Show quarterly analysis"
+                >
+                  Quarterly Analysis
+                </button>
               </div>
 
-              {/* Active Chart */}
-              <div className={`border rounded-lg p-4 ${isDark ? 'border-gray-600 bg-gray-700' : 'border-gray-200 bg-gray-50'}`}>
-                {renderChart()}
+              {/* Active chart rendered by tab selection */}
+              <div className="border rounded-lg p-4 border-gray-200 bg-gray-50">
+                {activeChart === "timeline" ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <TimelineChart
+                      data={chartData.timeline}
+                      showVolume={true}
+                      title="Overall Sum of Invested Capital by Year"
+                      yLabel="Invested Capital CHF (M)"
+                    />
+                    <TimelineChart
+                      data={chartData.timeline}
+                      showVolume={false}
+                      title="Overall Number of Deals by Year"
+                      yLabel="Number of Deals"
+                    />
+                  </div>
+                ) : (
+                  <ExpandableQuarterlyAnalysisChart
+                    deals={filteredDeals}
+                    colorOf={getIndustryColor}
+                  />
+                )}
               </div>
-
-              {/* Data Insights */}
-              <InsightsPanel
-                activeTab={activeTab}
-                currentData={currentData}
-                companies={companies}
-                deals={deals}
-                filteredCompanies={filteredCompanies}
-                filteredDeals={filteredDeals}
-                chartData={chartData}
-                isDark={isDark}
-              />
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className={`mt-8 text-center text-sm p-4 rounded-lg shadow-sm border ${isDark ? 'text-gray-400 bg-gray-800 border-gray-700' : 'text-gray-500 bg-white border-gray-200'}`}>
-          <p className="flex items-center justify-center">
-            <Building2 className="h-4 w-4 mr-2" />
-            Swiss Startup Ecosystem Dashboard | Inspired by Swiss Venture
-            Capital Report 2025
-          </p>
         </div>
       </div>
     </div>

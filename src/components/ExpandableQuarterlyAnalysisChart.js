@@ -6,7 +6,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ComposedChart,
   LabelList,
@@ -230,19 +229,6 @@ export const ExpandableQuarterlyAnalysisChart = ({
     return max;
   }, [rows]);
 
-  const contrastTextOn = (hex) => {
-  if (!hex || !hex.startsWith("#")) return "#111827";
-  let c = hex.slice(1);
-  if (c.length === 3) c = c.split("").map(ch => ch + ch).join("");
-  const r = parseInt(c.slice(0,2), 16);
-  const g = parseInt(c.slice(2,4), 16);
-  const b = parseInt(c.slice(4,6), 16);
-  // YIQ
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 140 ? "#111827" : "#FFFFFF"; // dark text on light bg, white on dark
-};
-
-
 const createRenderFunctions = (
   mode,
   metricSuffix,
@@ -324,8 +310,6 @@ const createRenderFunctions = (
 
                 const cx = x + width / 2;
                 const cy = y + height / 2;
-                const segColor = colorOf(ind);
-                // Bar labels: always plain black, no stroke, font weight 600
                 const fillColor = '#000000';
                 const strokeColor = 'none';
                 const strokeWidthVal = 0;
@@ -455,7 +439,6 @@ const createRenderFunctions = (
 
               // Choose label color: for volume prefer black, otherwise contrast
               const segColor = colorOf(ind);
-              const textFill = metricSuffix === 'volume' ? '#000000' : (contrastTextOn(segColor) || '#111827');
 
               // guard: require numeric coords
               if (Number.isNaN(cx) || Number.isNaN(cy)) return null;
