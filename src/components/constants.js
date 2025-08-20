@@ -3,7 +3,6 @@ import {
   MapPin,
   DollarSign,
   BarChart3,
-  Factory,
   Calendar,
   LineChart,
 } from "lucide-react";
@@ -40,23 +39,21 @@ export const OFFICIAL_CANTONS = [
 
 // Mapping for variant names and cities to official cantons
 export const CANTON_MAP = {
-  // Handle duplicates and variants
   Freiburg: "Fribourg",
   "Fribourg / Freiburg": "Fribourg",
   Wallis: "Valais",
   "Basel-Land": "Basel-Landschaft",
   "Basel-City": "Basel-Stadt",
 
-  // Handle cities/regions
   Lausanne: "Vaud",
   Winterthur: "Zürich",
-  Zentralschweiz: null, // Exclude regional groupings
-  Abroad: null, // Exclude non-Swiss entries
+  Zentralschweiz: null,
+  Abroad: null,
 };
 
 // Swiss VC Report color scheme
 export const COLORS = [
-  "#E53E3E", // Red (primary brand color from report)
+  "#E53E3E", // Red
   "#3182CE", // Blue
   "#38A169", // Green
   "#D69E2E", // Yellow/Orange
@@ -68,50 +65,31 @@ export const COLORS = [
   "#ED64A6", // Pink
 ];
 
-// Chart type options
+// Chart type options (cleaned up)
 export const getChartOptions = (activeTab) =>
   [
     { key: "timeline", name: "Timeline Trends", icon: TrendingUp },
-    {
-      key: "industry-distribution",
-      name: activeTab === "companies" ? "Companies by Industry (Line)" : "Deal Types (Line)",
-      icon: Factory,
-    },
     ...(activeTab === "companies"
-      ? [{
-      key: "top-industries-bar",
-      name: "Companies by Industry (Bar)",
-      icon: BarChart3,
-        }]
-      : []),
-    ...(activeTab === "companies"
-      ? [{
-          key: "industry-trends",
-          name: "Top Industry Trends",
-          icon: LineChart,
-        }]
-      : []),
-    ...(activeTab === "deals"
-      ? [{
-          key: "quarterly-analysis",
-          name: "Sector Analysis",
-          icon: Calendar,
-        }]
-      : []),
-    {
-      key: "geographic-distribution",
-      name: "Geographic Distribution",
-      icon: MapPin,
-    },
-    ...(activeTab === "companies"
-      ? [{
-          key: "funding-analysis",
-          name: "Funding Status",
-          icon: DollarSign,
-        }]
+      ? [
+          {
+            key: "industry-trends",
+            name: "Top Industry Trends",
+            icon: LineChart,
+          },
+          {
+            key: "funding-analysis",
+            name: "Funding Status",
+            icon: DollarSign,
+          },
+        ]
       : []),
     ...(activeTab === "deals"
       ? [
+          {
+            key: "quarterly-analysis",
+            name: "Sector Analysis",
+            icon: Calendar,
+          },
           {
             key: "phase-analysis",
             name: "Funding Phases",
@@ -119,6 +97,11 @@ export const getChartOptions = (activeTab) =>
           },
         ]
       : []),
+    {
+      key: "geographic-distribution",
+      name: "Geographic Distribution",
+      icon: MapPin,
+    },
   ].filter(Boolean);
 
 // Sample data fallback
@@ -130,30 +113,21 @@ export const SAMPLE_DATA = {
       Industry: "Other",
       Vertical: "",
       Canton: "Bern",
-      "Spin-offs": "",
       City: "Bern",
       Year: "2021",
-      Highlights: "",
-      "Gender CEO": "",
-      OOB: "FALSE",
       Funded: "FALSE",
-      Comment: "",
     },
   ],
   Deals: [
     {
       Id: "S4126",
       Investors: "Elastic",
-      Comment: "",
       URL: "https://www.elastic.co/de/about/press/elastic-and-optimyze-join-forces",
-      Confidential: "FALSE",
-      "Amount confidential": "FALSE",
       "Date of the funding round": "10/14/21",
       Type: "EXIT",
       Phase: "Exit",
       Canton: "Zürich",
       Company: "optimyze.cloud AG",
-      "Gender CEO": "Male",
       Amount: "50",
       Industry: "Technology",
     },

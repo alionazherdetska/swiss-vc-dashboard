@@ -2,7 +2,6 @@ import React from "react";
 import { Filter } from "lucide-react";
 import { OFFICIAL_CANTONS } from "./constants";
 
-
 const FilterPanel = ({
   filters,
   filterOptions,
@@ -10,16 +9,11 @@ const FilterPanel = ({
   updateFilter,
   toggleArrayFilter,
   resetFilters,
-  isDark = false,
 }) => {
   return (
-    <div className={`rounded-lg shadow-sm p-6 sticky top-6 border ${
-      isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
+    <div className="rounded-lg shadow-sm p-6 sticky top-6 border bg-white border-gray-200">
       <div className="flex justify-between items-center mb-4">
-        <h2 className={`text-lg font-semibold flex items-center ${
-          isDark ? 'text-gray-200' : 'text-gray-800'
-        }`}>
+        <h2 className="text-lg font-semibold flex items-center text-gray-800">
           <Filter className="h-5 w-5 mr-2" />
           Filters
         </h2>
@@ -31,12 +25,9 @@ const FilterPanel = ({
         </button>
       </div>
 
-
-      {/* Year Range Filter */}
+      {/* Year Range */}
       <div className="mb-4">
-        <label className={`block text-sm font-medium mb-2 ${
-          isDark ? 'text-gray-300' : 'text-gray-700'
-        }`}>
+        <label className="block text-sm font-medium mb-2 text-gray-700">
           Year Range
         </label>
         <div className="flex items-center space-x-2">
@@ -51,13 +42,9 @@ const FilterPanel = ({
                 filters.yearRange[1],
               ])
             }
-            className={`w-20 p-2 border rounded text-sm ${
-              isDark 
-                ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                : 'bg-white border-gray-300 text-gray-900'
-            }`}
+            className="w-20 p-2 border rounded text-sm bg-white border-gray-300 text-gray-900"
           />
-          <span className={isDark ? 'text-gray-400' : 'text-gray-600'}>to</span>
+          <span className="text-gray-600">to</span>
           <input
             type="number"
             min={filters.yearRange[0] + 1}
@@ -69,28 +56,18 @@ const FilterPanel = ({
                 Math.max(parseInt(e.target.value), filters.yearRange[0] + 1),
               ])
             }
-            className={`w-20 p-2 border rounded text-sm ${
-              isDark 
-                ? 'bg-gray-700 border-gray-600 text-gray-200' 
-                : 'bg-white border-gray-300 text-gray-900'
-            }`}
+            className="w-20 p-2 border rounded text-sm bg-white border-gray-300 text-gray-900"
           />
         </div>
       </div>
 
-      {/* Cantons Filter */}
+      {/* Cantons */}
       <div className="mb-4">
-        <label className={`block text-sm font-medium mb-2 ${
-          isDark ? 'text-gray-300' : 'text-gray-700'
-        }`}>
+        <label className="block text-sm font-medium mb-2 text-gray-700">
           Cantons ({filters.cantons.length} selected)
         </label>
-        <div className={`space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md ${
-          isDark ? 'border-gray-600' : 'border-gray-200'
-        }`}>
-          <label className={`flex items-center p-1 rounded font-medium cursor-pointer ${
-            isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-          }`}>
+        <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
+          <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
             <input
               type="checkbox"
               checked={filters.cantons.length === OFFICIAL_CANTONS.length}
@@ -106,7 +83,7 @@ const FilterPanel = ({
               }}
               className="mr-2 text-red-600 focus:ring-red-500"
             />
-            <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span className="text-sm text-gray-700">
               {filters.cantons.length === OFFICIAL_CANTONS.length
                 ? "Deselect All"
                 : "Select All"}
@@ -116,9 +93,7 @@ const FilterPanel = ({
           {OFFICIAL_CANTONS.map((canton) => (
             <label
               key={canton.code}
-              className={`flex items-center p-1 rounded cursor-pointer ${
-                isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-              }`}
+              className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
             >
               <input
                 type="checkbox"
@@ -126,7 +101,7 @@ const FilterPanel = ({
                 onChange={() => toggleArrayFilter("cantons", canton.name)}
                 className="mr-2 text-red-600 focus:ring-red-500"
               />
-              <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <span className="text-sm text-gray-700">
                 {canton.name} ({canton.code})
               </span>
             </label>
@@ -134,40 +109,40 @@ const FilterPanel = ({
         </div>
       </div>
 
-      {/* CEO Gender Filter - Only show for companies */}
+      {/* CEO Gender (companies only) */}
       {activeTab === "companies" && (
         <div className="mb-4">
-          <label className={`block text-sm font-medium mb-2 ${
-            isDark ? 'text-gray-300' : 'text-gray-700'
-          }`}>
+          <label className="block text-sm font-medium mb-2 text-gray-700">
             CEO Gender ({filters.ceoGenders?.length || 0} selected)
           </label>
-          <div className={`space-y-2 p-2 border rounded-md ${
-            isDark ? 'border-gray-600' : 'border-gray-200'
-          }`}>
-            <label className={`flex items-center p-1 rounded font-medium cursor-pointer ${
-              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-            }`}>
+          <div className="space-y-2 p-2 border rounded-md border-gray-200">
+            <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
               <input
                 type="checkbox"
                 checked={
-                  (filters.ceoGenders?.length || 0) === (filterOptions.ceoGenders?.length || 0) &&
+                  (filters.ceoGenders?.length || 0) ===
+                    (filterOptions.ceoGenders?.length || 0) &&
                   (filterOptions.ceoGenders?.length || 0) > 0
                 }
                 onChange={() => {
                   if (
-                    (filters.ceoGenders?.length || 0) === (filterOptions.ceoGenders?.length || 0)
+                    (filters.ceoGenders?.length || 0) ===
+                    (filterOptions.ceoGenders?.length || 0)
                   ) {
                     updateFilter("ceoGenders", []);
                   } else {
-                    updateFilter("ceoGenders", filterOptions.ceoGenders || []);
+                    updateFilter(
+                      "ceoGenders",
+                      filterOptions.ceoGenders || []
+                    );
                   }
                 }}
                 className="mr-2 text-red-600 focus:ring-red-500"
               />
-              <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                {(filters.ceoGenders?.length || 0) === (filterOptions.ceoGenders?.length || 0) &&
-                 (filterOptions.ceoGenders?.length || 0) > 0
+              <span className="text-sm text-gray-700">
+                {(filters.ceoGenders?.length || 0) ===
+                  (filterOptions.ceoGenders?.length || 0) &&
+                (filterOptions.ceoGenders?.length || 0) > 0
                   ? "Deselect All"
                   : "Select All"}
               </span>
@@ -175,9 +150,7 @@ const FilterPanel = ({
             {filterOptions.ceoGenders?.map((gender) => (
               <label
                 key={gender}
-                className={`flex items-center p-1 rounded cursor-pointer ${
-                  isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                }`}
+                className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
               >
                 <input
                   type="checkbox"
@@ -185,29 +158,22 @@ const FilterPanel = ({
                   onChange={() => toggleArrayFilter("ceoGenders", gender)}
                   className="mr-2 text-red-600 focus:ring-red-500"
                 />
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {gender}
-                </span>
+                <span className="text-sm text-gray-700">{gender}</span>
               </label>
             ))}
           </div>
         </div>
       )}
 
-      {/* Tab-specific filters */}
+      {/* Tab-specific */}
       {activeTab === "companies" ? (
+        /* Companies — Industries */
         <div className="mb-4">
-          <label className={`block text-sm font-medium mb-2 ${
-            isDark ? 'text-gray-300' : 'text-gray-700'
-          }`}>
+          <label className="block text-sm font-medium mb-2 text-gray-700">
             Industries ({filters.industries.length} selected)
           </label>
-          <div className={`space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md ${
-            isDark ? 'border-gray-600' : 'border-gray-200'
-          }`}>
-            <label className={`flex items-center p-1 rounded font-medium cursor-pointer ${
-              isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-            }`}>
+          <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
+            <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
               <input
                 type="checkbox"
                 checked={
@@ -225,8 +191,9 @@ const FilterPanel = ({
                 }}
                 className="mr-2 text-red-600 focus:ring-red-500"
               />
-              <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                {filters.industries.length === filterOptions.industries?.length
+              <span className="text-sm text-gray-700">
+                {filters.industries.length ===
+                filterOptions.industries?.length
                   ? "Deselect All"
                   : "Select All"}
               </span>
@@ -234,9 +201,7 @@ const FilterPanel = ({
             {filterOptions.industries?.map((industry) => (
               <label
                 key={industry}
-                className={`flex items-center p-1 rounded cursor-pointer ${
-                  isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                }`}
+                className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
               >
                 <input
                   type="checkbox"
@@ -244,36 +209,82 @@ const FilterPanel = ({
                   onChange={() => toggleArrayFilter("industries", industry)}
                   className="mr-2 text-red-600 focus:ring-red-500"
                 />
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {industry}
-                </span>
+                <span className="text-sm text-gray-700">{industry}</span>
               </label>
             ))}
           </div>
         </div>
       ) : (
         <>
+          {/* Deals — Industries (ADDED) */}
           <div className="mb-4">
-            <label className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}>
-              Deal Types ({filters.dealTypes.length} selected)
+            <label className="block text-sm font-medium mb-2 text-gray-700">
+              Industries ({filters.industries.length} selected)
             </label>
-            <div className={`space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md ${
-              isDark ? 'border-gray-600' : 'border-gray-200'
-            }`}>
-              <label className={`flex items-center p-1 rounded font-medium cursor-pointer ${
-                isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-              }`}>
+            <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
+              <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
                 <input
                   type="checkbox"
                   checked={
-                    filters.dealTypes.length === filterOptions.dealTypes?.length
+                    filters.industries.length ===
+                    (filterOptions.industries?.length || 0)
+                  }
+                  onChange={() => {
+                    if (
+                      filters.industries.length ===
+                      (filterOptions.industries?.length || 0)
+                    ) {
+                      updateFilter("industries", []);
+                    } else {
+                      updateFilter(
+                        "industries",
+                        filterOptions.industries || []
+                      );
+                    }
+                  }}
+                  className="mr-2 text-red-600 focus:ring-red-500"
+                />
+                <span className="text-sm text-gray-700">
+                  {filters.industries.length ===
+                  (filterOptions.industries?.length || 0)
+                    ? "Deselect All"
+                    : "Select All"}
+                </span>
+              </label>
+              {filterOptions.industries?.map((industry) => (
+                <label
+                  key={industry}
+                  className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
+                >
+                  <input
+                    type="checkbox"
+                    checked={filters.industries.includes(industry)}
+                    onChange={() => toggleArrayFilter("industries", industry)}
+                    className="mr-2 text-red-600 focus:ring-red-500"
+                  />
+                  <span className="text-sm text-gray-700">{industry}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Deals — Deal Types */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2 text-gray-700">
+              Deal Types ({filters.dealTypes.length} selected)
+            </label>
+            <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
+              <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
+                <input
+                  type="checkbox"
+                  checked={
+                    filters.dealTypes.length ===
+                    (filterOptions.dealTypes?.length || 0)
                   }
                   onChange={() => {
                     if (
                       filters.dealTypes.length ===
-                      filterOptions.dealTypes?.length
+                      (filterOptions.dealTypes?.length || 0)
                     ) {
                       updateFilter("dealTypes", []);
                     } else {
@@ -282,8 +293,9 @@ const FilterPanel = ({
                   }}
                   className="mr-2 text-red-600 focus:ring-red-500"
                 />
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {filters.dealTypes.length === filterOptions.dealTypes?.length
+                <span className="text-sm text-gray-700">
+                  {filters.dealTypes.length ===
+                  (filterOptions.dealTypes?.length || 0)
                     ? "Deselect All"
                     : "Select All"}
                 </span>
@@ -291,9 +303,7 @@ const FilterPanel = ({
               {filterOptions.dealTypes?.map((type) => (
                 <label
                   key={type}
-                  className={`flex items-center p-1 rounded cursor-pointer ${
-                    isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                  }`}
+                  className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
                 >
                   <input
                     type="checkbox"
@@ -301,35 +311,26 @@ const FilterPanel = ({
                     onChange={() => toggleArrayFilter("dealTypes", type)}
                     className="mr-2 text-red-600 focus:ring-red-500"
                   />
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {type}
-                  </span>
+                  <span className="text-sm text-gray-700">{type}</span>
                 </label>
               ))}
             </div>
           </div>
 
+          {/* Deals — Funding Phases */}
           <div className="mb-4">
-            <label className={`block text-sm font-medium mb-2 ${
-              isDark ? 'text-gray-300' : 'text-gray-700'
-            }`}>
+            <label className="block text-sm font-medium mb-2 text-gray-700">
               Funding Phases ({filters.phases.length} selected)
             </label>
-            <div className={`space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md ${
-              isDark ? 'border-gray-600' : 'border-gray-200'
-            }`}>
-              <label className={`flex items-center p-1 rounded font-medium cursor-pointer ${
-                isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-              }`}>
+            <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
+              <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
                 <input
                   type="checkbox"
                   checked={
-                    filters.phases.length === filterOptions.phases?.length
+                    filters.phases.length === (filterOptions.phases?.length || 0)
                   }
                   onChange={() => {
-                    if (
-                      filters.phases.length === filterOptions.phases?.length
-                    ) {
+                    if (filters.phases.length === (filterOptions.phases?.length || 0)) {
                       updateFilter("phases", []);
                     } else {
                       updateFilter("phases", filterOptions.phases || []);
@@ -337,8 +338,8 @@ const FilterPanel = ({
                   }}
                   className="mr-2 text-red-600 focus:ring-red-500"
                 />
-                <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {filters.phases.length === filterOptions.phases?.length
+                <span className="text-sm text-gray-700">
+                  {filters.phases.length === (filterOptions.phases?.length || 0)
                     ? "Deselect All"
                     : "Select All"}
                 </span>
@@ -346,9 +347,7 @@ const FilterPanel = ({
               {filterOptions.phases?.map((phase) => (
                 <label
                   key={phase}
-                  className={`flex items-center p-1 rounded cursor-pointer ${
-                    isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
-                  }`}
+                  className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
                 >
                   <input
                     type="checkbox"
@@ -356,9 +355,7 @@ const FilterPanel = ({
                     onChange={() => toggleArrayFilter("phases", phase)}
                     className="mr-2 text-red-600 focus:ring-red-500"
                   />
-                  <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {phase}
-                  </span>
+                  <span className="text-sm text-gray-700">{phase}</span>
                 </label>
               ))}
             </div>

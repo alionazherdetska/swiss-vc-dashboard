@@ -88,10 +88,7 @@ export const processDeals = (dealsData, companiesData = []) => {
       }
     });
   }
-
-  let mappingSuccessCount = 0;
-  let mappingFailCount = 0;
-
+  
   const processedDeals = dealsData
     .filter((deal) => deal.Confidential !== "TRUE" && deal.Confidential !== true)
     .map((deal) => {
@@ -142,9 +139,6 @@ export const processDeals = (dealsData, companiesData = []) => {
         if (matchedCompany && matchedCompany.Industry && matchedCompany.Industry.trim()) {
           industry = matchedCompany.Industry.trim();
           mappingSource = "company_lookup";
-          mappingSuccessCount++;
-        } else {
-          mappingFailCount++;
         }
       }
 

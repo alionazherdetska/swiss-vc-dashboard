@@ -10,11 +10,9 @@ import ExpandableQuarterlyAnalysisChart from "./ExpandableQuarterlyAnalysisChart
 import { processCompanies, processDeals, generateChartData } from "./utils";
 import { SAMPLE_DATA } from "./constants";
 import { COLOR_PALETTE, FIXED_INDUSTRY_COLORS } from "./colors";
-import { Building2 } from "./CustomIcons.js";
 
 const Dashboard = () => {
   // Companies only for mapping; UI is deals-only
-  const [companies, setCompanies] = useState([]);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,7 +70,6 @@ const Dashboard = () => {
 
         if (jsonData.Companies) {
           processedCompanies = processCompanies(jsonData.Companies);
-          setCompanies(processedCompanies);
         }
 
         if (jsonData.Deals) {
@@ -150,10 +147,10 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-gray-50">
+    <div className="min-h-screen m-4 p-8 md:p-8 bg-gray-50">
       <div className="max-w-8xl mx-auto">
         {/* Header */}
-        <div className="rounded-lg shadow-sm mb-6 p-6 border bg-white border-gray-200">
+        <div className="rounded-lg shadow-sm mb-6 p-8 border bg-white border-gray-200">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-800">
               Deals ({deals.length.toLocaleString()})
@@ -230,8 +227,10 @@ const Dashboard = () => {
                 ) : (
                   <ExpandableQuarterlyAnalysisChart
                     deals={filteredDeals}
-                    colorOf={getIndustryColor}
+                    selectedIndustryCount={filters.industries.length}
+                    totalIndustryCount={filterOptions.industries.length}
                   />
+
                 )}
               </div>
             </div>

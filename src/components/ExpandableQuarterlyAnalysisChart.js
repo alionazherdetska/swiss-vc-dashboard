@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef } from "react";
+// src/components/ExpandableQuarterlyAnalysisChart.jsx
+import { useState, useMemo, useRef } from "react";
 import {
   Bar,
   Line,
@@ -10,7 +11,6 @@ import {
   ComposedChart,
   LabelList,
 } from "recharts";
-
 import { Maximize2, X } from "lucide-react";
 
 const CHART_MARGIN = { top: 50, right: 50, left: 60, bottom: 60 };
@@ -18,96 +18,94 @@ const EXPANDED_CHART_MARGIN = { top: 80, right: 80, left: 80, bottom: 80 };
 
 // Specific color assignments for each industry
 const INDUSTRY_COLOR_MAP = {
-  "Biotech": "#E84A5F",        // Red
-  "Cleantech": "#2ECC71",      // Green
-  "Consumer Products": "#3498DB", // Blue
-  "Deep Tech": "#A0522D",      // Brown
-  "Healthcare It": "#F7931E",  // Orange
-  "ICT": "#9B5DE5",           // Purple
-  "Interdisciplinary": "#1ABC9C", // Teal
-  "MedTech": "#FFD700",       // Gold
-  "Micro / Nano": "#FF1493",  // Deep Pink
-  "Unknown": "#32CD32",       // Lime Green
+  Biotech: "#E84A5F",              // Red
+  Cleantech: "#2ECC71",            // Green
+  "Consumer Products": "#3498DB",  // Blue
+  "Deep Tech": "#A0522D",          // Brown
+  "Healthcare It": "#F7931E",      // Orange
+  ICT: "#9B5DE5",                  // Purple
+  Interdisciplinary: "#1ABC9C",    // Teal
+  MedTech: "#FFD700",              // Gold
+  "Micro / Nano": "#FF1493",       // Deep Pink
+  Unknown: "#32CD32",              // Lime Green
 };
 
 const ENHANCED_COLOR_PALETTE = [
-  "#E84A5F", "#2ECC71", "#3498DB", "#A0522D", "#F7931E", 
-  "#9B5DE5", "#1ABC9C", "#FFD700", "#FF1493", "#32CD32", 
+  "#E84A5F", "#2ECC71", "#3498DB", "#A0522D", "#F7931E",
+  "#9B5DE5", "#1ABC9C", "#FFD700", "#FF1493", "#32CD32",
   "#4169E1", "#8B4513", "#FF4500", "#8A2BE2", "#00CED1",
 ];
 
-// Modal Component
+// Simple light-only modal
 const ChartModal = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-75 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-7xl w-full max-h-[95vh] overflow-auto">
-        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {title}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+      <div className="bg-white rounded-lg shadow-xl max-w-7xl w-full max-h-[95vh] overflow-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <X className="h-5 w-5 text-gray-500" />
           </button>
         </div>
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
 };
 
-// Expandable QuarterlyAnalysisChart
+// ====== Helpers ======
+const axisStroke = "#4A5568";
+const gridStroke = "#E2E8F0";
+const tooltipStyle = {
+  backgroundColor: "white",
+  border: "1px solid #E2E8F0",
+  borderRadius: "8px",
+  color: "#1F2937",
+};
+
+const sanitizeKey = (s) => String(s || "Unknown").replace(/\s+/g, "_").replace(/[^\w]/g, "_");
+
+const makeTicks = (maxVal, step) => {
+  const safeMax = Math.max(0, Number(maxVal) || 0);
+  const end = Math.ceil(safeMax / step) * step;
+  const ticks = [];
+  for (let t = 0; t <= end; t += step) ticks.push(t);
+  return ticks.length ? ticks : [0];
+};
+
 export const ExpandableQuarterlyAnalysisChart = ({
   deals,
   data,
-  isDark = false,
   colorOf: externalColorOf,
+  selectedIndustryCount,     // e.g., filters.industries.length
+  totalIndustryCount,        // e.g., filterOptions.industries.length
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [expandedChart, setExpandedChart] = useState("volume"); // "volume" or "count"
+  const [expandedChart, setExpandedChart] = useState("volume"); // "volume" | "count"
   const [leftMode, setLeftMode] = useState("line");
   const [rightMode, setRightMode] = useState("line");
   const [showTotal, setShowTotal] = useState(true);
-  const [showLabels, setShowLabels] = useState(false);
+  const [showLabels, setShowLabels] = useState(false); // default OFF
 
-  // For expanded view, always show labels
+  // Expanded view controls
   const [expandedMode, setExpandedMode] = useState("line");
   const [expandedShowTotal, setExpandedShowTotal] = useState(true);
   const [expandedShowLabels, setExpandedShowLabels] = useState(true);
 
-  const sanitizeKey = (s) =>
-    String(s || "Unknown").replace(/\s+/g, "_").replace(/[^\w]/g, "_");
-
-  const axisStroke = isDark ? "#D1D5DB" : "#4A5568";
-  const gridStroke = isDark ? "#374151" : "#E2E8F0";
-  const tooltipStyle = {
-    backgroundColor: isDark ? "#374151" : "white",
-    border: `1px solid ${isDark ? "#4B5563" : "#E2E8F0"}`,
-    borderRadius: "8px",
-    color: isDark ? "#F3F4F6" : "#1F2937",
-  };
-
+  // Color management
   function useDistributedColors() {
     const colorMapRef = useRef(new Map());
-    
     const getColor = (name, allIndustries = []) => {
       if (!name) return "#7F8C8D";
-      
       if (!colorMapRef.current.has(name)) {
         if (INDUSTRY_COLOR_MAP[name]) {
           colorMapRef.current.set(name, INDUSTRY_COLOR_MAP[name]);
         } else {
-          const industryIndex = allIndustries.indexOf(name);
-          const colorIndex = industryIndex >= 0 
-            ? industryIndex % ENHANCED_COLOR_PALETTE.length
+          const idx = allIndustries.indexOf(name);
+          const colorIndex = idx >= 0
+            ? idx % ENHANCED_COLOR_PALETTE.length
             : colorMapRef.current.size % ENHANCED_COLOR_PALETTE.length;
-          
           colorMapRef.current.set(name, ENHANCED_COLOR_PALETTE[colorIndex]);
         }
       }
@@ -115,54 +113,35 @@ export const ExpandableQuarterlyAnalysisChart = ({
     };
     return getColor;
   }
-
   const internalColorOf = useDistributedColors();
-  
+
   const dealsSource = useMemo(() => {
     if (Array.isArray(deals)) return deals;
     if (Array.isArray(data)) return data;
     return [];
   }, [deals, data]);
 
-  const { rows, industries, top5 } = useMemo(() => {
+  // Aggregate by year & industry (skip Unknown + year 2025)
+  const { rows, industries, top5, volumeMax, totalVolumeMax, totalCountMax } = useMemo(() => {
     const byYearIndustry = {};
     const industrySet = new Set();
     const yearSet = new Set();
-    const industryTotals = {}; // Track total volume per industry
+    const industryTotals = {};
 
-    // First pass: calculate totals for each industry and exclude 2025
     dealsSource.forEach((d) => {
       const year = Number(d.Year ?? d.year);
-      if (!year || year === 2025) return; // Skip 2025 data
-
+      if (!year || year === 2025) return;
       const ind = (d.Industry && String(d.Industry).trim()) || "Unknown";
-      if (ind === "Unknown") return; // Skip Unknown entries
-      
+      if (ind === "Unknown") return;
+
       const amt = typeof d.Amount === "number" && isFinite(d.Amount) ? d.Amount : 0;
       industryTotals[ind] = (industryTotals[ind] || 0) + amt;
-    });
 
-    // Get top 5 industries by total volume
-    const top5Industries = Object.entries(industryTotals)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 5)
-      .map(([industry]) => industry);
-
-    // Second pass: process all industries (we'll still highlight top5 via labels)
-    dealsSource.forEach((d) => {
-      const year = Number(d.Year ?? d.year);
-      if (!year || year === 2025) return; // Skip 2025 data
-
-      const ind = (d.Industry && String(d.Industry).trim()) || "Unknown";
-      // include all industries in the dataset; labels will be limited to top5 later
-      
       industrySet.add(ind);
       yearSet.add(year);
 
       byYearIndustry[year] = byYearIndustry[year] || {};
       byYearIndustry[year][ind] = byYearIndustry[year][ind] || { count: 0, volume: 0 };
-
-      const amt = typeof d.Amount === "number" && isFinite(d.Amount) ? d.Amount : 0;
       byYearIndustry[year][ind].count += 1;
       byYearIndustry[year][ind].volume += amt;
     });
@@ -170,15 +149,14 @@ export const ExpandableQuarterlyAnalysisChart = ({
     const years = Array.from(yearSet).sort((a, b) => a - b);
     const inds = Array.from(industrySet).sort();
 
-    const 
-    rows = years.map((year) => {
+    const rows = years.map((year) => {
       const entry = { year };
       let totalCount = 0;
       let totalVolume = 0;
       inds.forEach((ind) => {
         const cKey = `${sanitizeKey(ind)}__count`;
         const vKey = `${sanitizeKey(ind)}__volume`;
-        const cell = byYearIndustry[year][ind];
+        const cell = byYearIndustry[year]?.[ind];
         const c = cell ? cell.count : 0;
         const v = cell ? cell.volume : 0;
         entry[cKey] = c;
@@ -191,140 +169,284 @@ export const ExpandableQuarterlyAnalysisChart = ({
       return entry;
     });
 
-  return { rows, industries: inds, top5: top5Industries };
+    // Top5 by overall volume (consistent with earlier behavior)
+    const top5Industries = Object.entries(industryTotals)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 5)
+      .map(([industry]) => industry);
+
+    // Max for single-industry volume in a year (for line/column scaling)
+    let volMax = 0;
+    rows.forEach((r) => {
+      inds.forEach((ind) => {
+        const vKey = `${sanitizeKey(ind)}__volume`;
+        if (r[vKey] && r[vKey] > volMax) volMax = r[vKey];
+      });
+    });
+
+    // Max total volume & count per year (for stacked columns)
+    let totalVolMax = 0, totalCntMax = 0;
+    rows.forEach((r) => {
+      if (r.totalVolume > totalVolMax) totalVolMax = r.totalVolume;
+      if (r.totalCount > totalCntMax) totalCntMax = r.totalCount;
+    });
+
+    return {
+      rows,
+      industries: inds,
+      top5: top5Industries,
+      volumeMax: volMax,
+      totalVolumeMax: totalVolMax,
+      totalCountMax: totalCntMax,
+    };
   }, [dealsSource]);
 
-  const colorOf = externalColorOf && externalColorOf.useExternal 
-    ? externalColorOf 
-    : (name) => internalColorOf(name, industries);
+  const colorOf =
+    externalColorOf && externalColorOf.useExternal
+      ? externalColorOf
+      : (name) => internalColorOf(name, industries);
 
-  const volumeMax = React.useMemo(() => {
-    // For individual industry lines/bars, we want to scale to the max individual value
-    let industryMax = 0;
-    for (const r of rows) {
-      for (const ind of industries) {
-        const vKey = `${sanitizeKey(ind)}__volume`;
-        if (r[vKey] && r[vKey] > industryMax) industryMax = r[vKey];
+  // Selection awareness (optional precision for "ALL selected")
+  const selCount = selectedIndustryCount ?? industries.length;
+  const totalCount = totalIndustryCount ?? industries.length;
+  const allSelectedKnown = (selectedIndustryCount != null && totalIndustryCount != null);
+  const isAllSelected = allSelectedKnown ? selCount === totalCount : false;
+
+  // Rule: fully label lines when <=3 industries are specifically selected
+  const shouldFullyLabelLines = showLabels && selCount > 0 && selCount <= 3 && !isAllSelected;
+
+  // Right-end label offset planner for line charts (Top-5 only)
+  const makeRightEndOffsetMap = (metricSuffix) => {
+    const last = rows[rows.length - 1] || {};
+    const arr = industries
+      .map((ind) => ({
+        ind,
+        v: Number(last[`${sanitizeKey(ind)}__${metricSuffix}`]) || 0,
+      }))
+      .filter((x) => top5.includes(x.ind) && x.v > 0)
+      .sort((a, b) => b.v - a.v); // by value, high to low
+
+    // Spread labels around the point: [0, -12, +12, -24, +24]
+    const offsets = [0, -12, 12, -24, 24];
+    const map = new Map();
+    arr.forEach((item, i) => map.set(item.ind, offsets[i] ?? 0));
+    return map;
+  };
+  const rightEndDYVolume = useMemo(() => makeRightEndOffsetMap("volume"), [rows, industries, top5]);
+  const rightEndDYCount  = useMemo(() => makeRightEndOffsetMap("count"),  [rows, industries, top5]);
+
+  // ====== Render helpers (per-mode) ======
+  const createRenderFunctions = (
+    mode,                // "line" | "column"
+    metricSuffix,        // "volume" | "count"
+    showLabelsEnabled,
+    isExpandedView = false
+  ) => {
+    const totalKey = metricSuffix === "volume" ? "totalVolume" : "totalCount";
+    const barSize = isExpandedView ? 48 : 36;
+
+    const formatK = (n) => {
+      if (metricSuffix === "count") return `${n ?? 0}`;
+      const v = Number(n) || 0;
+      if (v >= 1000) {
+        const k = v / 1000;
+        const kRounded = Math.round(k * 10) / 10;
+        return kRounded % 1 === 0 ? `${kRounded.toFixed(0)}k` : `${kRounded.toFixed(1)}k`;
       }
-    }
-    return industryMax;
-  }, [rows, industries]);
+      const rounded = Math.round(v * 10) / 10;
+      return rounded % 1 === 0 ? `${rounded.toFixed(0)}` : `${rounded.toFixed(1)}`;
+    };
 
-  // When bars are stacked, the axis must accommodate the total per year.
-  const totalVolumeMax = React.useMemo(() => {
-    if (!rows || !rows.length) return 0;
-    let max = 0;
-    for (const r of rows) {
-      if (typeof r.totalVolume === "number" && isFinite(r.totalVolume) && r.totalVolume > max) max = r.totalVolume;
-    }
-    return max;
-  }, [rows]);
+    // ===== Columns =====
+    const renderBars = () =>
+      industries.map((ind) => {
+        const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+        return (
+          <Bar
+            key={key}
+            dataKey={key}
+            stackId={`stack-${metricSuffix}`}
+            fill={colorOf(ind)}
+            name={ind}
+            barSize={barSize}
+            radius={[0, 0, 0, 0]}
+          >
+            {showLabelsEnabled && (
+              <LabelList
+                dataKey={key}
+                content={({ x, y, width, height, value, index }) => {
+                  if (x == null || y == null || width == null || height == null || index == null) return null;
+                  const row = rows[index];
+                  if (!row) return null;
+                  const total = Number(row[totalKey]) || 0;
+                  const v = Number(value) || 0;
+                  if (total <= 0) return null;
 
-  const totalCountMax = React.useMemo(() => {
-    if (!rows || !rows.length) return 0;
-    let max = 0;
-    for (const r of rows) {
-      if (typeof r.totalCount === "number" && isFinite(r.totalCount) && r.totalCount > max) max = r.totalCount;
-    }
-    return max;
-  }, [rows]);
+                  const share = v / total;
 
-const createRenderFunctions = (
-  mode,
-  metricSuffix,
-  showLabelsEnabled,
-  isExpandedView = false
-) => {
-  // Helpers local to this function so it's copy-paste ready
-  const totalKey = metricSuffix === "volume" ? "totalVolume" : "totalCount";
-  const barSize = isExpandedView ? 48 : 36;
-  // Label visibility thresholds:
-  // - show label if segment >= MIN_SHARE of that year's total AND the segment
-  //   has at least MIN_PX pixels height.
-  // - top5 industries are allowed a smaller threshold so prominent industries
-  //   still show labels even when their share is slightly below MIN_SHARE.
-  const MIN_SHARE = 0.10;   // show label if segment ≥10% of that year's total
-  const MIN_PX = 12;        // and the segment is tall enough in pixels
-  const TOP5_MIN_SHARE = 0.06; // for top5 industries allow smaller share
-  const TOP5_MIN_PX = 10;      // and a smaller pixel height
+                  // Label a segment if it's sizable OR part of Top-5 (more permissive)
+                  const MIN_SHARE = 0.10;
+                  const MIN_PX = 12;
+                  const TOP5_MIN_SHARE = 0.06;
+                  const TOP5_MIN_PX = 10;
 
-  const formatK = (n) => {
-    if (metricSuffix === "count") return `${n ?? 0}`;
-    const v = Number(n) || 0;
-    // Round to 1 decimal to avoid long floating-point tails (e.g. 680.7000000000002)
-    if (v >= 1000) {
-      const k = v / 1000;
-      const kRounded = Math.round(k * 10) / 10;
-      return kRounded % 1 === 0 ? `${kRounded.toFixed(0)}k` : `${kRounded.toFixed(1)}k`;
-    }
-    const rounded = Math.round(v * 10) / 10;
-    return rounded % 1 === 0 ? `${rounded.toFixed(0)}` : `${rounded.toFixed(1)}`;
-  };
+                  const meetsDefault = share >= MIN_SHARE && height >= MIN_PX;
+                  const meetsTop5 = top5.includes(ind) && share >= TOP5_MIN_SHARE && height >= TOP5_MIN_PX;
+                  if (!(meetsDefault || meetsTop5)) return null;
 
-  const contrastTextOn = (hex) => {
-    if (!hex || !hex.startsWith("#")) return "#111827";
-    let c = hex.slice(1);
-    if (c.length === 3) c = c.split("").map(ch => ch + ch).join("");
-    const r = parseInt(c.slice(0,2), 16);
-    const g = parseInt(c.slice(2,4), 16);
-    const b = parseInt(c.slice(4,6), 16);
-    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-    return yiq >= 140 ? "#111827" : "#FFFFFF"; // dark text on light bg, white on dark
-  };
+                  const cx = x + width / 2;
+                  const cy = y + height / 2;
 
-  // --- main geometry ---
-  const renderBars = () =>
-    industries.map((ind) => {
-      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+                  return (
+                    <text
+                      x={cx}
+                      y={cy}
+                      fill="#000000"
+                      stroke="none"
+                      strokeWidth={0}
+                      fontSize={isExpandedView ? 12 : 10}
+                      fontWeight="600"
+                      textAnchor="middle"
+                      alignmentBaseline="central"
+                      pointerEvents="none"
+                    >
+                      {formatK(v)}
+                    </text>
+                  );
+                }}
+              />
+            )}
+          </Bar>
+        );
+      });
+
+    const renderBarTotalLabels = () => {
+      if (!showLabelsEnabled) return null;
       return (
         <Bar
-          key={key}
-          dataKey={key}
-          stackId={`stack-${metricSuffix}`}
-          fill={colorOf(ind)}
-          name={ind}
-          barSize={barSize}
-          radius={[0, 0, 0, 0]}
+          key={`_totals_${metricSuffix}`}
+          dataKey={totalKey}
+          fill="transparent"
+          stroke="transparent"
+          isAnimationActive={false}
+          legendType="none"
+          shape={() => null}
         >
-          {showLabelsEnabled && (
+          <LabelList
+            dataKey={totalKey}
+            position="top"
+            offset={isExpandedView ? 10 : 8}
+            content={({ x, y, value }) => {
+              if (x == null || y == null) return null;
+              return (
+                <text
+                  x={x}
+                  y={y - (isExpandedView ? 6 : 4)}
+                  fill="#000000"
+                  fontWeight="700"
+                  fontSize={isExpandedView ? 14 : 12}
+                  textAnchor="middle"
+                  pointerEvents="none"
+                >
+                  {formatK(value)}
+                </text>
+              );
+            }}
+          />
+        </Bar>
+      );
+    };
+
+    // ===== Lines =====
+    const renderLines = () =>
+      industries.map((ind, seriesIdx) => {
+        const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+        const fullyLabel = shouldFullyLabelLines && showLabelsEnabled;
+
+        return (
+          <Line
+            key={key}
+            type="linear"
+            dataKey={key}
+            stroke={colorOf(ind)}
+            strokeWidth={isExpandedView ? 3 : 2}
+            dot={{ r: isExpandedView ? 5 : 3 }}
+            name={ind}
+          >
+            {fullyLabel && (
+              <LabelList
+                dataKey={key}
+                content={({ x, y, value }) => {
+                  if (x == null || y == null) return null;
+                  const v = Number(value) || 0;
+                  // small stagger by series (to reduce overlap)
+                  const dyTable = isExpandedView ? [-12, 4, 16] : [-8, 4, 12];
+                  const dy = dyTable[seriesIdx % dyTable.length];
+                  return (
+                    <text
+                      x={x}
+                      y={y + dy}
+                      fill="#000000"
+                      fontSize={isExpandedView ? 12 : 11}
+                      fontWeight="600"
+                      textAnchor="middle"
+                      alignmentBaseline="central"
+                      pointerEvents="none"
+                    >
+                      {formatK(v)}
+                    </text>
+                  );
+                }}
+              />
+            )}
+          </Line>
+        );
+      });
+
+    const renderRightEndLabelsForLines = () => {
+      if (!showLabelsEnabled || !rows?.length) return null;
+      if (shouldFullyLabelLines) return null; // already fully labeled
+
+      const lastIndex = rows.length - 1;
+      const dyMap = metricSuffix === "volume" ? rightEndDYVolume : rightEndDYCount;
+
+      // Right-end labels for Top-5 only
+      return industries.map((ind) => {
+        if (!top5.includes(ind)) return null;
+        const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+        return (
+          <Bar
+            key={`_line_labels_${key}`}
+            dataKey={key}
+            fill="transparent"
+            stroke="transparent"
+            isAnimationActive={false}
+            legendType="none"
+            shape={() => null}
+          >
             <LabelList
               dataKey={key}
-              content={({ x, y, width, height, value, index }) => {
-                if (
-                  x == null || y == null || width == null || height == null || index == null
-                ) return null;
-
-                const row = rows[index];
-                if (!row) return null;
-
-                const total = Number(row[totalKey]) || 0;
+              position="right"
+              content={({ x, y, width, value, index }) => {
+                if (index !== lastIndex) return null;
                 const v = Number(value) || 0;
-                if (total <= 0) return null;
+                if (v <= 0) return null;
 
-                const share = v / total;
-                // Allow labels for segments that meet the default thresholds,
-                // or for top5 industries that meet the relaxed thresholds.
-                const meetsDefault = share >= MIN_SHARE && height >= MIN_PX;
-                const meetsTop5 = Array.isArray(top5) && top5.includes(ind) && share >= TOP5_MIN_SHARE && height >= TOP5_MIN_PX;
-                if (!(meetsDefault || meetsTop5)) return null;
-
-                const cx = x + width / 2;
-                const cy = y + height / 2;
-                const fillColor = '#000000';
-                const strokeColor = 'none';
-                const strokeWidthVal = 0;
-                const fontWeightVal = '600';
+                // small horizontal & vertical offsets (pre-computed dy)
+                const rightOffset = isExpandedView ? 12 : 0;
+                const baseX = x != null ? x + (width || 0) : 0;
+                const cx = baseX + rightOffset;
+                const lift = dyMap.get(ind) ?? (isExpandedView ? -12 : -8);
+                const cy = (y != null ? y : 0) + lift;
 
                 return (
                   <text
                     x={cx}
                     y={cy}
-                    fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth={strokeWidthVal}
-                    fontSize={isExpandedView ? 12 : 10}
-                    fontWeight={fontWeightVal}
-                    textAnchor="middle"
+                    fill="#000000"
+                    fontSize={isExpandedView ? 12 : 11}
+                    fontWeight="600"
+                    textAnchor="start"
                     alignmentBaseline="central"
                     pointerEvents="none"
                   >
@@ -333,222 +455,71 @@ const createRenderFunctions = (
                 );
               }}
             />
-          )}
-        </Bar>
-      );
-    });
+          </Bar>
+        );
+      });
+    };
 
-  const renderLines = () =>
-    industries.map((ind) => {
-      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
+    return {
+      main: mode === "column" ? renderBars() : renderLines(),
+      labels: mode === "column" ? renderBarTotalLabels() : renderRightEndLabelsForLines(),
+    };
+  };
+
+  // Legend (light-only)
+  const CustomLegend = ({ industries, colorOf, isCompact = false, isOverlay = false }) => {
+    if (isOverlay) {
       return (
-        <Line
-          key={key}
-          type="linear"
-          dataKey={key}
-          stroke={colorOf(ind)}
-          strokeWidth={isExpandedView ? 3 : 2}
-          dot={{ r: isExpandedView ? 5 : 3 }}
-          name={ind}
-        />
+        <div className="absolute -top-4 right-4 p-4 rounded-lg shadow-lg bg-white/90 backdrop-blur-sm border border-gray-200 max-w-80 z-10">
+          <h4 className="text-sm font-semibold mb-3 text-left text-gray-700">Sectors</h4>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            {industries.map((industry) => (
+              <div key={industry} className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-sm flex-shrink-0" style={{ backgroundColor: colorOf(industry) }} />
+                <span className="text-xs text-gray-600">{industry}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       );
-    });
-
-  // --- labels layer (render LAST in the chart to be "on top") ---
-  const renderBarLabels = () => {
-    if (!showLabelsEnabled) return null;
-
-    // Total labels at the top of each stacked bar
-    const totalLabels = (
-      <Bar
-        key={`_totals_${metricSuffix}`}
-        dataKey={totalKey}
-        fill="transparent"
-        stroke="transparent"
-        isAnimationActive={false}
-        legendType="none"
-        shape={() => null}
-      >
-        <LabelList
-          dataKey={totalKey}
-          position="top"
-          offset={isExpandedView ? 10 : 8}
-          content={({ x, y, value }) => {
-            if (x == null || y == null) return null;
-      const totalFill = metricSuffix === 'volume' ? '#000000' : (isDark ? "#E5E7EB" : "#111827");
-            return (
-              <text
-                x={x}
-        y={y - (isExpandedView ? 6 : 4)}
-        fill={totalFill}
-                fontWeight="700"
-                fontSize={isExpandedView ? 14 : 12}
-                textAnchor="middle"
-                pointerEvents="none"
-              >
-                {formatK(value)}
-              </text>
-            );
-          }}
-        />
-      </Bar>
-    );
-
-  return totalLabels;
-  };
-
-  const renderLineLabels = () => {
-    if (!showLabelsEnabled) return null;
-    if (!rows || !rows.length) return null;
-
-    const lastIndex = rows.length - 1;
-
-    // For line mode we render invisible helpers (Bars) with LabelList children
-    // that only draw on the last data point and only for industries in top5.
-    return industries.map((ind) => {
-      const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-      return (
-        <Bar
-          key={`_line_labels_${key}`}
-          dataKey={key}
-          fill="transparent"
-          stroke="transparent"
-          isAnimationActive={false}
-          legendType="none"
-          shape={() => null}
-        >
-          <LabelList
-            dataKey={key}
-            position="right"
-            content={({ x, y, width, height, value, index }) => {
-              // Only label the last year and only top5 industries
-              if (index !== lastIndex) return null;
-              if (!Array.isArray(top5) || !top5.includes(ind)) return null;
-              const v = Number(value) || 0;
-              if (v <= 0) return null;
-
-                // Position labels closer to the point and slightly above it:
-                // - smaller horizontal offset (labels sit nearer the chart)
-                // - lift labels by a few pixels so they appear 'on top' of the point
-                // smaller horizontal offset so labels sit closer to the point
-                const rightOffset = isExpandedView ? 12 : 0;
-                const lift = isExpandedView ? -12 : -8; // negative moves label up
-                const baseX = x != null ? x + (width || 0) : (x || 0);
-                const cx = baseX + rightOffset;
-                const cy = y != null ? (y + lift) : 0;
-
-              // Choose label color: for volume prefer black, otherwise contrast
-              const segColor = colorOf(ind);
-
-              // guard: require numeric coords
-              if (Number.isNaN(cx) || Number.isNaN(cy)) return null;
-              // Use plain black text, normal weight, no stroke to avoid contrast artifacts
-              const fillColor = '#000000';
-              const strokeColor = 'none';
-              const strokeWidthVal = 0;
-              const fontWeightVal = '600';
-
-              return (
-                <text
-                  x={cx}
-                  y={cy}
-                  fill={fillColor}
-                  stroke={strokeColor}
-                  strokeWidth={strokeWidthVal}
-                  fontSize={isExpandedView ? 12 : 11}
-                  fontWeight={fontWeightVal}
-                  textAnchor="start"
-                  alignmentBaseline="central"
-                  pointerEvents="none"
-                >
-                  {formatK(v)}
-                </text>
-              );
-            }}
-          />
-        </Bar>
-      );
-    });
-  };
-
-  return {
-    main: mode === "column" ? renderBars() : renderLines(),
-    // place this AFTER the total line in <ComposedChart> so labels are on top
-    labels: mode === "column" ? renderBarLabels() : renderLineLabels(),
-  };
-};
-
-// Custom Legend Component
-const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverlay = false }) => {
-  if (isOverlay) {
-    // Overlay legend positioned higher above the chart
+    }
     return (
-      <div 
-        className={`absolute -top-4 right-4 p-4 rounded-lg shadow-lg ${isDark ? "bg-gray-800/90" : "bg-white/90"} backdrop-blur-sm border ${isDark ? "border-gray-600" : "border-gray-200"} max-w-80 z-10`}
-      >
-        <h4 className={`text-sm font-semibold mb-3 text-left ${isDark ? "text-gray-200" : "text-gray-700"}`}>
-          Sectors
-        </h4>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+      <div className={`p-4 rounded-lg bg-gray-50 ${isCompact ? "w-48" : ""}`}>
+        <h4 className="text-sm font-semibold mb-3 text-gray-700">Sectors</h4>
+        <div className={isCompact ? "space-y-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2"}>
           {industries.map((industry) => (
             <div key={industry} className="flex items-center gap-2">
-              <div 
-                className="w-3 h-3 rounded-sm flex-shrink-0"
-                style={{ backgroundColor: colorOf(industry) }}
-              />
-              <span className={`text-xs ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                {industry}
-              </span>
+              <div className="w-4 h-4 rounded-sm flex-shrink-0" style={{ backgroundColor: colorOf(industry) }} />
+              <span className={`text-sm ${isCompact ? "" : "truncate"} text-gray-600`}>{industry}</span>
             </div>
           ))}
         </div>
       </div>
     );
-  }
+  };
 
-  return (
-    <div className={`p-4 rounded-lg ${isDark ? "bg-gray-800" : "bg-gray-50"} ${isCompact ? 'w-48' : ''}`}>
-      <h4 className={`text-sm font-semibold mb-3 ${isDark ? "text-gray-200" : "text-gray-700"}`}>
-        Sectors
-      </h4>
-      <div className={isCompact ? "space-y-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2"}>
-        {industries.map((industry) => (
-          <div key={industry} className="flex items-center gap-2">
-            <div 
-              className="w-4 h-4 rounded-sm flex-shrink-0"
-              style={{ backgroundColor: colorOf(industry) }}
-            />
-            <span className={`text-sm ${isCompact ? '' : 'truncate'} ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-              {industry}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-
+  // ===== Expanded (modal) content =====
   const ExpandedChartContent = () => {
     const isVolumeChart = expandedChart === "volume";
     const metricSuffix = isVolumeChart ? "volume" : "count";
     const yAxisLabel = isVolumeChart ? "Investment Volume CHF (M)" : "Number of Deals";
-    const totalDataKey = isVolumeChart ? "totalVolume" : "totalCount";
-    const formatter = isVolumeChart 
-      ? (v, name) => [`${(+v).toFixed(1)}M CHF`, name]
-      : (v, name) => [v, name];
+
+    // Granularity
+    const domainMax = isVolumeChart
+      ? Math.ceil((expandedMode === "column" ? totalVolumeMax : volumeMax) / 500) * 500
+      : Math.ceil((expandedMode === "column" ? totalCountMax : totalCountMax) / 50) * 50;
+    const ticks = isVolumeChart ? makeTicks(domainMax, 500) : makeTicks(domainMax, 50);
 
     return (
       <div className="space-y-4">
         {/* Controls */}
-        <div className={`flex flex-wrap items-center gap-4 p-4 rounded-lg ${isDark ? "bg-gray-800" : "bg-gray-50"}`}>
+        <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-gray-50">
           <div className="flex items-center gap-2">
-            <span className={isDark ? "text-gray-200" : "text-gray-700"}>Chart Type:</span>
+            <span className="text-gray-700">Chart Type:</span>
             <select
               value={expandedMode}
               onChange={(e) => setExpandedMode(e.target.value)}
-              className={`px-3 py-1 border rounded-md text-sm ${isDark ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300 text-gray-700"}`}
+              className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
             >
               <option value="line">Line</option>
               <option value="column">Column</option>
@@ -562,7 +533,7 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
               onChange={(e) => setExpandedShowLabels(e.target.checked)}
               className="text-red-600 focus:ring-red-500"
             />
-            <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show data labels</span>
+            <span className="text-gray-700">Show data labels</span>
           </label>
 
           {expandedMode === "column" && (
@@ -573,45 +544,32 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                 onChange={(e) => setExpandedShowTotal(e.target.checked)}
                 className="text-red-600 focus:ring-red-500"
               />
-              <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show total line</span>
+              <span className="text-gray-700">Show total line</span>
             </label>
           )}
         </div>
 
-        {/* Expanded Chart */}
+        {/* Expanded chart */}
         <div className="space-y-2">
           <div className="relative">
             <ResponsiveContainer width="100%" height={800}>
-              <ComposedChart 
-                data={rows} 
-                margin={{ top: 80, right: 80, left: 80, bottom: 80 }}
-                style={{ overflow: "visible" }}
-              >
+              <ComposedChart data={rows} margin={EXPANDED_CHART_MARGIN} style={{ overflow: "visible" }}>
                 <defs>
                   <filter id="glow-black-expanded" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                     <feMerge>
-                      <feMergeNode in="coloredBlur"/>
-                      <feMergeNode in="SourceGraphic"/>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
                     </feMerge>
                   </filter>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
-                <XAxis
-                  type="category"
-                  dataKey="year"
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis type="category" dataKey="year" stroke={axisStroke} fontSize={16} padding={{ left: 24, right: 24 }} />
+                <YAxis
                   stroke={axisStroke}
                   fontSize={16}
-                  padding={{ left: 24, right: 24 }}
-                />
-                <YAxis 
-                  stroke={axisStroke}
-                  fontSize={16}
-                  domain={
-                    isVolumeChart
-                      ? [0, Math.ceil((expandedMode === 'column' ? totalVolumeMax : volumeMax) * 1.1)]
-                      : (expandedMode === 'column' ? [0, Math.ceil(totalCountMax * 1.1)] : undefined)
-                  }
+                  domain={[0, ticks[ticks.length - 1] || 0]}
+                  ticks={ticks}
                   allowDataOverflow={isVolumeChart}
                   label={{
                     value: yAxisLabel,
@@ -621,139 +579,21 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                     fontSize: 16,
                     dx: "-2.5em",
                     dy: "4.5em",
-                    style: { textAnchor: 'middle' }
-                  }} 
-                />
-                <Tooltip
-                  wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
-                  // Custom content: show top5 first, then the rest of industries below
-                  content={({ active, payload, label }) => {
-                    if (!active || !payload || !Array.isArray(payload)) return null;
-
-                    // Resolve payload names back to the original industry labels in `industries`.
-                    // Build a sanitized lookup with multiple canonical forms so variants like
-                    // 'Micro_Nano', 'Micro__Nano', 'Micro / Nano' all map to the same label.
-                    const makeKey = (s) => sanitizeKey(String(s || '')).replace(/_+/g, '_').toLowerCase();
-                    const sanitizedMap = new Map();
-                    industries.forEach((ind) => {
-                      const k = makeKey(ind);
-                      sanitizedMap.set(k, ind);
-                      sanitizedMap.set(k.replace(/_/g, ' '), ind);
-                      sanitizedMap.set(k.replace(/_/g, ''), ind);
-                    });
-
-                    const resolveBase = (name) => {
-                      if (!name) return '';
-                      // strip known suffixes
-                      let s = String(name).replace(/(__|_)?count$/i, '').replace(/(__|_)?volume$/i, '');
-                      s = s.replace(/^_+|_+$/g, '');
-                      const collapsed = s.replace(/_+/g, ' ').replace(/\s+/g, ' ').trim();
-
-                      // direct match against display names
-                      const direct = industries.find(ind => ind && ind.toLowerCase() === collapsed.toLowerCase());
-                      if (direct) return direct;
-
-                      const candidates = [collapsed, name, s];
-                      for (const cand of candidates) {
-                        const k = makeKey(cand);
-                        if (sanitizedMap.has(k)) return sanitizedMap.get(k);
-                        const kSpace = k.replace(/_/g, ' ');
-                        if (sanitizedMap.has(kSpace)) return sanitizedMap.get(kSpace);
-                        const kNo = k.replace(/_/g, '');
-                        if (sanitizedMap.has(kNo)) return sanitizedMap.get(kNo);
-                      }
-
-                      return collapsed;
-                    };
-
-                    const byBase = new Map();
-                    payload.forEach((p) => {
-                      if (!p || !p.name) return;
-                      const base = resolveBase(p.name);
-                      if (!byBase.has(base)) byBase.set(base, []);
-                      byBase.get(base).push(p);
-                    });
-
-                    // For each base, pick the preferred entry: prefer the one matching metricSuffix,
-                    // otherwise prefer the plain name, otherwise first available.
-                    const pickEntry = (entries) => {
-                      if (!entries || !entries.length) return null;
-                      const exact = entries.find(e => e.name === entries[0].name.replace(/(__|_)?count$/i, '').replace(/(__|_)?volume$/i, ''));
-                      // prefer match by metricSuffix
-                      const suffMatch = entries.find(e => new RegExp(`${metricSuffix}$`, 'i').test(e.name));
-                      return suffMatch || exact || entries[0];
-                    };
-
-                    // Build arrays of items with base name and chosen entry
-                    const allItems = [];
-                    byBase.forEach((entries, base) => {
-                      const chosen = pickEntry(entries);
-                      if (chosen) allItems.push({ base, entry: chosen });
-                    });
-
-                    // Build topItems according to top5 order if available, else highest values
-                    let topItems = [];
-                    if (Array.isArray(top5) && top5.length > 0) {
-                      topItems = top5.map((ind) => {
-                        const found = allItems.find(a => a.base === ind);
-                        return found || null;
-                      }).filter(Boolean);
-                    }
-                    if (topItems.length === 0) {
-                      topItems = allItems.slice().sort((a, b) => (b.entry.value || 0) - (a.entry.value || 0)).slice(0, 5);
-                    }
-
-                    const topBases = new Set(topItems.map(i => i.base));
-                    const otherItems = allItems.filter(i => !topBases.has(i.base)).sort((a, b) => (b.entry.value || 0) - (a.entry.value || 0));
-
-                    const headerStyle = {
-                      padding: '8px 12px',
-                      borderBottom: `1px solid ${isDark ? '#4B5563' : '#E2E8F0'}`,
-                      color: tooltipStyle.color,
-                      fontWeight: 700,
-                    };
-                    const rowStyle = { padding: '6px 12px', display: 'flex', gap: 8, alignItems: 'center', color: tooltipStyle.color };
-                    const otherRowStyle = { padding: '4px 12px', display: 'flex', gap: 8, alignItems: 'center', color: tooltipStyle.color, fontSize: 12, opacity: 0.95 };
-
-                    return (
-                      <div style={{ ...tooltipStyle, minWidth: 180, boxSizing: 'border-box' }}>
-                        <div style={headerStyle}>{label}</div>
-                        <div>
-                          {topItems.map((it) => (
-                            <div key={it.base} style={rowStyle}>
-                              <div style={{ width: 10, height: 10, borderRadius: 2, background: colorOf(it.base) }} />
-                              <div style={{ fontSize: 13 }}>
-                                <span style={{ color: colorOf(it.base), fontWeight: 600 }}>{it.base}</span>
-                                <span style={{ marginLeft: 8 }}>: {formatter(it.entry.value, it.base)[0]}</span>
-                              </div>
-                            </div>
-                          ))}
-
-                          {otherItems.length > 0 && (
-                            <div style={{ borderTop: `1px solid ${isDark ? '#4B5563' : '#E2E8F0'}`, marginTop: 6 }}>
-                              {otherItems.map((it) => (
-                                <div key={it.base} style={otherRowStyle}>
-                                  <div style={{ width: 8, height: 8, borderRadius: 2, background: colorOf(it.base) }} />
-                                  <div style={{ fontSize: 12 }}>
-                                    <span style={{ color: colorOf(it.base), fontWeight: 500 }}>{it.base}</span>
-                                    <span style={{ marginLeft: 6 }}>: {formatter(it.entry.value, it.base)[0]}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
+                    style: { textAnchor: "middle" },
                   }}
                 />
-                
+                <Tooltip
+                  wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }}
+                  contentStyle={tooltipStyle}
+                  formatter={(v, name) => (isVolumeChart ? [`${(+v).toFixed(1)}M CHF`, name] : [v, name])}
+                />
+
                 {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true).main}
-                
+
                 {expandedShowTotal && expandedMode === "column" && (
                   <Line
                     type="linear"
-                    dataKey={totalDataKey}
+                    dataKey={isVolumeChart ? "totalVolume" : "totalCount"}
                     stroke="#000000"
                     strokeWidth={5}
                     dot={false}
@@ -761,28 +601,19 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
                     filter="url(#glow-black-expanded)"
                   />
                 )}
-                
+
                 {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true).labels}
               </ComposedChart>
             </ResponsiveContainer>
-            
-            {/* Left side overlay legend inside the chart */}
-            <div 
-              className={`absolute top-20 left-40 p-3 rounded-lg shadow-lg ${isDark ? "bg-gray-800" : "bg-white"} border ${isDark ? "border-gray-600" : "border-gray-200"} max-w-80 z-10`}
-            >
-              <h4 className={`text-xs font-semibold mb-2 text-left ${isDark ? "text-gray-200" : "text-gray-700"}`}>
-                Sectors
-              </h4>
+
+            {/* Overlay legend */}
+            <div className="absolute top-20 left-40 p-3 rounded-lg shadow-lg bg-white border border-gray-200 max-w-80 z-10">
+              <h4 className="text-xs font-semibold mb-2 text-left text-gray-700">Sectors</h4>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1">
                 {industries.map((industry) => (
                   <div key={industry} className="flex items-center gap-1.5">
-                    <div 
-                      className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-                      style={{ backgroundColor: colorOf(industry) }}
-                    />
-                    <span className={`text-xs ${isDark ? "text-gray-300" : "text-gray-600"}`}>
-                      {industry}
-                    </span>
+                    <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: colorOf(industry) }} />
+                    <span className="text-xs text-gray-600">{industry}</span>
                   </div>
                 ))}
               </div>
@@ -793,230 +624,226 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
     );
   };
 
-  const ChartContent = ({ 
-    isExpandedView = false, 
-    leftModeState, 
-    rightModeState, 
-    showTotalState, 
+  // ===== On-page content (two charts) =====
+  const ChartContent = ({
+    isExpandedView = false,
+    leftModeState,
+    rightModeState,
+    showTotalState,
     showLabelsState,
     onLeftModeChange,
     onRightModeChange,
     onShowTotalChange,
-    onShowLabelsChange
-  }) => (
-    <div className="space-y-4">
-      {/* Controls */}
-      <div className={`flex flex-wrap items-center gap-4 p-4 rounded-lg ${isDark ? "bg-gray-800" : "bg-gray-50"}`}>
-        <div className="flex items-center gap-2">
-          <span className={isDark ? "text-gray-200" : "text-gray-700"}>Left (Volume):</span>
-          <select
-            value={leftModeState}
-            onChange={(e) => onLeftModeChange(e.target.value)}
-            className={`px-3 py-1 border rounded-md text-sm ${isDark ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300 text-gray-700"}`}
-          >
-            <option value="line">Line</option>
-            <option value="column">Column</option>
-          </select>
-        </div>
+    onShowLabelsChange,
+  }) => {
+    // Y-axis ticks (granularity) for page view
+    const volumeDomainMax = Math.ceil((leftModeState === "column" ? totalVolumeMax : volumeMax) / 500) * 500;
+    const volumeTicks = makeTicks(volumeDomainMax, 500);
 
-        <div className="flex items-center gap-2">
-          <span className={isDark ? "text-gray-200" : "text-gray-700"}>Right (Count):</span>
-          <select
-            value={rightModeState}
-            onChange={(e) => onRightModeChange(e.target.value)}
-            className={`px-3 py-1 border rounded-md text-sm ${isDark ? "bg-gray-700 border-gray-600 text-gray-200" : "bg-white border-gray-300 text-gray-700"}`}
-          >
-            <option value="line">Line</option>
-            <option value="column">Column</option>
-          </select>
-        </div>
+    const countDomainMax = Math.ceil(totalCountMax / 50) * 50;
+    const countTicks = makeTicks(countDomainMax, 50);
 
-        {(leftModeState === 'column' || rightModeState === 'column') && (
-          <label className="flex items-center gap-2 ml-auto">
+    return (
+      <div className="space-y-4">
+        {/* Controls */}
+        <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-gray-50">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-700">Left (Volume):</span>
+            <select
+              value={leftModeState}
+              onChange={(e) => onLeftModeChange(e.target.value)}
+              className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+            >
+              <option value="line">Line</option>
+              <option value="column">Column</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-gray-700">Right (Count):</span>
+            <select
+              value={rightModeState}
+              onChange={(e) => onRightModeChange(e.target.value)}
+              className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+            >
+              <option value="line">Line</option>
+              <option value="column">Column</option>
+            </select>
+          </div>
+
+          {(leftModeState === "column" || rightModeState === "column") && (
+            <label className="flex items-center gap-2 ml-auto">
+              <input
+                type="checkbox"
+                checked={showTotalState}
+                onChange={(e) => onShowTotalChange(e.target.checked)}
+                className="text-red-600 focus:ring-red-500"
+              />
+              <span className="text-gray-700">Show total line</span>
+            </label>
+          )}
+
+          <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={showTotalState}
-              onChange={(e) => onShowTotalChange(e.target.checked)}
+              checked={showLabelsState}
+              onChange={(e) => onShowLabelsChange(e.target.checked)}
               className="text-red-600 focus:ring-red-500"
             />
-            <span className={isDark ? "text-gray-200" : "text-gray-700"}>Show total line</span>
+            <span className="text-gray-700">Show data labels</span>
           </label>
-        )}
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* LEFT: Volume Chart */}
-        <div className="space-y-2 relative">
-          <div className="flex items-center justify-center gap-2">
-            <h3 className={`text-lg font-semibold ${isDark ? "text-gray-200" : "text-gray-800"}`}>
-              Investment Volume vs Year (CHF M)
-            </h3>
-            {!isExpandedView && (
-              <button
-                onClick={() => {
-                  setExpandedChart("volume");
-                  setIsExpanded(true);
-                }}
-                className={`p-2 rounded-md transition-colors bg-blue-600 hover:bg-blue-700 text-white shadow-md`}
-                title="Expand Volume Chart"
-              >
-                <Maximize2 className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-          <ResponsiveContainer width="100%" height={isExpandedView ? 600 : 420}>
-            <ComposedChart 
-              data={rows} 
-              margin={isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN}
-              style={{ overflow: "visible" }}
-            >
-              <defs>
-                <filter id="glow-black" x="-50%" y="-50%" width="200%" height="200%">
-                  <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                  <feMerge>
-                    <feMergeNode in="coloredBlur"/>
-                    <feMergeNode in="SourceGraphic"/>
-                  </feMerge>
-                </filter>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke}/>
-              <XAxis
-                type="category"
-                dataKey="year"
-                stroke={axisStroke}
-                fontSize={isExpandedView ? 14 : 12}
-                padding={{ left: isExpandedView ? 24 : 18, right: isExpandedView ? 24 : 18 }}
-              />
-              <YAxis 
-                stroke={axisStroke}
-                fontSize={isExpandedView ? 14 : 12}
-                domain={[0, Math.ceil((leftModeState === 'column' ? totalVolumeMax : volumeMax) * 1.1)]}
-                allowDataOverflow
-                label={{
-                  value: "Investment Volume CHF (M)",
-                  angle: -90,
-                  position: "insideLeft",
-                  fill: axisStroke,
-                  fontSize: isExpandedView ? 14 : 12,
-                  dx: isExpandedView ? "-2em" : "-1.5em",
-                  dy: isExpandedView ? "4em" : "3em",
-                  style: { textAnchor: 'middle' }
-                }} 
-              />
-              <Tooltip
-                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
-                contentStyle={tooltipStyle}
-                formatter={(v, name) => [`${(+v).toFixed(1)}M CHF`, name]}
-              />
-              
-              {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView).main}
-              
-              {showTotalState && leftModeState === 'column' && (
-                <Line
-                  type="linear"
-                  dataKey="totalVolume"
-                  stroke="#000000"
-                  strokeWidth={isExpandedView ? 4 : 3}
-                  dot={false}
-                  name="Total Volume"
-                  filter="url(#glow-black)"
-                />
-              )}
-              
-              {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView).labels}
-            </ComposedChart>
-          </ResponsiveContainer>
         </div>
 
-        {/* RIGHT: Count Chart */}
-        <div className="space-y-2 relative">
-          <div className="flex items-center justify-center gap-2">
-            <h3 className={`text-lg font-semibold ${isDark ? "text-gray-200" : "text-gray-800"}`}>
-              Number of Deals vs Year
-            </h3>
-            {!isExpandedView && (
-              <button
-                onClick={() => {
-                  setExpandedChart("count");
-                  setIsExpanded(true);
-                }}
-                className={`p-2 rounded-md transition-colors bg-green-600 hover:bg-green-700 text-white shadow-md`}
-                title="Expand Count Chart"
-              >
-                <Maximize2 className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-          <ResponsiveContainer width="100%" height={isExpandedView ? 600 : 420}>
-            <ComposedChart 
-              data={rows} 
-              margin={isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN}
-              style={{ overflow: "visible" }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-              <XAxis
-                type="category"
-                dataKey="year"
-                stroke={axisStroke}
-                fontSize={isExpandedView ? 14 : 12}
-                padding={{ left: isExpandedView ? 24 : 18, right: isExpandedView ? 24 : 18 }}
-              />
-              <YAxis
-                stroke={axisStroke}
-                fontSize={isExpandedView ? 14 : 12}
-                domain={rightModeState === 'column' ? [0, Math.ceil(totalCountMax * 1.1)] : undefined}
-                label={{ 
-                  value: "Number of Deals", 
-                  angle: -90, 
-                  position: "insideLeft", 
-                  fill: axisStroke,
-                  fontSize: isExpandedView ? 14 : 12, 
-                  dx: isExpandedView ? "-1.8em" : "-1.4em",
-                  dy: isExpandedView ? "4em" : "3em",
-                  style: { textAnchor: 'middle' } 
-                }}
-              />
-              <Tooltip
-                wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
-                contentStyle={tooltipStyle}
-                formatter={(v, name) => [v, name]}
-              />
-              
-              {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView).main}
-              
-              {showTotalState && rightModeState === 'column' && (
-                <Line
-                  type="linear"
-                  dataKey="totalCount"
-                  stroke="#000000"
-                  strokeWidth={isExpandedView ? 4 : 3}
-                  dot={false}
-                  name="Total Deals"
-                  filter="url(#glow-black)"
-                />
+        {/* Charts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* LEFT: Volume */}
+          <div className="space-y-2 relative">
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-800">Investment Volume vs Year (CHF M)</h3>
+              {!isExpandedView && (
+                <button
+                  onClick={() => {
+                    setExpandedChart("volume");
+                    setIsExpanded(true);
+                  }}
+                  className="p-2 rounded-md transition-colors bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                  title="Expand Volume Chart"
+                >
+                  <Maximize2 className="h-5 w-5" />
+                </button>
               )}
-              
-              {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView).labels}
-            </ComposedChart>
-          </ResponsiveContainer>
+            </div>
+            <ResponsiveContainer width="100%" height={isExpandedView ? 600 : 420}>
+              <ComposedChart data={rows} margin={isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN} style={{ overflow: "visible" }}>
+                <defs>
+                  <filter id="glow-black" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                    <feMerge>
+                      <feMergeNode in="coloredBlur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis type="category" dataKey="year" stroke={axisStroke} fontSize={isExpandedView ? 14 : 12}
+                       padding={{ left: isExpandedView ? 24 : 18, right: isExpandedView ? 24 : 18 }} />
+                <YAxis
+                  stroke={axisStroke}
+                  fontSize={isExpandedView ? 14 : 12}
+                  domain={[0, volumeTicks[volumeTicks.length - 1] || 0]}
+                  ticks={volumeTicks}
+                  allowDataOverflow
+                  label={{
+                    value: "Investment Volume CHF (M)",
+                    angle: -90,
+                    position: "insideLeft",
+                    fill: axisStroke,
+                    fontSize: isExpandedView ? 14 : 12,
+                    dx: isExpandedView ? "-2em" : "-1.5em",
+                    dy: isExpandedView ? "4em" : "3em",
+                    style: { textAnchor: "middle" },
+                  }}
+                />
+                <Tooltip
+                  wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }}
+                  contentStyle={tooltipStyle}
+                  formatter={(v, name) => [`${(+v).toFixed(1)}M CHF`, name]}
+                />
+
+                {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView).main}
+
+                {showTotalState && leftModeState === "column" && (
+                  <Line
+                    type="linear"
+                    dataKey="totalVolume"
+                    stroke="#000000"
+                    strokeWidth={isExpandedView ? 4 : 3}
+                    dot={false}
+                    name="Total Volume"
+                    filter="url(#glow-black)"
+                  />
+                )}
+
+                {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView).labels}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* RIGHT: Count */}
+          <div className="space-y-2 relative">
+            <div className="flex items-center justify-center gap-2">
+              <h3 className="text-lg font-semibold text-gray-800">Number of Deals vs Year</h3>
+              {!isExpandedView && (
+                <button
+                  onClick={() => {
+                    setExpandedChart("count");
+                    setIsExpanded(true);
+                  }}
+                  className="p-2 rounded-md transition-colors bg-green-600 hover:bg-green-700 text-white shadow-md"
+                  title="Expand Count Chart"
+                >
+                  <Maximize2 className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+            <ResponsiveContainer width="100%" height={isExpandedView ? 600 : 420}>
+              <ComposedChart data={rows} margin={isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN} style={{ overflow: "visible" }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
+                <XAxis type="category" dataKey="year" stroke={axisStroke} fontSize={isExpandedView ? 14 : 12}
+                       padding={{ left: isExpandedView ? 24 : 18, right: isExpandedView ? 24 : 18 }} />
+                <YAxis
+                  stroke={axisStroke}
+                  fontSize={isExpandedView ? 14 : 12}
+                  domain={[0, countTicks[countTicks.length - 1] || 0]}
+                  ticks={countTicks}
+                  label={{
+                    value: "Number of Deals",
+                    angle: -90,
+                    position: "insideLeft",
+                    fill: axisStroke,
+                    fontSize: isExpandedView ? 14 : 12,
+                    dx: isExpandedView ? "-1.8em" : "-1.4em",
+                    dy: isExpandedView ? "4em" : "3em",
+                    style: { textAnchor: "middle" },
+                  }}
+                />
+                <Tooltip
+                  wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }}
+                  contentStyle={tooltipStyle}
+                  formatter={(v, name) => [v, name]}
+                />
+
+                {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView).main}
+
+                {showTotalState && rightModeState === "column" && (
+                  <Line
+                    type="linear"
+                    dataKey="totalCount"
+                    stroke="#000000"
+                    strokeWidth={isExpandedView ? 4 : 3}
+                    dot={false}
+                    name="Total Deals"
+                    filter="url(#glow-black)"
+                  />
+                )}
+
+                {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView).labels}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Centered legend */}
+        <div className="flex justify-center">
+          <CustomLegend industries={industries} colorOf={colorOf} />
         </div>
       </div>
-      
-      {/* Centered Legend for dual chart view */}
-      <div className="flex justify-center">
-        <CustomLegend 
-          industries={industries} 
-          colorOf={colorOf} 
-          isDark={isDark} 
-        />
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <>
-      {/* Regular Chart */}
+      {/* Regular (page) view */}
       <ChartContent
         isExpandedView={false}
         leftModeState={leftMode}
@@ -1029,7 +856,7 @@ const CustomLegend = ({ industries, colorOf, isDark, isCompact = false, isOverla
         onShowLabelsChange={setShowLabels}
       />
 
-      {/* Expanded Modal */}
+      {/* Expanded modal */}
       <ChartModal
         isOpen={isExpanded}
         onClose={() => setIsExpanded(false)}
