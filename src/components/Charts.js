@@ -68,6 +68,8 @@ export const TimelineChart = ({
               showVolume ? `${Number(value).toFixed(1)}M CHF` : value,
               chartLabel,
             ]}
+              sorter={(a, b) => b.value - a.value}
+
           />
           <Area
             type="monotone"
