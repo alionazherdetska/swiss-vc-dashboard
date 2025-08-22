@@ -37,12 +37,9 @@ const ENHANCED_COLOR_PALETTE = [
   "#4169E1", "#8B4513", "#FF4500", "#8A2BE2", "#00CED1",
 ];
 
-/* -------------------- Label spacing (ONLY for ≤3 industries on line charts) -------------------- */
-const SMALLSET_LABEL_BASE_LIFT = { regular: -4, expanded: -8 }; // vertical baseline lift
-const SMALLSET_LABEL_DY = {
-  regular: [-6, 1, 6],   // vertical stagger
-  expanded: [-10, 1, 10],
-};
+/* -------------------- Label spacing (≤3 industries) -------------------- */
+const SMALLSET_LABEL_BASE_LIFT = { regular: -4, expanded: -8 };
+const SMALLSET_LABEL_DY = { regular: [-6, 1, 6], expanded: [-10, 1, 10] };
 
 /* -------------------- Utils -------------------- */
 const sanitizeKey = (s) =>
@@ -136,7 +133,7 @@ const SortedTooltip = ({ active, payload, label, isVolume }) => {
 };
 
 /* ============================================================
-   Expandable Quarterly / Sector Analysis (light only)
+   Expandable Quarterly / Sector Analysis
    ============================================================ */
 const ExpandableQuarterlyAnalysisChart = ({
   deals,
@@ -179,7 +176,7 @@ const ExpandableQuarterlyAnalysisChart = ({
   }
   const internalColorOf = useDistributedColors();
 
-  /* ---------- Normalize input ---------- */
+  /* ---------- Normalize input + immutable GRAND totals ---------- */
   const dealsSource = useMemo(() => {
     if (Array.isArray(deals)) return deals;
     if (Array.isArray(data)) return data;
@@ -190,7 +187,7 @@ const ExpandableQuarterlyAnalysisChart = ({
     const byYearIndustry = {};
     const yearSet = new Set();
     const industrySet = new Set();
-       const totals = {};
+    const totals = {};
 
     dealsSource.forEach((d) => {
       const year = Number(d.Year ?? d.year);
@@ -228,8 +225,14 @@ const ExpandableQuarterlyAnalysisChart = ({
         tc += c;
         tv += v;
       });
+
       entry.totalCount = tc;
       entry.totalVolume = +tv;
+
+      // immutable grand totals (always sum of all industries)
+      entry.__grandTotalCount = tc;
+      entry.__grandTotalVolume = tv;
+
       return entry;
     });
 
@@ -284,14 +287,12 @@ const ExpandableQuarterlyAnalysisChart = ({
   const countTicksStack = getTicks(0, totalCountMax, 50);
   const countTicksLine = getTicks(0, countMaxPerIndustry, 50);
 
-  // add a bit of headroom to prevent clipping
   const padPct = 0.04;
   const volumeDomainStack = [0, Math.ceil(totalVolumeMax * (1 + padPct))];
   const countDomainStack = [0, Math.ceil(totalCountMax * (1 + padPct))];
   const volumeDomainLine = [0, Math.ceil(volumeMaxPerIndustry * (1 + padPct))];
   const countDomainLine = [0, Math.ceil(countMaxPerIndustry * (1 + padPct))];
 
-  // ---- include TOTAL when drawing line charts (used conditionally)
   const withTotalMax = {
     volume: Math.max(volumeMaxPerIndustry, totalVolumeMax),
     count: Math.max(countMaxPerIndustry, totalCountMax),
@@ -301,7 +302,7 @@ const ExpandableQuarterlyAnalysisChart = ({
   const volumeDomainLineWithTotal = [0, Math.ceil(withTotalMax.volume * (1 + padPct))];
   const countDomainLineWithTotal = [0, Math.ceil(withTotalMax.count * (1 + padPct))];
 
-  /* ---------- Custom shifted line (keeps values but moves path up in px) ---------- */
+  /* ---------- Custom shifted line for columns ---------- */
   const ShiftedLine = ({ points, stroke, strokeWidth = 3, offset = 8 }) => {
     if (!points || !points.length) return null;
     const d = points.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y - offset}`).join(" ");
@@ -401,7 +402,7 @@ const ExpandableQuarterlyAnalysisChart = ({
             dataKey={key}
             stackId={`stack-${metricSuffix}`}
             fill={colorOf(ind)}
-            name={ind}
+            legendType="none"
             barSize={barSize}
           >
             {showLabelsEnabled && (
@@ -480,8 +481,6 @@ const ExpandableQuarterlyAnalysisChart = ({
       });
 
     /* ----- Lines ----- */
-
-    // Only-right-end labels for TOP-3 in 2024 when >3 sectors
     const renderRightEndLabelsForLines = () =>
       industries.map((ind, idx) => {
         const key = `${sanitizeKey(ind)}__${metricSuffix}`;
@@ -495,7 +494,6 @@ const ExpandableQuarterlyAnalysisChart = ({
           <Bar
             key={`_line_labels_${key}`}
             dataKey={key}
-            name="__helper__"
             fill="transparent"
             stroke="transparent"
             isAnimationActive={false}
@@ -540,7 +538,6 @@ const ExpandableQuarterlyAnalysisChart = ({
         );
       });
 
-    // Full point labels (when ≤3 industries). Uses configurable base lift & stagger.
     const renderFullPointLabelsForLines = () =>
       industries.map((ind, seriesIdx) => {
         const key = `${sanitizeKey(ind)}__${metricSuffix}`;
@@ -552,7 +549,6 @@ const ExpandableQuarterlyAnalysisChart = ({
           <Bar
             key={`_line_full_labels_${key}`}
             dataKey={key}
-            name="__helper__"
             fill="transparent"
             stroke="transparent"
             isAnimationActive={false}
@@ -611,7 +607,7 @@ const ExpandableQuarterlyAnalysisChart = ({
               stroke={colorOf(ind)}
               strokeWidth={isExpandedView ? 3 : 2}
               dot={{ r: isExpandedView ? 5 : 3 }}
-              name={ind}
+              legendType="none"
             />
           );
         })}
@@ -622,11 +618,10 @@ const ExpandableQuarterlyAnalysisChart = ({
 
     return {
       main: mode === "column" ? renderBars() : renderLines(),
-      labels: null,
     };
   };
 
-  /* ---------- Legend ---------- */
+  /* ---------- Full Legend (custom, single source of truth) ---------- */
   const Legend = ({ industries, colorOf, isCompact = false }) => (
     <div className={`p-4 rounded-lg bg-gray-50 ${isCompact ? "w-48" : ""}`}>
       <h4 className="text-sm font-semibold mb-3 text-gray-700">Sectors</h4>
@@ -641,14 +636,12 @@ const ExpandableQuarterlyAnalysisChart = ({
     </div>
   );
 
-  /* ---------- Expanded content ---------- */
+  /* ---------- Expanded (modal) content ---------- */
   const ExpandedChartContent = () => {
     const isVolumeChart = expandedChart === "volume";
     const metricSuffix = isVolumeChart ? "volume" : "count";
     const yAxisLabel = isVolumeChart ? "Investment Volume CHF (M)" : "Number of Deals";
-    const totalDataKey = isVolumeChart ? "totalVolume" : "totalCount";
-
-    const dims = getChartDims(true, 800);
+    const dims = getChartDims(true, 720);
 
     const volTicks =
       expandedMode === "column"
@@ -676,8 +669,15 @@ const ExpandableQuarterlyAnalysisChart = ({
       ? countDomainLineWithTotal
       : countDomainLine;
 
+    const totalDataKey = isVolumeChart ? "__grandTotalVolume" : "__grandTotalCount";
+
     return (
       <div className="space-y-4">
+        {/* Legend ABOVE the chart so it's always visible in the modal */}
+        <div className="flex justify-center">
+          <Legend industries={industries} colorOf={colorOf} />
+        </div>
+
         <div className="flex flex-wrap items-center gap-4 p-4 rounded-lg bg-gray-50">
           <div className="flex items-center gap-2">
             <span className="text-gray-700">Chart Type:</span>
@@ -712,7 +712,7 @@ const ExpandableQuarterlyAnalysisChart = ({
           </label>
         </div>
 
-        <ResponsiveContainer width="100%" height={800}>
+        <ResponsiveContainer width="100%" height={dims.height}>
           <ComposedChart data={rows} margin={dims.margin} style={{ overflow: "visible" }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
             <XAxis
@@ -741,10 +741,7 @@ const ExpandableQuarterlyAnalysisChart = ({
                 style: { textAnchor: "middle" },
               }}
             />
-            <Tooltip
-              wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }}
-              content={<SortedTooltip isVolume={isVolumeChart} />}
-            />
+            <Tooltip wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }} content={<SortedTooltip isVolume={isVolumeChart} />} />
 
             {expandedShowTotal &&
               (expandedMode === "column" ? (
@@ -755,17 +752,11 @@ const ExpandableQuarterlyAnalysisChart = ({
                   strokeWidth={3}
                   dot={false}
                   name="Total"
+                  legendType="none"
                   shape={(props) => <ShiftedLine {...props} offset={12} />}
                 />
               ) : (
-                <Line
-                  type="monotone"
-                  dataKey={totalDataKey}
-                  stroke="#000"
-                  strokeWidth={3}
-                  dot={false}
-                  name="Total"
-                />
+                <Line type="monotone" dataKey={totalDataKey} stroke="#000" strokeWidth={3} dot={false} name="Total" legendType="none" />
               ))}
 
             {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true, { ...dims }).main}
@@ -840,35 +831,30 @@ const ExpandableQuarterlyAnalysisChart = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* LEFT: Volume */}
           <div className="space-y-2 relative">
-            <div className="flex items-center justify-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Investment Volume vs Year (CHF M)
-              </h3>
-              {!isExpandedView && (
-                <button
-                  onClick={() => {
-                    setExpandedChart("volume");
-                    setIsExpanded(true);
-                  }}
-                  className="p-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-                  title="Expand Volume Chart"
-                >
-                  <Maximize2 className="h-5 w-5" />
-                </button>
-              )}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Investment Volume vs Year (CHF M)
+                </h3>
+                {!isExpandedView && (
+                  <button
+                    onClick={() => {
+                      setExpandedChart("volume");
+                      setIsExpanded(true);
+                    }}
+                    className="p-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                    title="Expand Volume Chart"
+                  >
+                    <Maximize2 className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
             </div>
+
             <ResponsiveContainer width="100%" height={dims.height}>
               <ComposedChart data={rows} margin={dims.margin} style={{ overflow: "visible" }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-                <XAxis
-                  type="category"
-                  dataKey="year"
-                  stroke={axisStroke}
-                  fontSize={12}
-                  padding={{ left: 18, right: 18 }}
-                  tickMargin={12}
-                  height={60}
-                />
+                <XAxis type="category" dataKey="year" stroke={axisStroke} fontSize={12} padding={{ left: 18, right: 18 }} tickMargin={12} height={60} />
                 <YAxis
                   stroke={axisStroke}
                   fontSize={12}
@@ -899,31 +885,21 @@ const ExpandableQuarterlyAnalysisChart = ({
                     style: { textAnchor: "middle" },
                   }}
                 />
-                <Tooltip
-                  wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }}
-                  content={<SortedTooltip isVolume />}
-                />
+                <Tooltip wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }} content={<SortedTooltip isVolume />} />
 
                 {showTotalState &&
                   (leftModeState === "column" ? (
                     <Line
                       type="linear"
-                      dataKey="totalVolume"
+                      dataKey="__grandTotalVolume"
                       stroke="#000"
                       strokeWidth={isExpandedView ? 4 : 3}
                       dot={false}
-                      name="Total"
+                      legendType="none"
                       shape={(props) => <ShiftedLine {...props} offset={8} />}
                     />
                   ) : (
-                    <Line
-                      type="monotone"
-                      dataKey="totalVolume"
-                      stroke="#000"
-                      strokeWidth={isExpandedView ? 4 : 3}
-                      dot={false}
-                      name="Total"
-                    />
+                    <Line type="monotone" dataKey="__grandTotalVolume" stroke="#000" strokeWidth={isExpandedView ? 4 : 3} dot={false} legendType="none" />
                   ))}
 
                 {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView, { ...dims }).main}
@@ -933,33 +909,28 @@ const ExpandableQuarterlyAnalysisChart = ({
 
           {/* RIGHT: Count */}
           <div className="space-y-2 relative">
-            <div className="flex items-center justify-center gap-2">
-              <h3 className="text-lg font-semibold text-gray-800">Number of Deals vs Year</h3>
-              {!isExpandedView && (
-                <button
-                  onClick={() => {
-                    setExpandedChart("count");
-                    setIsExpanded(true);
-                  }}
-                  className="p-2 rounded-md bg-green-600 hover:bg-green-700 text-white shadow-md"
-                  title="Expand Count Chart"
-                >
-                  <Maximize2 className="h-5 w-5" />
-                </button>
-              )}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-800">Number of Deals vs Year</h3>
+                {!isExpandedView && (
+                  <button
+                    onClick={() => {
+                      setExpandedChart("count");
+                      setIsExpanded(true);
+                    }}
+                    className="p-2 rounded-md bg-green-600 hover:bg-green-700 text-white shadow-md"
+                    title="Expand Count Chart"
+                  >
+                    <Maximize2 className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
             </div>
+
             <ResponsiveContainer width="100%" height={dims.height}>
               <ComposedChart data={rows} margin={dims.margin} style={{ overflow: "visible" }}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
-                <XAxis
-                  type="category"
-                  dataKey="year"
-                  stroke={axisStroke}
-                  fontSize={12}
-                  padding={{ left: 18, right: 18 }}
-                  tickMargin={12}
-                  height={60}
-                />
+                <XAxis type="category" dataKey="year" stroke={axisStroke} fontSize={12} padding={{ left: 18, right: 18 }} tickMargin={12} height={60} />
                 <YAxis
                   stroke={axisStroke}
                   fontSize={12}
@@ -989,31 +960,21 @@ const ExpandableQuarterlyAnalysisChart = ({
                     style: { textAnchor: "middle" },
                   }}
                 />
-                <Tooltip
-                  wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }}
-                  content={<SortedTooltip isVolume={false} />}
-                />
+                <Tooltip wrapperStyle={{ pointerEvents: "none", zIndex: 9999 }} content={<SortedTooltip isVolume={false} />} />
 
                 {showTotalState &&
                   (rightModeState === "column" ? (
                     <Line
                       type="linear"
-                      dataKey="totalCount"
+                      dataKey="__grandTotalCount"
                       stroke="#000"
                       strokeWidth={isExpandedView ? 4 : 3}
                       dot={false}
-                      name="Total"
+                      legendType="none"
                       shape={(props) => <ShiftedLine {...props} offset={8} />}
                     />
                   ) : (
-                    <Line
-                      type="monotone"
-                      dataKey="totalCount"
-                      stroke="#000"
-                      strokeWidth={isExpandedView ? 4 : 3}
-                      dot={false}
-                      name="Total"
-                    />
+                    <Line type="monotone" dataKey="__grandTotalCount" stroke="#000" strokeWidth={isExpandedView ? 4 : 3} dot={false} legendType="none" />
                   ))}
 
                 {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView, { ...dims }).main}
@@ -1022,6 +983,7 @@ const ExpandableQuarterlyAnalysisChart = ({
           </div>
         </div>
 
+        {/* SINGLE legend on regular pages (bottom only) */}
         <div className="flex justify-center">
           <Legend industries={industries} colorOf={colorOf} />
         </div>
