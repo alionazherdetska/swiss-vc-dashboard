@@ -10,7 +10,7 @@ import {
   ComposedChart,
   LabelList,
 } from "recharts";
-import { Maximize2, X } from "lucide-react";
+import { Maximize2 } from "lucide-react";
 import ChartModal from "./ChartModal";
 
 /* -------------------- Layout -------------------- */
@@ -60,11 +60,10 @@ const getTicks = (min, max, step) => {
   return out;
 };
 
-/* -------------------- Sorted, Deduping Tooltip -------------------- */
+/* -------------------- Tooltip -------------------- */
 const SortedTooltip = ({ active, payload, label, isVolume }) => {
   if (!active || !payload || !payload.length) return null;
 
-  // normalize & group by base series name; drop helper layers
   const norm = (s) =>
     String(s || "")
       .replace(/(__|_)?(count|volume)$/i, "")
@@ -75,7 +74,6 @@ const SortedTooltip = ({ active, payload, label, isVolume }) => {
   for (const p of payload) {
     const rawName = p?.name ?? p?.dataKey ?? "";
     if (!rawName) continue;
-    // ignore our invisible helper layers
     if (String(rawName).startsWith("__helper__")) continue;
 
     const base = norm(rawName);
@@ -83,9 +81,7 @@ const SortedTooltip = ({ active, payload, label, isVolume }) => {
     const color = p?.color || p?.stroke || p?.fill || "#888";
 
     const prev = byBase.get(base);
-    if (!prev || value > prev.value) {
-      byBase.set(base, { name: base, value, color });
-    }
+    if (!prev || value > prev.value) byBase.set(base, { name: base, value, color });
   }
 
   const rows = Array.from(byBase.values())
@@ -118,18 +114,9 @@ const SortedTooltip = ({ active, payload, label, isVolume }) => {
       <div>
         {rows.map((it) => (
           <div key={it.name} style={rowStyle}>
-            <div
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 2,
-                background: it.color,
-              }}
-            />
+            <div style={{ width: 10, height: 10, borderRadius: 2, background: it.color }} />
             <div style={{ fontSize: 13 }}>
-              <span style={{ color: it.color, fontWeight: 600 }}>
-                {it.name}
-              </span>
+              <span style={{ color: it.color, fontWeight: 600 }}>{it.name}</span>
               <span style={{ marginLeft: 8 }}>
                 : {isVolume ? `${it.value.toFixed(1)}M CHF` : it.value}
               </span>
@@ -275,9 +262,47 @@ const ExpandableQuarterlyAnalysisChart = ({
     [rows]
   );
 
+  // per-industry max for count (line mode axis)
+  const countMaxPerIndustry = useMemo(() => {
+    let m = 0;
+    for (const r of rows) {
+      for (const ind of industries) {
+        const v = r[`${sanitizeKey(ind)}__count`] || 0;
+        if (v > m) m = v;
+      }
+    }
+    return m;
+  }, [rows, industries]);
+
   const volumeTicksLine = getTicks(0, volumeMaxPerIndustry, 500);
   const volumeTicksStack = getTicks(0, totalVolumeMax, 500);
   const countTicksStack = getTicks(0, totalCountMax, 50);
+  const countTicksLine = getTicks(0, countMaxPerIndustry, 50);
+
+  // add a bit of headroom to prevent label/line clipping
+  const padPct = 0.04;
+  const volumeDomainStack = [0, Math.ceil(totalVolumeMax * (1 + padPct))];
+  const countDomainStack = [0, Math.ceil(totalCountMax * (1 + padPct))];
+  const volumeDomainLine = [0, Math.ceil(volumeMaxPerIndustry * (1 + padPct))];
+  const countDomainLine = [0, Math.ceil(countMaxPerIndustry * (1 + padPct))];
+
+  /* ---------- Custom shifted line (keeps values but moves path up in px) ---------- */
+  const ShiftedLine = ({ points, stroke, strokeWidth = 3, offset = 8 }) => {
+    if (!points || !points.length) return null;
+    const d = points
+      .map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y - offset}`)
+      .join(" ");
+    return (
+      <path
+        d={d}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    );
+  };
 
   /* ---------- Labeling rules ---------- */
   const effectiveSelectedCount =
@@ -329,14 +354,14 @@ const ExpandableQuarterlyAnalysisChart = ({
             name={ind}
             barSize={barSize}
           >
-            {/* segment labels (conditional) */}
             {showLabelsEnabled && (
               <LabelList
                 dataKey={key}
                 content={({ x, y, width, height, value, index }) => {
                   if (
                     x == null || y == null || width == null || height == null || index == null
-                  ) return null;
+                  )
+                    return null;
 
                   const row = rows[index];
                   if (!row) return null;
@@ -378,16 +403,16 @@ const ExpandableQuarterlyAnalysisChart = ({
               />
             )}
 
-            {/* TOTAL labels: attach to last stack segment so x-center is exact */}
+            {/* TOTAL labels: lifted higher above bar tops */}
             {showLabelsEnabled && isLastStack && (
               <LabelList
                 dataKey={totalKey}
                 position="top"
-                offset={isExpandedView ? 10 : 8}
+                offset={isExpandedView ? 18 : 14}
                 content={({ x, y, width, value }) => {
                   if (x == null || y == null || width == null) return null;
                   const cx = x + width / 2;
-                  const ySafe = clampY(y - (isExpandedView ? 6 : 4), chartDims, 10);
+                  const ySafe = clampY(y - (isExpandedView ? 14 : 10), chartDims, 10);
                   return (
                     <text
                       x={cx}
@@ -438,8 +463,7 @@ const ExpandableQuarterlyAnalysisChart = ({
                 const cx = baseX + rightOffset;
 
                 const lift = [-12, -6, -18, -4, -10][idx % 5];
-                const cyWanted = (y != null ? y : 0) + lift;
-                const cy = clampY(cyWanted, chartDims, 10);
+                const cy = clampY((y ?? 0) + lift, chartDims, 10);
 
                 return (
                   <text
@@ -486,8 +510,7 @@ const ExpandableQuarterlyAnalysisChart = ({
 
                 const dyTable = isExpandedView ? [-14, 2, 14] : [-10, 2, 10];
                 const dy = dyTable[seriesIdx % dyTable.length];
-                const yWanted = y - 8 + dy;
-                const ySafe = clampY(yWanted, chartDims, 10);
+                const ySafe = clampY(y - 8 + dy, chartDims, 10);
 
                 return (
                   <text
@@ -516,7 +539,7 @@ const ExpandableQuarterlyAnalysisChart = ({
           return (
             <Line
               key={key}
-              type="linear"
+              type="monotone"
               dataKey={key}
               stroke={colorOf(ind)}
               strokeWidth={isExpandedView ? 3 : 2}
@@ -560,6 +583,10 @@ const ExpandableQuarterlyAnalysisChart = ({
 
     const dims = getChartDims(true, 800);
     const volTicks = expandedMode === "column" ? volumeTicksStack : volumeTicksLine;
+    const cntTicks = expandedMode === "column" ? countTicksStack : countTicksLine;
+    const domain = isVolumeChart
+      ? (expandedMode === "column" ? volumeDomainStack : volumeDomainLine)
+      : (expandedMode === "column" ? countDomainStack : countDomainLine);
 
     return (
       <div className="space-y-4">
@@ -601,15 +628,6 @@ const ExpandableQuarterlyAnalysisChart = ({
 
         <ResponsiveContainer width="100%" height={800}>
           <ComposedChart data={rows} margin={dims.margin} style={{ overflow: "visible" }}>
-            <defs>
-              <filter id="glow-black-expanded" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-                <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
             <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
             <XAxis
               type="category"
@@ -623,7 +641,8 @@ const ExpandableQuarterlyAnalysisChart = ({
             <YAxis
               stroke={axisStroke}
               fontSize={16}
-              ticks={isVolumeChart ? volTicks : countTicksStack}
+              ticks={isVolumeChart ? volTicks : cntTicks}
+              domain={domain}
               allowDecimals={false}
               label={{
                 value: yAxisLabel,
@@ -641,19 +660,20 @@ const ExpandableQuarterlyAnalysisChart = ({
               content={<SortedTooltip isVolume={isVolumeChart} />}
             />
 
-            {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true, { ...dims }).main}
-
+            {/* draw total line FIRST in column mode; shifted upward */}
             {expandedShowTotal && expandedMode === "column" && (
               <Line
-                type="linear"
+                type="monotone"
                 dataKey={totalDataKey}
                 stroke="#000"
-                strokeWidth={5}
+                strokeWidth={3}
                 dot={false}
                 name="Total"
-                filter="url(#glow-black-expanded)"
+                shape={(props) => <ShiftedLine {...props} offset={12} />}
               />
             )}
+
+            {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true, { ...dims }).main}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -746,16 +766,6 @@ const ExpandableQuarterlyAnalysisChart = ({
             </div>
             <ResponsiveContainer width="100%" height={dims.height}>
               <ComposedChart data={rows} margin={dims.margin} style={{ overflow: "visible" }}>
-                <defs>
-                  <filter id="glow-black" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                    <feMerge>
-                      <feMergeNode in="coloredBlur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-
                 <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} />
                 <XAxis
                   type="category"
@@ -770,6 +780,7 @@ const ExpandableQuarterlyAnalysisChart = ({
                   stroke={axisStroke}
                   fontSize={12}
                   ticks={leftModeState === "column" ? volumeTicksStack : volumeTicksLine}
+                  domain={leftModeState === "column" ? volumeDomainStack : volumeDomainLine}
                   allowDecimals={false}
                   allowDataOverflow
                   label={{
@@ -788,8 +799,7 @@ const ExpandableQuarterlyAnalysisChart = ({
                   content={<SortedTooltip isVolume />}
                 />
 
-                {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView, { ...dims }).main}
-
+                {/* total line first in column mode; shifted upward */}
                 {showTotalState && leftModeState === "column" && (
                   <Line
                     type="linear"
@@ -798,9 +808,11 @@ const ExpandableQuarterlyAnalysisChart = ({
                     strokeWidth={isExpandedView ? 4 : 3}
                     dot={false}
                     name="Total"
-                    filter="url(#glow-black)"
+                    shape={(props) => <ShiftedLine {...props} offset={8} />}
                   />
                 )}
+
+                {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView, { ...dims }).main}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -837,7 +849,8 @@ const ExpandableQuarterlyAnalysisChart = ({
                 <YAxis
                   stroke={axisStroke}
                   fontSize={12}
-                  ticks={countTicksStack}
+                  ticks={rightModeState === "column" ? countTicksStack : countTicksLine}
+                  domain={rightModeState === "column" ? countDomainStack : countDomainLine}
                   allowDecimals={false}
                   label={{
                     value: "Number of Deals",
@@ -855,8 +868,7 @@ const ExpandableQuarterlyAnalysisChart = ({
                   content={<SortedTooltip isVolume={false} />}
                 />
 
-                {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView, { ...dims }).main}
-
+                {/* total line first in column mode; shifted upward */}
                 {showTotalState && rightModeState === "column" && (
                   <Line
                     type="linear"
@@ -865,8 +877,11 @@ const ExpandableQuarterlyAnalysisChart = ({
                     strokeWidth={isExpandedView ? 4 : 3}
                     dot={false}
                     name="Total"
+                    shape={(props) => <ShiftedLine {...props} offset={8} />}
                   />
                 )}
+
+                {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView, { ...dims }).main}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
