@@ -37,6 +37,13 @@ const ENHANCED_COLOR_PALETTE = [
   "#4169E1", "#8B4513", "#FF4500", "#8A2BE2", "#00CED1",
 ];
 
+/* -------------------- Label spacing (ONLY for ≤3 industries on line charts) -------------------- */
+const SMALLSET_LABEL_BASE_LIFT = { regular: -4, expanded: -8 }; // vertical baseline lift
+const SMALLSET_LABEL_DY = {
+  regular: [-6, 1, 6],   // vertical stagger
+  expanded: [-10, 1, 10],
+};
+
 /* -------------------- Utils -------------------- */
 const sanitizeKey = (s) =>
   String(s || "Unknown").replace(/\s+/g, "_").replace(/[^\w]/g, "_");
@@ -141,7 +148,7 @@ const ExpandableQuarterlyAnalysisChart = ({
   const [expandedChart, setExpandedChart] = useState("volume"); // "volume" | "count"
   const [leftMode, setLeftMode] = useState("line");
   const [rightMode, setRightMode] = useState("line");
-  const [showTotal, setShowTotal] = useState(true);
+  const [showTotal, setShowTotal] = useState(false);
   const [showLabels, setShowLabels] = useState(false);
 
   const [expandedMode, setExpandedMode] = useState("line");
@@ -183,7 +190,7 @@ const ExpandableQuarterlyAnalysisChart = ({
     const byYearIndustry = {};
     const yearSet = new Set();
     const industrySet = new Set();
-    const totals = {};
+       const totals = {};
 
     dealsSource.forEach((d) => {
       const year = Number(d.Year ?? d.year);
@@ -196,8 +203,7 @@ const ExpandableQuarterlyAnalysisChart = ({
       byYearIndustry[year] ??= {};
       byYearIndustry[year][ind] ??= { count: 0, volume: 0 };
 
-      const amt =
-        typeof d.Amount === "number" && isFinite(d.Amount) ? d.Amount : 0;
+      const amt = typeof d.Amount === "number" && isFinite(d.Amount) ? d.Amount : 0;
       byYearIndustry[year][ind].count += 1;
       byYearIndustry[year][ind].volume += amt;
 
@@ -262,7 +268,6 @@ const ExpandableQuarterlyAnalysisChart = ({
     [rows]
   );
 
-  // per-industry max for count (line mode axis)
   const countMaxPerIndustry = useMemo(() => {
     let m = 0;
     for (const r of rows) {
@@ -279,19 +284,27 @@ const ExpandableQuarterlyAnalysisChart = ({
   const countTicksStack = getTicks(0, totalCountMax, 50);
   const countTicksLine = getTicks(0, countMaxPerIndustry, 50);
 
-  // add a bit of headroom to prevent label/line clipping
+  // add a bit of headroom to prevent clipping
   const padPct = 0.04;
   const volumeDomainStack = [0, Math.ceil(totalVolumeMax * (1 + padPct))];
   const countDomainStack = [0, Math.ceil(totalCountMax * (1 + padPct))];
   const volumeDomainLine = [0, Math.ceil(volumeMaxPerIndustry * (1 + padPct))];
   const countDomainLine = [0, Math.ceil(countMaxPerIndustry * (1 + padPct))];
 
+  // ---- include TOTAL when drawing line charts (used conditionally)
+  const withTotalMax = {
+    volume: Math.max(volumeMaxPerIndustry, totalVolumeMax),
+    count: Math.max(countMaxPerIndustry, totalCountMax),
+  };
+  const volumeTicksLineWithTotal = getTicks(0, withTotalMax.volume, 500);
+  const countTicksLineWithTotal = getTicks(0, withTotalMax.count, 50);
+  const volumeDomainLineWithTotal = [0, Math.ceil(withTotalMax.volume * (1 + padPct))];
+  const countDomainLineWithTotal = [0, Math.ceil(withTotalMax.count * (1 + padPct))];
+
   /* ---------- Custom shifted line (keeps values but moves path up in px) ---------- */
   const ShiftedLine = ({ points, stroke, strokeWidth = 3, offset = 8 }) => {
     if (!points || !points.length) return null;
-    const d = points
-      .map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y - offset}`)
-      .join(" ");
+    const d = points.map((p, i) => `${i ? "L" : "M"} ${p.x} ${p.y - offset}`).join(" ");
     return (
       <path
         d={d}
@@ -310,6 +323,43 @@ const ExpandableQuarterlyAnalysisChart = ({
       ? selectedIndustries.length
       : industries.length;
   const shouldFullyLabelLines = effectiveSelectedCount <= 3;
+
+  const latestYear = useMemo(
+    () => (rows.length ? Math.max(...rows.map((r) => Number(r.year) || 0)) : 0),
+    [rows]
+  );
+  const latestRow = useMemo(
+    () => rows.find((r) => Number(r.year) === latestYear),
+    [rows, latestYear]
+  );
+
+  const visibleIndustrySet = useMemo(
+    () => new Set((selectedIndustries?.length ? selectedIndustries : industries) ?? []),
+    [selectedIndustries, industries]
+  );
+
+  const top3For2024 = useMemo(() => {
+    const out = { volume: new Set(), count: new Set() };
+    if (!latestRow || latestYear !== 2024) return out;
+
+    const pickTop3 = (metricSuffix) => {
+      const scored = industries
+        .filter((ind) => visibleIndustrySet.has(ind))
+        .map((ind) => ({
+          ind,
+          v: Number(latestRow[`${sanitizeKey(ind)}__${metricSuffix}`] || 0),
+        }))
+        .filter(({ v }) => v > 0)
+        .sort((a, b) => b.v - a.v)
+        .slice(0, 3)
+        .map(({ ind }) => ind);
+      return new Set(scored);
+    };
+
+    out.volume = pickTop3("volume");
+    out.count = pickTop3("count");
+    return out;
+  }, [industries, latestRow, latestYear, visibleIndustrySet]);
 
   /* ---------- Renderers ---------- */
   const createRenderFunctions = (
@@ -358,10 +408,7 @@ const ExpandableQuarterlyAnalysisChart = ({
               <LabelList
                 dataKey={key}
                 content={({ x, y, width, height, value, index }) => {
-                  if (
-                    x == null || y == null || width == null || height == null || index == null
-                  )
-                    return null;
+                  if (x == null || y == null || width == null || height == null || index == null) return null;
 
                   const row = rows[index];
                   if (!row) return null;
@@ -403,7 +450,6 @@ const ExpandableQuarterlyAnalysisChart = ({
               />
             )}
 
-            {/* TOTAL labels: lifted higher above bar tops */}
             {showLabelsEnabled && isLastStack && (
               <LabelList
                 dataKey={totalKey}
@@ -434,10 +480,17 @@ const ExpandableQuarterlyAnalysisChart = ({
       });
 
     /* ----- Lines ----- */
+
+    // Only-right-end labels for TOP-3 in 2024 when >3 sectors
     const renderRightEndLabelsForLines = () =>
       industries.map((ind, idx) => {
         const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-        if (shouldFullyLabelLines) return null;
+        if (shouldFullyLabelLines || !showLabelsEnabled) return null;
+
+        const top3Set = metricSuffix === "volume" ? top3For2024.volume : top3For2024.count;
+        const shouldConsider = latestYear === 2024 && top3Set.has(ind);
+        if (!shouldConsider) return null;
+
         return (
           <Bar
             key={`_line_labels_${key}`}
@@ -454,15 +507,17 @@ const ExpandableQuarterlyAnalysisChart = ({
               position="right"
               content={({ x, y, width, value, index }) => {
                 if (index !== rows.length - 1) return null;
+                if (Number(rows[index]?.year) !== 2024) return null;
+
                 const v = Number(value) || 0;
                 if (metricSuffix === "volume" && v < 5) return null;
                 if (metricSuffix === "count" && v < 2) return null;
 
-                const rightOffset = isExpandedView ? 12 : 0;
+                const rightOffset = isExpandedView ? 8 : 4;
                 const baseX = x != null ? x + (width || 0) : 0;
                 const cx = baseX + rightOffset;
 
-                const lift = [-12, -6, -18, -4, -10][idx % 5];
+                const lift = [-12, -6, -18][idx % 3];
                 const cy = clampY((y ?? 0) + lift, chartDims, 10);
 
                 return (
@@ -485,10 +540,14 @@ const ExpandableQuarterlyAnalysisChart = ({
         );
       });
 
+    // Full point labels (when ≤3 industries). Uses configurable base lift & stagger.
     const renderFullPointLabelsForLines = () =>
       industries.map((ind, seriesIdx) => {
         const key = `${sanitizeKey(ind)}__${metricSuffix}`;
-        if (!shouldFullyLabelLines) return null;
+        if (!shouldFullyLabelLines || !showLabelsEnabled) return null;
+
+        const lastYByX = new Map();
+
         return (
           <Bar
             key={`_line_full_labels_${key}`}
@@ -508,9 +567,17 @@ const ExpandableQuarterlyAnalysisChart = ({
                 if (metricSuffix === "volume" && v < 1) return null;
                 if (metricSuffix === "count" && v < 1) return null;
 
-                const dyTable = isExpandedView ? [-14, 2, 14] : [-10, 2, 10];
-                const dy = dyTable[seriesIdx % dyTable.length];
-                const ySafe = clampY(y - 8 + dy, chartDims, 10);
+                const dyTable = isExpandedView ? SMALLSET_LABEL_DY.expanded : SMALLSET_LABEL_DY.regular;
+                const baseLift = isExpandedView ? SMALLSET_LABEL_BASE_LIFT.expanded : SMALLSET_LABEL_BASE_LIFT.regular;
+
+                let ySafe = clampY(y + baseLift + dyTable[seriesIdx % dyTable.length], chartDims, 10);
+
+                const keyX = Math.round(Number(x));
+                const prevY = lastYByX.get(keyX);
+                if (prevY != null && Math.abs(prevY - ySafe) < 12) {
+                  ySafe = ySafe - 12;
+                }
+                lastYByX.set(keyX, ySafe);
 
                 return (
                   <text
@@ -582,11 +649,32 @@ const ExpandableQuarterlyAnalysisChart = ({
     const totalDataKey = isVolumeChart ? "totalVolume" : "totalCount";
 
     const dims = getChartDims(true, 800);
-    const volTicks = expandedMode === "column" ? volumeTicksStack : volumeTicksLine;
-    const cntTicks = expandedMode === "column" ? countTicksStack : countTicksLine;
+
+    const volTicks =
+      expandedMode === "column"
+        ? volumeTicksStack
+        : expandedShowTotal
+        ? volumeTicksLineWithTotal
+        : volumeTicksLine;
+
+    const cntTicks =
+      expandedMode === "column"
+        ? countTicksStack
+        : expandedShowTotal
+        ? countTicksLineWithTotal
+        : countTicksLine;
+
     const domain = isVolumeChart
-      ? (expandedMode === "column" ? volumeDomainStack : volumeDomainLine)
-      : (expandedMode === "column" ? countDomainStack : countDomainLine);
+      ? expandedMode === "column"
+        ? volumeDomainStack
+        : expandedShowTotal
+        ? volumeDomainLineWithTotal
+        : volumeDomainLine
+      : expandedMode === "column"
+      ? countDomainStack
+      : expandedShowTotal
+      ? countDomainLineWithTotal
+      : countDomainLine;
 
     return (
       <div className="space-y-4">
@@ -603,6 +691,16 @@ const ExpandableQuarterlyAnalysisChart = ({
             </select>
           </div>
 
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={expandedShowTotal}
+              onChange={(e) => setExpandedShowTotal(e.target.checked)}
+              className="text-red-600 focus:ring-red-500"
+            />
+            <span className="text-gray-700">Show total</span>
+          </label>
+
           <label className="flex items-center gap-2 ml-auto">
             <input
               type="checkbox"
@@ -612,18 +710,6 @@ const ExpandableQuarterlyAnalysisChart = ({
             />
             <span className="text-gray-700">Show data labels</span>
           </label>
-
-          {expandedMode === "column" && (
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={expandedShowTotal}
-                onChange={(e) => setExpandedShowTotal(e.target.checked)}
-                className="text-red-600 focus:ring-red-500"
-              />
-              <span className="text-gray-700">Show total line</span>
-            </label>
-          )}
         </div>
 
         <ResponsiveContainer width="100%" height={800}>
@@ -660,18 +746,27 @@ const ExpandableQuarterlyAnalysisChart = ({
               content={<SortedTooltip isVolume={isVolumeChart} />}
             />
 
-            {/* draw total line FIRST in column mode; shifted upward */}
-            {expandedShowTotal && expandedMode === "column" && (
-              <Line
-                type="monotone"
-                dataKey={totalDataKey}
-                stroke="#000"
-                strokeWidth={3}
-                dot={false}
-                name="Total"
-                shape={(props) => <ShiftedLine {...props} offset={12} />}
-              />
-            )}
+            {expandedShowTotal &&
+              (expandedMode === "column" ? (
+                <Line
+                  type="monotone"
+                  dataKey={totalDataKey}
+                  stroke="#000"
+                  strokeWidth={3}
+                  dot={false}
+                  name="Total"
+                  shape={(props) => <ShiftedLine {...props} offset={12} />}
+                />
+              ) : (
+                <Line
+                  type="monotone"
+                  dataKey={totalDataKey}
+                  stroke="#000"
+                  strokeWidth={3}
+                  dot={false}
+                  name="Total"
+                />
+              ))}
 
             {createRenderFunctions(expandedMode, metricSuffix, expandedShowLabels, true, { ...dims }).main}
           </ComposedChart>
@@ -721,17 +816,15 @@ const ExpandableQuarterlyAnalysisChart = ({
             </select>
           </div>
 
-          {(leftModeState === "column" || rightModeState === "column") && (
-            <label className="flex items-center gap-2 ml-auto">
-              <input
-                type="checkbox"
-                checked={showTotalState}
-                onChange={(e) => onShowTotalChange(e.target.checked)}
-                className="text-red-600 focus:ring-red-500"
-              />
-              <span className="text-gray-700">Show total line</span>
-            </label>
-          )}
+          <label className="flex items-center gap-2 ml-auto">
+            <input
+              type="checkbox"
+              checked={showTotalState}
+              onChange={(e) => onShowTotalChange(e.target.checked)}
+              className="text-red-600 focus:ring-red-500"
+            />
+            <span className="text-gray-700">Show total</span>
+          </label>
 
           <label className="flex items-center gap-2">
             <input
@@ -779,8 +872,20 @@ const ExpandableQuarterlyAnalysisChart = ({
                 <YAxis
                   stroke={axisStroke}
                   fontSize={12}
-                  ticks={leftModeState === "column" ? volumeTicksStack : volumeTicksLine}
-                  domain={leftModeState === "column" ? volumeDomainStack : volumeDomainLine}
+                  ticks={
+                    leftModeState === "column"
+                      ? volumeTicksStack
+                      : showTotalState
+                      ? volumeTicksLineWithTotal
+                      : volumeTicksLine
+                  }
+                  domain={
+                    leftModeState === "column"
+                      ? volumeDomainStack
+                      : showTotalState
+                      ? volumeDomainLineWithTotal
+                      : volumeDomainLine
+                  }
                   allowDecimals={false}
                   allowDataOverflow
                   label={{
@@ -799,18 +904,27 @@ const ExpandableQuarterlyAnalysisChart = ({
                   content={<SortedTooltip isVolume />}
                 />
 
-                {/* total line first in column mode; shifted upward */}
-                {showTotalState && leftModeState === "column" && (
-                  <Line
-                    type="linear"
-                    dataKey="totalVolume"
-                    stroke="#000"
-                    strokeWidth={isExpandedView ? 4 : 3}
-                    dot={false}
-                    name="Total"
-                    shape={(props) => <ShiftedLine {...props} offset={8} />}
-                  />
-                )}
+                {showTotalState &&
+                  (leftModeState === "column" ? (
+                    <Line
+                      type="linear"
+                      dataKey="totalVolume"
+                      stroke="#000"
+                      strokeWidth={isExpandedView ? 4 : 3}
+                      dot={false}
+                      name="Total"
+                      shape={(props) => <ShiftedLine {...props} offset={8} />}
+                    />
+                  ) : (
+                    <Line
+                      type="monotone"
+                      dataKey="totalVolume"
+                      stroke="#000"
+                      strokeWidth={isExpandedView ? 4 : 3}
+                      dot={false}
+                      name="Total"
+                    />
+                  ))}
 
                 {createRenderFunctions(leftModeState, "volume", showLabelsState, isExpandedView, { ...dims }).main}
               </ComposedChart>
@@ -849,8 +963,20 @@ const ExpandableQuarterlyAnalysisChart = ({
                 <YAxis
                   stroke={axisStroke}
                   fontSize={12}
-                  ticks={rightModeState === "column" ? countTicksStack : countTicksLine}
-                  domain={rightModeState === "column" ? countDomainStack : countDomainLine}
+                  ticks={
+                    rightModeState === "column"
+                      ? countTicksStack
+                      : showTotalState
+                      ? countTicksLineWithTotal
+                      : countTicksLine
+                  }
+                  domain={
+                    rightModeState === "column"
+                      ? countDomainStack
+                      : showTotalState
+                      ? countDomainLineWithTotal
+                      : countDomainLine
+                  }
                   allowDecimals={false}
                   label={{
                     value: "Number of Deals",
@@ -868,18 +994,27 @@ const ExpandableQuarterlyAnalysisChart = ({
                   content={<SortedTooltip isVolume={false} />}
                 />
 
-                {/* total line first in column mode; shifted upward */}
-                {showTotalState && rightModeState === "column" && (
-                  <Line
-                    type="linear"
-                    dataKey="totalCount"
-                    stroke="#000"
-                    strokeWidth={isExpandedView ? 4 : 3}
-                    dot={false}
-                    name="Total"
-                    shape={(props) => <ShiftedLine {...props} offset={8} />}
-                  />
-                )}
+                {showTotalState &&
+                  (rightModeState === "column" ? (
+                    <Line
+                      type="linear"
+                      dataKey="totalCount"
+                      stroke="#000"
+                      strokeWidth={isExpandedView ? 4 : 3}
+                      dot={false}
+                      name="Total"
+                      shape={(props) => <ShiftedLine {...props} offset={8} />}
+                    />
+                  ) : (
+                    <Line
+                      type="monotone"
+                      dataKey="totalCount"
+                      stroke="#000"
+                      strokeWidth={isExpandedView ? 4 : 3}
+                      dot={false}
+                      name="Total"
+                    />
+                  ))}
 
                 {createRenderFunctions(rightModeState, "count", showLabelsState, isExpandedView, { ...dims }).main}
               </ComposedChart>
