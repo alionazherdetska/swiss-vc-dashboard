@@ -201,9 +201,9 @@ const Dashboard = () => {
                       ? "bg-white text-red-600 shadow-sm border border-red-200"
                       : "text-gray-600 hover:text-gray-800"
                   }`}
-                  title="Show quarterly analysis"
+                  title="Show sectoral analysis"
                 >
-                  Quarterly Analysis
+                  Sectoral Analysis
                 </button>
               </div>
 
