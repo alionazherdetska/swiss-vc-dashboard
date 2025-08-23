@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   CartesianGrid,
   ComposedChart,
@@ -200,8 +200,6 @@ const ExpandableQuarterlyAnalysisChart = ({
       : expandedShowTotal
       ? countDomainLineWithTotal
       : countDomainLine;
-
-    const totalDataKey = isVolumeChart ? "__grandTotalVolume" : "__grandTotalCount";
 
     const { main } = createSeriesRenderers({
       industries,

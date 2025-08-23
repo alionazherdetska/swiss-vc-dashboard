@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 // Panels / components you still use
 import FilterPanel from "./FilterPanel.js";
@@ -26,26 +26,6 @@ const Dashboard = () => {
   });
 
   const [activeChart, setActiveChart] = useState("timeline"); // default open
-
-  const ALIASES = {
-    "med tech": "MedTech",
-    medtech: "MedTech",
-    "fin tech": "FinTech",
-    cleantech: "Cleantech",
-    ict: "ICT",
-  };
-  const normalizeIndustry = (raw) => {
-    if (!raw) return null;
-    const s = String(raw).trim();
-    const key = s.toLowerCase().replace(/\s+/g, " ");
-    const alias = ALIASES[key];
-    if (alias) return alias;
-    return s
-      .replace(/\s*\(.*?\)/g, "")
-      .split(/\s+/)
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-      .join(" ");
-  };
 
   // Load & process data (companies only for mapping)
   useEffect(() => {
