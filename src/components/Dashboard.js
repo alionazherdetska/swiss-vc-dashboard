@@ -4,12 +4,11 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import FilterPanel from "./FilterPanel.js";
 import MetricsCards from "./MetricsCards.js";
 import { TimelineChart } from "./Charts.js";
-import ExpandableQuarterlyAnalysisChart from "./ExpandableQuarterlyAnalysisChart.js";
 
 // Utilities / data
 import { processCompanies, processDeals, generateChartData } from "./utils";
 import { SAMPLE_DATA } from "./constants";
-import { COLOR_PALETTE, FIXED_INDUSTRY_COLORS } from "./colors";
+import ExpandableQuarterlyAnalysisChart from "./sectorAnalysisChart/ExpandableQuarterlyAnalysisChart.js";
 
 const Dashboard = () => {
   // Companies only for mapping; UI is deals-only
@@ -26,11 +25,8 @@ const Dashboard = () => {
     phases: [],
   });
 
-  // Tab-like chart selector: "timeline" or "quarterly"
   const [activeChart, setActiveChart] = useState("timeline"); // default open
 
-  // For industry colors (used in quarterly analysis)
-  const colorMapRef = useRef(new Map(Object.entries(FIXED_INDUSTRY_COLORS)));
   const ALIASES = {
     "med tech": "MedTech",
     medtech: "MedTech",
@@ -50,14 +46,6 @@ const Dashboard = () => {
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
   };
-  const getIndustryColor = useCallback((name) => {
-    const norm = normalizeIndustry(name);
-    if (!norm) return "#7F8C8D";
-    if (colorMapRef.current.has(norm)) return colorMapRef.current.get(norm);
-    const next = COLOR_PALETTE[colorMapRef.current.size % COLOR_PALETTE.length];
-    colorMapRef.current.set(norm, next);
-    return next;
-  }, []);
 
   // Load & process data (companies only for mapping)
   useEffect(() => {

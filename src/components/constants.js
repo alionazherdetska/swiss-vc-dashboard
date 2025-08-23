@@ -1,3 +1,4 @@
+// constants.js
 import {
   TrendingUp,
   MapPin,
@@ -6,6 +7,46 @@ import {
   Calendar,
   LineChart,
 } from "lucide-react";
+
+/* =========================
+   Chart layout & styling
+   ========================= */
+export const CHART_MARGIN = { top: 50, right: 50, left: 60, bottom: 60 };
+export const EXPANDED_CHART_MARGIN = { top: 80, right: 80, left: 80, bottom: 80 };
+
+// Axis/grid stroke tokens (UI colors)
+export const AXIS_STROKE = "#4A5568";
+export const GRID_STROKE  = "#E2E8F0";
+
+/* =========================
+   Sector colors / palettes
+   ========================= */
+export const INDUSTRY_COLOR_MAP = {
+  Biotech: "#E84A5F",
+  Cleantech: "#2ECC71",
+  "Consumer Products": "#3498DB",
+  "Deep Tech": "#A0522D",
+  "Healthcare It": "#F7931E",
+  ICT: "#9B5DE5",
+  Interdisciplinary: "#1ABC9C",
+  MedTech: "#FFD700",
+  "Micro / Nano": "#FF1493",
+  Unknown: "#32CD32",
+};
+
+export const ENHANCED_COLOR_PALETTE = [
+  "#E84A5F", "#2ECC71", "#3498DB", "#A0522D", "#F7931E",
+  "#9B5DE5", "#1ABC9C", "#FFD700", "#FF1493", "#32CD32",
+  "#4169E1", "#8B4513", "#FF4500", "#8A2BE2", "#00CED1",
+];
+
+// Label spacing presets when ≤3 industries are visible
+export const SMALLSET_LABEL_BASE_LIFT = { regular: -4, expanded: -8 };
+export const SMALLSET_LABEL_DY        = { regular: [-6, 1, 6], expanded: [-10, 1, 10] };
+
+/* =========================
+   Your existing constants
+   ========================= */
 
 // Official Swiss cantons in correct order with codes
 export const OFFICIAL_CANTONS = [
@@ -51,7 +92,7 @@ export const CANTON_MAP = {
   Abroad: null,
 };
 
-// Swiss VC Report color scheme
+// Swiss VC Report color scheme (generic palette you already used)
 export const COLORS = [
   "#E53E3E", // Red
   "#3182CE", // Blue
@@ -71,37 +112,17 @@ export const getChartOptions = (activeTab) =>
     { key: "timeline", name: "Timeline Trends", icon: TrendingUp },
     ...(activeTab === "companies"
       ? [
-          {
-            key: "industry-trends",
-            name: "Top Industry Trends",
-            icon: LineChart,
-          },
-          {
-            key: "funding-analysis",
-            name: "Funding Status",
-            icon: DollarSign,
-          },
+          { key: "industry-trends", name: "Top Industry Trends", icon: LineChart },
+          { key: "funding-analysis", name: "Funding Status", icon: DollarSign },
         ]
       : []),
     ...(activeTab === "deals"
       ? [
-          {
-            key: "quarterly-analysis",
-            name: "Sector Analysis",
-            icon: Calendar,
-          },
-          {
-            key: "phase-analysis",
-            name: "Funding Phases",
-            icon: BarChart3,
-          },
+          { key: "quarterly-analysis", name: "Sector Analysis", icon: Calendar },
+          { key: "phase-analysis", name: "Funding Phases", icon: BarChart3 },
         ]
       : []),
-    {
-      key: "geographic-distribution",
-      name: "Geographic Distribution",
-      icon: MapPin,
-    },
+    { key: "geographic-distribution", name: "Geographic Distribution", icon: MapPin },
   ].filter(Boolean);
 
 // Sample data fallback
