@@ -130,8 +130,7 @@ const Dashboard = () => {
 	}
 
 	return (
-		<div className='min-h-screen p-8 md:p-8 bg-gray-50'>
-			<div className='max-w-8xl mx-auto'>
+		<div className='min-h-screen bg-gray-50'>
 				{/* Header */}
 				<div className='rounded-lg shadow-sm mb-6 p-8 border bg-white border-gray-200'>
 					<div className='flex items-center justify-between'>
@@ -218,7 +217,6 @@ const Dashboard = () => {
 						</div>
 					</div>
 				</div>
-			</div>
 		</div>
 	);
 };

@@ -1,22 +1,45 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Filter, ChevronDown } from "lucide-react";
 import { OFFICIAL_CANTONS } from "../../lib/constants";
 
-const Section = ({
-  title,
-  countBadge,          // optional string like "3 selected"
-  defaultOpen = false,
-  children,
-}) => {
-  const [open, setOpen] = useState(defaultOpen);
+/* ---------- Collapsible Section ---------- */
+const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
+  const STORAGE_KEY = `filters.section.${id}.open`;
+  const prefersReduced =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  const [open, setOpen] = useState(() => {
+    const saved =
+      typeof window !== "undefined"
+        ? window.localStorage.getItem(STORAGE_KEY)
+        : null;
+    return saved != null ? saved === "1" : defaultOpen;
+  });
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0");
+    } catch {}
+  }, [open]);
+
+  const contentRef = useRef(null);
+  const [maxH, setMaxH] = useState("0px");
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+    const h = open ? `${contentRef.current.scrollHeight}px` : "0px";
+    setMaxH(h);
+  }, [open, children]);
 
   return (
     <div className="mb-3 border border-gray-200 rounded-lg overflow-hidden bg-white">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+        className="w-full flex items-center justify-between px-3 py-2 text-left"
         aria-expanded={open}
+        aria-controls={`${id}-content`}
       >
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-gray-800">{title}</span>
@@ -30,22 +53,28 @@ const Section = ({
           className={`h-4 w-4 text-gray-500 transition-transform ${
             open ? "rotate-180" : ""
           }`}
+          aria-hidden="true"
         />
       </button>
 
       <div
-        className={`transition-[grid-template-rows] duration-200 ease-out grid ${
-          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
-        }`}
+        id={`${id}-content`}
+        ref={contentRef}
+        style={{
+          maxHeight: maxH,
+          transition: prefersReduced ? "none" : "max-height 180ms ease",
+        }}
+        className="overflow-hidden border-t border-gray-200 bg-white"
       >
-        <div className="overflow-hidden">
-          <div className="p-3 border-t border-gray-200 bg-white">{children}</div>
-        </div>
+        <div className="p-3">{children}</div>
       </div>
     </div>
   );
 };
 
+const DEFAULT_YEAR_RANGE = [2012, 2025];
+
+/* ---------- Main FilterPanel ---------- */
 const FilterPanel = ({
   filters,
   filterOptions,
@@ -57,7 +86,6 @@ const FilterPanel = ({
   const companiesTab = activeTab === "companies";
   const dealsTab = !companiesTab;
 
-  // derived counts (safe defaults)
   const ceoTotal = filterOptions.ceoGenders?.length || 0;
   const industriesTotal = filterOptions.industries?.length || 0;
   const dealTypesTotal = filterOptions.dealTypes?.length || 0;
@@ -66,23 +94,62 @@ const FilterPanel = ({
   const selectAllLabel = (selected, total) =>
     selected === total && total > 0 ? "Deselect All" : "Select All";
 
+  // list of section ids (for expand/collapse all)
+  const sectionIds = useMemo(() => {
+    const base = ["year", "cantons", "industries"];
+    if (companiesTab) base.splice(2, 0, "ceo");
+    if (dealsTab) base.push("dealtypes", "phases");
+    return base;
+  }, [companiesTab, dealsTab]);
+
+  const [remountKey, setRemountKey] = useState(0);
+  const setAllSections = (open) => {
+    try {
+      sectionIds.forEach((id) =>
+        window.localStorage.setItem(
+          `filters.section.${id}.open`,
+          open ? "1" : "0"
+        )
+      );
+      setRemountKey((k) => k + 1);
+    } catch {}
+  };
+
   return (
-    <div className="rounded-lg shadow-sm p-6 sticky top-6 border bg-white border-gray-200">
-      <div className="flex justify-between items-center mb-4">
+    <div
+      key={remountKey}
+      className="rounded-lg shadow-sm p-6 sticky top-6 border bg-white border-gray-200"
+    >
+      <div className="flex justify-between items-center mb-3">
         <h2 className="text-lg font-semibold flex items-center text-gray-800">
           <Filter className="h-5 w-5 mr-2" />
           Filters
         </h2>
-        <button
-          onClick={resetFilters}
-          className="text-sm text-red-600 hover:text-red-800 font-medium transition-colors"
-        >
-          Reset
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setAllSections(true)}
+            className="px-2 py-1 text-xs rounded border border-green-200 bg-green-100 text-green-800"
+          >
+            Expand all
+          </button>
+          <button
+            onClick={() => setAllSections(false)}
+            className="px-2 py-1 text-xs rounded border border-blue-200 bg-blue-100 text-blue-800"
+          >
+            Collapse all
+          </button>
+          <button
+            onClick={resetFilters}
+            className="px-2 py-1 text-xs rounded border border-red-200 bg-red-100 text-red-700"
+          >
+            Reset
+          </button>
+        </div>
       </div>
 
       {/* Year Range */}
       <Section
+        id="year"
         title="Year Range"
         defaultOpen
         countBadge={`${filters.yearRange[0]}–${filters.yearRange[1]}`}
@@ -95,7 +162,10 @@ const FilterPanel = ({
             value={filters.yearRange[0]}
             onChange={(e) =>
               updateFilter("yearRange", [
-                Math.min(parseInt(e.target.value || "0", 10), filters.yearRange[1] - 1),
+                Math.min(
+                  parseInt(e.target.value || "0", 10),
+                  filters.yearRange[1] - 1
+                ),
                 filters.yearRange[1],
               ])
             }
@@ -110,7 +180,10 @@ const FilterPanel = ({
             onChange={(e) =>
               updateFilter("yearRange", [
                 filters.yearRange[0],
-                Math.max(parseInt(e.target.value || "0", 10), filters.yearRange[0] + 1),
+                Math.max(
+                  parseInt(e.target.value || "0", 10),
+                  filters.yearRange[0] + 1
+                ),
               ])
             }
             className="w-24 p-2 border rounded text-sm bg-white border-gray-300 text-gray-900"
@@ -120,12 +193,12 @@ const FilterPanel = ({
 
       {/* Cantons */}
       <Section
+        id="cantons"
         title="Cantons"
         countBadge={`${filters.cantons.length} selected`}
-        defaultOpen={false}
       >
         <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
-          <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
+          <label className="flex items-center p-1 rounded font-medium cursor-pointer">
             <input
               type="checkbox"
               checked={filters.cantons.length === OFFICIAL_CANTONS.length}
@@ -149,7 +222,7 @@ const FilterPanel = ({
           {OFFICIAL_CANTONS.map((canton) => (
             <label
               key={canton.code}
-              className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
+              className="flex items-center p-1 rounded cursor-pointer"
             >
               <input
                 type="checkbox"
@@ -168,17 +241,15 @@ const FilterPanel = ({
       {/* CEO Gender (companies only) */}
       {companiesTab && (
         <Section
+          id="ceo"
           title="CEO Gender"
           countBadge={`${filters.ceoGenders?.length || 0} selected`}
-          defaultOpen={false}
         >
           <div className="space-y-2 p-2 border rounded-md border-gray-200">
-            <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
+            <label className="flex items-center p-1 rounded font-medium cursor-pointer">
               <input
                 type="checkbox"
-                checked={
-                  (filters.ceoGenders?.length || 0) === ceoTotal && ceoTotal > 0
-                }
+                checked={(filters.ceoGenders?.length || 0) === ceoTotal && ceoTotal > 0}
                 onChange={() => {
                   if ((filters.ceoGenders?.length || 0) === ceoTotal) {
                     updateFilter("ceoGenders", []);
@@ -194,10 +265,7 @@ const FilterPanel = ({
             </label>
 
             {filterOptions.ceoGenders?.map((gender) => (
-              <label
-                key={gender}
-                className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
-              >
+              <label key={gender} className="flex items-center p-1 rounded cursor-pointer">
                 <input
                   type="checkbox"
                   checked={filters.ceoGenders?.includes(gender) || false}
@@ -211,14 +279,15 @@ const FilterPanel = ({
         </Section>
       )}
 
-      {/* Industries (companies or deals) */}
+      {/* Industries */}
       <Section
+        id="industries"
         title="Industries"
-        countBadge={`${filters.industries.length} selected`}
         defaultOpen
+        countBadge={`${filters.industries.length} selected`}
       >
         <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
-          <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
+          <label className="flex items-center p-1 rounded font-medium cursor-pointer">
             <input
               type="checkbox"
               checked={filters.industries.length === industriesTotal}
@@ -237,10 +306,7 @@ const FilterPanel = ({
           </label>
 
           {filterOptions.industries?.map((industry) => (
-            <label
-              key={industry}
-              className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
-            >
+            <label key={industry} className="flex items-center p-1 rounded cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.industries.includes(industry)}
@@ -253,16 +319,16 @@ const FilterPanel = ({
         </div>
       </Section>
 
-      {/* Deals-only groups */}
+      {/* Deals-only */}
       {dealsTab && (
         <>
           <Section
+            id="dealtypes"
             title="Deal Types"
             countBadge={`${filters.dealTypes.length} selected`}
-            defaultOpen={false}
           >
             <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
-              <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
+              <label className="flex items-center p-1 rounded font-medium cursor-pointer">
                 <input
                   type="checkbox"
                   checked={filters.dealTypes.length === dealTypesTotal}
@@ -281,10 +347,7 @@ const FilterPanel = ({
               </label>
 
               {filterOptions.dealTypes?.map((type) => (
-                <label
-                  key={type}
-                  className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
-                >
+                <label key={type} className="flex items-center p-1 rounded cursor-pointer">
                   <input
                     type="checkbox"
                     checked={filters.dealTypes.includes(type)}
@@ -298,12 +361,12 @@ const FilterPanel = ({
           </Section>
 
           <Section
+            id="phases"
             title="Funding Phases"
             countBadge={`${filters.phases.length} selected`}
-            defaultOpen={false}
           >
             <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
-              <label className="flex items-center p-1 rounded font-medium cursor-pointer hover:bg-gray-50">
+              <label className="flex items-center p-1 rounded font-medium cursor-pointer">
                 <input
                   type="checkbox"
                   checked={filters.phases.length === phasesTotal}
@@ -322,10 +385,7 @@ const FilterPanel = ({
               </label>
 
               {filterOptions.phases?.map((phase) => (
-                <label
-                  key={phase}
-                  className="flex items-center p-1 rounded cursor-pointer hover:bg-gray-50"
-                >
+                <label key={phase} className="flex items-center p-1 rounded cursor-pointer">
                   <input
                     type="checkbox"
                     checked={filters.phases.includes(phase)}
