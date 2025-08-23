@@ -1,5 +1,5 @@
 
-import { sanitizeKey } from "../utils";
+import { sanitizeKey } from "../../../../lib/utils";
 
 export default function prepareQuarterlyRows(dealsSource) {
   const byYearIndustry = {};
