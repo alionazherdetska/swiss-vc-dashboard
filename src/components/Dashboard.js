@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 
 // Panels / components you still use
 import FilterPanel from './filters/FilterPanel.js';
-import MetricsCards from './metrics/MetricsCards.js';
 import { TimelineChart } from './charts/TimelineChart.js';
 
 import { processCompanies, processDeals, generateChartData } from '../lib/utils';
@@ -131,21 +130,6 @@ const Dashboard = () => {
 
 	return (
 		<div className='min-h-screen bg-gray-50'>
-				{/* Header */}
-				<div className='rounded-lg shadow-sm mb-6 p-8 border bg-white border-gray-200'>
-					<div className='flex items-center justify-between'>
-						<h2 className='text-lg font-semibold text-gray-800'>
-							Deals ({deals.length.toLocaleString()})
-						</h2>
-					</div>
-
-					<MetricsCards
-						activeTab='deals'
-						filteredCompanies={[]}
-						filteredDeals={filteredDeals}
-						filterOptions={filterOptions}
-					/>
-				</div>
 
 				<div className='grid grid-cols-1 lg:grid-cols-5 gap-6'>
 					{/* Filters Panel */}
