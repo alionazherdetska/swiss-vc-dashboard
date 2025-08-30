@@ -42,7 +42,7 @@ const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
         aria-controls={`${id}-content`}
       >
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-800">{title}</span>
+          <span className="filter-section-title font-normal text-gray-800">{title}</span>
           {countBadge != null && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
               {countBadge}
@@ -50,9 +50,7 @@ const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
           )}
         </div>
         <ChevronDown
-          className={`h-4 w-4 text-gray-500 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
+          className={`filter-section-chevron text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </button>
@@ -118,33 +116,34 @@ const FilterPanel = ({
   return (
     <div
       key={remountKey}
-      className="rounded-lg shadow-sm p-6 sticky top-6 border bg-white border-gray-200"
+      className="rounded-lg shadow-sm p-3 sticky border bg-white border-gray-200"
     >
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-lg font-semibold flex items-center text-gray-800">
-          <Filter className="h-5 w-5 mr-2" />
-          Filters
-        </h2>
+      <div className="flex justify-between items-center w-full mb-2">
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setAllSections(true)}
-            className="px-2 py-1 text-xs rounded border border-green-200 bg-green-100 text-green-800"
-          >
-            Expand all
-          </button>
-          <button
-            onClick={() => setAllSections(false)}
-            className="px-2 py-1 text-xs rounded border border-blue-200 bg-blue-100 text-blue-800"
-          >
-            Collapse all
-          </button>
-          <button
-            onClick={resetFilters}
-            className="px-2 py-1 text-xs rounded border border-red-200 bg-red-100 text-red-700"
-          >
-            Reset
-          </button>
+          <Filter className="h-5 w-5 mr-2 text-gray-700" />
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Filters</h2>
         </div>
+        <button
+          onClick={resetFilters}
+          className="px-3 py-1.5 text-sm font-semibold rounded-lg border border-red-300 bg-red-50 text-red-700 shadow-sm hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200 transition"
+        >
+          Reset
+        </button>
+      </div>
+      <div className="border-b border-gray-200 mb-3"></div>
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <button
+          onClick={() => setAllSections(true)}
+          className="px-3 py-1.5 text-sm font-semibold rounded-lg border border-green-300 bg-green-50 text-green-800 shadow-sm hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-200 transition"
+        >
+          Expand all
+        </button>
+        <button
+          onClick={() => setAllSections(false)}
+          className="px-3 py-1.5 text-sm font-semibold rounded-lg border border-blue-300 bg-blue-50 text-blue-800 shadow-sm hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
+        >
+          Collapse all
+        </button>
       </div>
 
       {/* Year Range */}
@@ -195,7 +194,6 @@ const FilterPanel = ({
       <Section
         id="cantons"
         title="Cantons"
-        countBadge={`${filters.cantons.length} selected`}
       >
         <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
           <label className="flex items-center p-1 rounded font-medium cursor-pointer">
@@ -243,7 +241,6 @@ const FilterPanel = ({
         <Section
           id="ceo"
           title="CEO Gender"
-          countBadge={`${filters.ceoGenders?.length || 0} selected`}
         >
           <div className="space-y-2 p-2 border rounded-md border-gray-200">
             <label className="flex items-center p-1 rounded font-medium cursor-pointer">
@@ -284,7 +281,6 @@ const FilterPanel = ({
         id="industries"
         title="Industries"
         defaultOpen
-        countBadge={`${filters.industries.length} selected`}
       >
         <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
           <label className="flex items-center p-1 rounded font-medium cursor-pointer">
@@ -325,7 +321,6 @@ const FilterPanel = ({
           <Section
             id="dealtypes"
             title="Deal Types"
-            countBadge={`${filters.dealTypes.length} selected`}
           >
             <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
               <label className="flex items-center p-1 rounded font-medium cursor-pointer">
@@ -363,7 +358,6 @@ const FilterPanel = ({
           <Section
             id="phases"
             title="Funding Phases"
-            countBadge={`${filters.phases.length} selected`}
           >
             <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
               <label className="flex items-center p-1 rounded font-medium cursor-pointer">

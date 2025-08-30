@@ -131,7 +131,7 @@ const Dashboard = () => {
 	return (
 		<div className='min-h-screen bg-gray-50'>
 
-				<div className='grid grid-cols-1 lg:grid-cols-5 gap-6'>
+				<div className='grid grid-cols-1 lg:grid-cols-5 gap-2'>
 					{/* Filters Panel */}
 					<div className='lg:col-span-1'>
 						<FilterPanel
@@ -176,7 +176,7 @@ const Dashboard = () => {
 							{/* Active chart rendered by tab selection */}
 							<div className='border rounded-lg p-4 border-gray-200 bg-gray-50'>
 								{activeChart === 'timeline' ? (
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={true}
