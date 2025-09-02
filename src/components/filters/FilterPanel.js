@@ -113,7 +113,7 @@ const FilterPanel = ({
   return (
     <div
       key={remountKey}
-      className="rounded-lg shadow-sm px-4 py-6 sticky border bg-white border-gray-200 text-xs"
+      className="rounded-lg shadow-sm px-4 py-6 border bg-white border-gray-200 text-xs sticky top-4 z-20"
     >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">

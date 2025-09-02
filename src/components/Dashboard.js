@@ -26,9 +26,10 @@ const Dashboard = () => {
 	const [activeChart, setActiveChart] = useState('timeline'); // default open
 	const chartTabs = [
 		{ key: 'timeline', label: 'Timeline' },
-		{ key: 'quarterly', label: 'Sector' },
-		{ key: 'phase', label: 'Stages' },
-		{ key: 'canton', label: 'CantonGender' },
+		{ key: 'quarterly', label: 'Sector Analysis' },
+		{ key: 'phase', label: 'By Funding Phase' },
+		{ key: 'canton', label: 'By Canton' },
+		{ key: 'ceoGender', label: 'CEO Gender Split' },
 		{ key: 'exits', label: 'Exits' },
 	];
 
@@ -179,13 +180,13 @@ const Dashboard = () => {
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={true}
-											title='Overall Sum of Invested Capital by Year'
+											title='Invested Capital by Year'
 											yLabel='Invested Capital CHF (M)'
 										/>
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={false}
-											title='Overall Number of Deals by Year'
+											title='Number of Deals by Year'
 											yLabel='Number of Deals'
 										/>
 									</div>

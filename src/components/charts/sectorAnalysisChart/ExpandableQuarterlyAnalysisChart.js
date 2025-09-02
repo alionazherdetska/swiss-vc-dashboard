@@ -245,6 +245,16 @@ const ExpandableQuarterlyAnalysisChart = ({
           </div>
 
           <label className='flex items-center gap-2 ml-auto'>
+        {/* Export button for both charts in preview */}
+        <div className='flex justify-end mb-2'>
+          <button
+            className='px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+            onClick={() => window.print && window.print()}
+            title='Export both charts (print or save as PDF)'
+          >
+            Export Both Charts
+          </button>
+        </div>
             <input
               type='checkbox'
               checked={expandedShowTotal}
@@ -437,15 +447,26 @@ const ExpandableQuarterlyAnalysisChart = ({
                   Investment Volume vs Year (CHF M)
                 </h3>
                 {!isExpandedView && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setExpandedChart('volume');
+                        setIsExpanded(true);
+                      }}
+                      className='p-2 rounded-md bg-blue-600 text-white shadow-md'
+                      title='Expand Volume Chart'
+                    >
+                      <Maximize2 className='h-5 w-5' />
+                    </button>
+                  </>
+                )}
+                {isExpandedView && (
                   <button
-                    onClick={() => {
-                      setExpandedChart('volume');
-                      setIsExpanded(true);
-                    }}
-                    className='p-2 rounded-md bg-blue-600 text-white shadow-md'
-                    title='Expand Volume Chart'
+                    className='ml-2 px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                    onClick={() => window.print && window.print()}
+                    title='Export this chart (print or save as PDF)'
                   >
-                    <Maximize2 className='h-5 w-5' />
+                    Export Chart
                   </button>
                 )}
               </div>
@@ -519,15 +540,26 @@ const ExpandableQuarterlyAnalysisChart = ({
                   Number of Deals vs Year
                 </h3>
                 {!isExpandedView && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setExpandedChart('count');
+                        setIsExpanded(true);
+                      }}
+                      className='p-2 rounded-md bg-green-600 text-white shadow-md'
+                      title='Expand Count Chart'
+                    >
+                      <Maximize2 className='h-5 w-5' />
+                    </button>
+                  </>
+                )}
+                {isExpandedView && (
                   <button
-                    onClick={() => {
-                      setExpandedChart('count');
-                      setIsExpanded(true);
-                    }}
-                    className='p-2 rounded-md bg-green-600 text-white shadow-md'
-                    title='Expand Count Chart'
+                    className='ml-2 px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                    onClick={() => window.print && window.print()}
+                    title='Export this chart (print or save as PDF)'
                   >
-                    <Maximize2 className='h-5 w-5' />
+                    Export Chart
                   </button>
                 )}
               </div>
