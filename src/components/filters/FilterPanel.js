@@ -148,7 +148,6 @@ const FilterPanel = ({
         id="year"
         title="Year Range"
         defaultOpen
-        countBadge={`${filters.yearRange[0]}–${filters.yearRange[1]}`}
       >
         <div className="flex items-center gap-1">
           <input
@@ -162,7 +161,7 @@ const FilterPanel = ({
                 filters.yearRange[1],
               ])
             }
-            className="w-24 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
+            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
           />
           <span className="text-gray-500">to</span>
           <input
@@ -176,7 +175,7 @@ const FilterPanel = ({
                 Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
               ])
             }
-            className="w-24 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
+            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
           />
 
         </div>
