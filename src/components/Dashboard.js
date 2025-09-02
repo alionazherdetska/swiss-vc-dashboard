@@ -25,11 +25,11 @@ const Dashboard = () => {
 
 	const [activeChart, setActiveChart] = useState('timeline'); // default open
 	const chartTabs = [
-		{ key: 'timeline', label: 'Timeline' },
-		{ key: 'quarterly', label: 'Sector Analysis' },
-		{ key: 'phase', label: 'By Funding Phase' },
-		{ key: 'canton', label: 'By Canton' },
-		{ key: 'ceoGender', label: 'CEO Gender Split' },
+		{ key: 'timeline', label: 'Overview' },
+		{ key: 'quarterly', label: 'Sectors' },
+		{ key: 'phase', label: 'Stages' },
+		{ key: 'canton', label: 'Canton' },
+		{ key: 'ceoGender', label: 'Gender' },
 		{ key: 'exits', label: 'Exits' },
 	];
 

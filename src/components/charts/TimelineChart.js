@@ -24,20 +24,20 @@ export const TimelineChart = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center mb-2">
         {title && (
-          <h3 className="text-lg font-bold text-center text-gray-800 flex-1">
+          <h3 className="text-lg font-bold text-gray-800 mr-2">
             {title}
           </h3>
         )}
         <button
-          className="px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm transition-colors"
+          className="h-10 px-4 flex items-center text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm transition-colors"
+          style={{ minHeight: '40px' }}
           title="Export chart (print or save as PDF)"
         >
           Export
         </button>
       </div>
-      
       <ResponsiveContainer width="100%" height={400}>
         <AreaChart data={data} margin={CHART_MARGIN}>
           <defs>

@@ -257,7 +257,7 @@ const ExpandableQuarterlyAnalysisChart = ({
           </div>
 
           <button
-            className='px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+          className="h-10 px-4 flex items-center text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm transition-colors"
             onClick={() => window.print && window.print()}
             title='Export chart (print or save as PDF)'
           >
@@ -443,21 +443,30 @@ const ExpandableQuarterlyAnalysisChart = ({
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           {/* LEFT: Volume */}
           <div className='space-y-2 relative'>
-            <div className='flex items-center justify-between gap-2'>
+            <div className='flex items-center gap-2'>
               <h3 className='text-lg font-semibold text-gray-800'>
                 Investment Volume vs Year
               </h3>
               {!isExpandedView && (
-                <button
-                  onClick={() => {
-                    setExpandedChart('volume');
-                    setIsExpanded(true);
-                  }}
-                  className='p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors'
-                  title='Expand Volume Chart'
-                >
-                  <Maximize2 className='h-5 w-5' />
-                </button>
+                <>
+                  <button
+                    onClick={() => {
+                      setExpandedChart('volume');
+                      setIsExpanded(true);
+                    }}
+                    className='p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors'
+                    title='Expand Volume Chart'
+                  >
+                    <Maximize2 className='h-5 w-5' />
+                  </button>
+                  <button
+                    className='h-10 px-4 flex items-center text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm transition-colors'
+                    style={{ minHeight: '40px' }}
+                    title='Export chart (print or save as PDF)'
+                  >
+                    Export
+                  </button>
+                </>
               )}
             </div>
 
@@ -523,21 +532,29 @@ const ExpandableQuarterlyAnalysisChart = ({
 
           {/* RIGHT: Count */}
           <div className='space-y-2 relative'>
-            <div className='flex items-center justify-between gap-2'>
+            <div className='flex items-center gap-2'>
               <h3 className='text-lg font-semibold text-gray-800'>
                 Number of Deals vs Year
               </h3>
               {!isExpandedView && (
-                <button
-                  onClick={() => {
-                    setExpandedChart('count');
-                    setIsExpanded(true);
-                  }}
-                  className='p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors'
-                  title='Expand Count Chart'
-                >
-                  <Maximize2 className='h-5 w-5' />
-                </button>
+                <>
+                  <button
+                    onClick={() => {
+                      setExpandedChart('count');
+                      setIsExpanded(true);
+                    }}
+                    className='p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors'
+                    title='Expand Count Chart'
+                  >
+                    <Maximize2 className='h-5 w-5' />
+                  </button>
+                  <button
+          className="h-10 px-4 flex items-center text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm transition-colors"
+                    title='Export chart (print or save as PDF)'
+                  >
+                    Export
+                  </button>
+                </>
               )}
             </div>
 
