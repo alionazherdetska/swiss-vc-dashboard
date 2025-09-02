@@ -279,8 +279,6 @@ const ExpandableQuarterlyAnalysisChart = ({
                 position: 'insideLeft',
                 fill: AXIS_STROKE,
                 fontSize: 16,
-                dx: '-2.5em',
-                dy: '4.5em',
                 style: { textAnchor: 'middle' },
               }}
             />
@@ -478,8 +476,6 @@ const ExpandableQuarterlyAnalysisChart = ({
                     position: 'insideLeft',
                     fill: AXIS_STROKE,
                     fontSize: 12,
-                    dx: '-1.5em',
-                    dy: '3em',
                     style: { textAnchor: 'middle' },
                   }}
                 />
@@ -561,8 +557,6 @@ const ExpandableQuarterlyAnalysisChart = ({
                     position: 'insideLeft',
                     fill: AXIS_STROKE,
                     fontSize: 12,
-                    dx: '-1.4em',
-                    dy: '3em',
                     style: { textAnchor: 'middle' },
                   }}
                 />

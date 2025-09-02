@@ -203,13 +203,13 @@ const Dashboard = () => {
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={true}
-											title='By Phase (Placeholder) - Invested Capital'
+											title='Invested Capital by Phase'
 											yLabel='Invested Capital CHF (M)'
 										/>
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={false}
-											title='By Phase (Placeholder) - Number of Deals'
+											title='Number of Deals by Phase'
 											yLabel='Number of Deals'
 										/>
 									</div>
@@ -219,13 +219,13 @@ const Dashboard = () => {
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={true}
-											title='By Canton (Placeholder) - Invested Capital'
+											title='Invested Capital by Canton'
 											yLabel='Invested Capital CHF (M)'
 										/>
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={false}
-											title='By Canton (Placeholder) - Number of Deals'
+											title='Number of Deals by Canton'
 											yLabel='Number of Deals'
 										/>
 									</div>
@@ -235,13 +235,13 @@ const Dashboard = () => {
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={true}
-											title='Male/Female Split (CEO of startups) (Placeholder) - Invested Capital'
+											title='Invested Capital by CEO Gender'
 											yLabel='Invested Capital CHF (M)'
 										/>
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={false}
-											title='Male/Female Split (CEO of startups) (Placeholder) - Number of Deals'
+											title='Number of Deals by CEO Gender'
 											yLabel='Number of Deals'
 										/>
 									</div>
@@ -251,13 +251,13 @@ const Dashboard = () => {
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={true}
-											title='Exits (Placeholder) - Invested Capital'
+											title='Invested Capital by Exits'
 											yLabel='Invested Capital CHF (M)'
 										/>
 										<TimelineChart
 											data={chartData.timeline}
 											showVolume={false}
-											title='Exits (Placeholder) - Number of Deals'
+											title='Number of Deals by Exits'
 											yLabel='Number of Deals'
 										/>
 									</div>
