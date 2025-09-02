@@ -33,24 +33,24 @@ const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
   }, [open, children]);
 
   return (
-    <div className="mb-3 border border-gray-200 rounded-lg overflow-hidden bg-white">
+    <div className="mb-2 border border-gray-200 rounded-md overflow-hidden bg-white">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 text-left"
+        className="w-full flex items-center justify-between px-2 py-1.5 text-left"
         aria-expanded={open}
         aria-controls={`${id}-content`}
       >
-        <div className="flex items-center gap-2">
-          <span className="filter-section-title font-normal text-gray-800">{title}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-medium text-gray-800">{title}</span>
           {countBadge != null && (
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
               {countBadge}
             </span>
           )}
         </div>
         <ChevronDown
-          className={`filter-section-chevron text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
           aria-hidden="true"
         />
       </button>
@@ -62,15 +62,13 @@ const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
           maxHeight: maxH,
           transition: prefersReduced ? "none" : "max-height 180ms ease",
         }}
-        className="overflow-hidden border-t border-gray-200 bg-white"
+        className="overflow-hidden border-t border-gray-100 bg-white"
       >
-        <div className="p-3">{children}</div>
+        <div className="p-2">{children}</div>
       </div>
     </div>
   );
 };
-
-const DEFAULT_YEAR_RANGE = [2012, 2025];
 
 /* ---------- Main FilterPanel ---------- */
 const FilterPanel = ({
@@ -92,7 +90,6 @@ const FilterPanel = ({
   const selectAllLabel = (selected, total) =>
     selected === total && total > 0 ? "Deselect All" : "Select All";
 
-  // list of section ids (for expand/collapse all)
   const sectionIds = useMemo(() => {
     const base = ["year", "cantons", "industries"];
     if (companiesTab) base.splice(2, 0, "ceo");
@@ -116,31 +113,31 @@ const FilterPanel = ({
   return (
     <div
       key={remountKey}
-      className="rounded-lg shadow-sm p-3 sticky border bg-white border-gray-200"
+      className="rounded-lg shadow-sm p-3 sticky border bg-white border-gray-200 text-xs"
     >
-      <div className="flex justify-between items-center w-full mb-2">
+      <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
-          <Filter className="h-5 w-5 mr-2 text-gray-700" />
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Filters</h2>
+          <Filter className="h-4 w-4 text-gray-700" />
+          <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
         </div>
         <button
           onClick={resetFilters}
-          className="px-3 py-1.5 text-sm font-semibold rounded-lg border border-red-300 bg-red-50 text-red-700 shadow-sm hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200 transition"
+          className="px-2.5 py-1 text-xs font-medium rounded-md border border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
         >
           Reset
         </button>
       </div>
-      <div className="border-b border-gray-200 mb-3"></div>
-      <div className="flex flex-wrap items-center gap-3 mb-4">
+
+      <div className="flex flex-wrap items-center gap-2 mb-3">
         <button
           onClick={() => setAllSections(true)}
-          className="px-3 py-1.5 text-sm font-semibold rounded-lg border border-green-300 bg-green-50 text-green-800 shadow-sm hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-200 transition"
+          className="px-2.5 py-1 text-xs font-medium rounded-md border border-green-300 bg-green-50 text-green-800 hover:bg-green-100"
         >
           Expand all
         </button>
         <button
           onClick={() => setAllSections(false)}
-          className="px-3 py-1.5 text-sm font-semibold rounded-lg border border-blue-300 bg-blue-50 text-blue-800 shadow-sm hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-200 transition"
+          className="px-2.5 py-1 text-xs font-medium rounded-md border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100"
         >
           Collapse all
         </button>
@@ -153,7 +150,7 @@ const FilterPanel = ({
         defaultOpen
         countBadge={`${filters.yearRange[0]}–${filters.yearRange[1]}`}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <input
             type="number"
             min="2012"
@@ -161,16 +158,13 @@ const FilterPanel = ({
             value={filters.yearRange[0]}
             onChange={(e) =>
               updateFilter("yearRange", [
-                Math.min(
-                  parseInt(e.target.value || "0", 10),
-                  filters.yearRange[1] - 1
-                ),
+                Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
                 filters.yearRange[1],
               ])
             }
-            className="w-24 p-2 border rounded text-sm bg-white border-gray-300 text-gray-900"
+            className="w-24 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
           />
-          <span className="text-gray-600">to</span>
+          <span className="text-gray-500">to</span>
           <input
             type="number"
             min={filters.yearRange[0] + 1}
@@ -179,56 +173,45 @@ const FilterPanel = ({
             onChange={(e) =>
               updateFilter("yearRange", [
                 filters.yearRange[0],
-                Math.max(
-                  parseInt(e.target.value || "0", 10),
-                  filters.yearRange[0] + 1
-                ),
+                Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
               ])
             }
-            className="w-24 p-2 border rounded text-sm bg-white border-gray-300 text-gray-900"
+            className="w-24 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
           />
+
         </div>
       </Section>
 
       {/* Cantons */}
-      <Section
-        id="cantons"
-        title="Cantons"
-      >
-        <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
-          <label className="flex items-center p-1 rounded font-medium cursor-pointer">
+      <Section id="cantons" title="Cantons">
+        <div className="space-y-1 max-h-40 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
+          <label className="flex items-center gap-1 px-1 py-1.5 cursor-pointer">
             <input
               type="checkbox"
               checked={filters.cantons.length === OFFICIAL_CANTONS.length}
-              onChange={() => {
-                if (filters.cantons.length === OFFICIAL_CANTONS.length) {
-                  updateFilter("cantons", []);
-                } else {
-                  updateFilter(
-                    "cantons",
-                    OFFICIAL_CANTONS.map((c) => c.name)
-                  );
-                }
-              }}
-              className="mr-2 text-red-600 focus:ring-red-500"
+              onChange={() =>
+                updateFilter(
+                  "cantons",
+                  filters.cantons.length === OFFICIAL_CANTONS.length
+                    ? []
+                    : OFFICIAL_CANTONS.map((c) => c.name)
+                )
+              }
+              className="w-3.5 h-3.5 text-red-600"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-xs text-gray-700">
               {selectAllLabel(filters.cantons.length, OFFICIAL_CANTONS.length)}
             </span>
           </label>
-
           {OFFICIAL_CANTONS.map((canton) => (
-            <label
-              key={canton.code}
-              className="flex items-center p-1 rounded cursor-pointer"
-            >
+            <label key={canton.code} className="flex items-center gap-1 px-1.5 py-1.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.cantons.includes(canton.name)}
                 onChange={() => toggleArrayFilter("cantons", canton.name)}
-                className="mr-2 text-red-600 focus:ring-red-500"
+                className="w-3.5 h-3.5 text-red-600"
               />
-              <span className="text-sm text-gray-700">
+              <span className="text-xs text-gray-700">
                 {canton.name} ({canton.code})
               </span>
             </label>
@@ -236,40 +219,37 @@ const FilterPanel = ({
         </div>
       </Section>
 
-      {/* CEO Gender (companies only) */}
+      {/* CEO Gender */}
       {companiesTab && (
-        <Section
-          id="ceo"
-          title="CEO Gender"
-        >
-          <div className="space-y-2 p-2 border rounded-md border-gray-200">
-            <label className="flex items-center p-1 rounded font-medium cursor-pointer">
+        <Section id="ceo" title="CEO Gender">
+          <div className="space-y-1 p-1 border rounded border-gray-200">
+            <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
               <input
                 type="checkbox"
-                checked={(filters.ceoGenders?.length || 0) === ceoTotal && ceoTotal > 0}
-                onChange={() => {
-                  if ((filters.ceoGenders?.length || 0) === ceoTotal) {
-                    updateFilter("ceoGenders", []);
-                  } else {
-                    updateFilter("ceoGenders", filterOptions.ceoGenders || []);
-                  }
-                }}
-                className="mr-2 text-red-600 focus:ring-red-500"
+                checked={(filters.ceoGenders?.length || 0) === ceoTotal}
+                onChange={() =>
+                  updateFilter(
+                    "ceoGenders",
+                    (filters.ceoGenders?.length || 0) === ceoTotal
+                      ? []
+                      : filterOptions.ceoGenders
+                  )
+                }
+                className="w-3.5 h-3.5 text-red-600"
               />
-              <span className="text-sm text-gray-700">
+              <span className="text-xs text-gray-700">
                 {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
               </span>
             </label>
-
             {filterOptions.ceoGenders?.map((gender) => (
-              <label key={gender} className="flex items-center p-1 rounded cursor-pointer">
+              <label key={gender} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={filters.ceoGenders?.includes(gender) || false}
                   onChange={() => toggleArrayFilter("ceoGenders", gender)}
-                  className="mr-2 text-red-600 focus:ring-red-500"
+                  className="w-3.5 h-3.5 text-red-600"
                 />
-                <span className="text-sm text-gray-700">{gender}</span>
+                <span className="text-xs text-gray-700">{gender}</span>
               </label>
             ))}
           </div>
@@ -277,121 +257,112 @@ const FilterPanel = ({
       )}
 
       {/* Industries */}
-      <Section
-        id="industries"
-        title="Industries"
-        defaultOpen
-      >
-        <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-md border-gray-200">
-          <label className="flex items-center p-1 rounded font-medium cursor-pointer">
+      <Section id="industries" title="Industries" defaultOpen>
+        <div className="space-y-1 max-h-40 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
+          <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
             <input
               type="checkbox"
               checked={filters.industries.length === industriesTotal}
-              onChange={() => {
-                if (filters.industries.length === industriesTotal) {
-                  updateFilter("industries", []);
-                } else {
-                  updateFilter("industries", filterOptions.industries || []);
-                }
-              }}
-              className="mr-2 text-red-600 focus:ring-red-500"
+              onChange={() =>
+                updateFilter(
+                  "industries",
+                  filters.industries.length === industriesTotal
+                    ? []
+                    : filterOptions.industries
+                )
+              }
+              className="w-3.5 h-3.5 text-red-600"
             />
-            <span className="text-sm text-gray-700">
+            <span className="text-xs text-gray-700">
               {selectAllLabel(filters.industries.length, industriesTotal)}
             </span>
           </label>
-
           {filterOptions.industries?.map((industry) => (
-            <label key={industry} className="flex items-center p-1 rounded cursor-pointer">
+            <label key={industry} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
               <input
                 type="checkbox"
                 checked={filters.industries.includes(industry)}
                 onChange={() => toggleArrayFilter("industries", industry)}
-                className="mr-2 text-red-600 focus:ring-red-500"
+                className="w-3.5 h-3.5 text-red-600"
               />
-              <span className="text-sm text-gray-700">{industry}</span>
+              <span className="text-xs text-gray-700">{industry}</span>
             </label>
           ))}
         </div>
       </Section>
 
-      {/* Deals-only */}
+      {/* Deal Types */}
       {dealsTab && (
-        <>
-          <Section
-            id="dealtypes"
-            title="Deal Types"
-          >
-            <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
-              <label className="flex items-center p-1 rounded font-medium cursor-pointer">
+        <Section id="dealtypes" title="Deal Types">
+          <div className="space-y-1 max-h-36 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
+            <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.dealTypes.length === dealTypesTotal}
+                onChange={() =>
+                  updateFilter(
+                    "dealTypes",
+                    filters.dealTypes.length === dealTypesTotal
+                      ? []
+                      : filterOptions.dealTypes
+                  )
+                }
+                className="w-3.5 h-3.5 text-red-600"
+              />
+              <span className="text-xs text-gray-700">
+                {selectAllLabel(filters.dealTypes.length, dealTypesTotal)}
+              </span>
+            </label>
+            {filterOptions.dealTypes?.map((type) => (
+              <label key={type} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={filters.dealTypes.length === dealTypesTotal}
-                  onChange={() => {
-                    if (filters.dealTypes.length === dealTypesTotal) {
-                      updateFilter("dealTypes", []);
-                    } else {
-                      updateFilter("dealTypes", filterOptions.dealTypes || []);
-                    }
-                  }}
-                  className="mr-2 text-red-600 focus:ring-red-500"
+                  checked={filters.dealTypes.includes(type)}
+                  onChange={() => toggleArrayFilter("dealTypes", type)}
+                  className="w-3.5 h-3.5 text-red-600"
                 />
-                <span className="text-sm text-gray-700">
-                  {selectAllLabel(filters.dealTypes.length, dealTypesTotal)}
-                </span>
+                <span className="text-xs text-gray-700">{type}</span>
               </label>
+            ))}
+          </div>
+        </Section>
+      )}
 
-              {filterOptions.dealTypes?.map((type) => (
-                <label key={type} className="flex items-center p-1 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={filters.dealTypes.includes(type)}
-                    onChange={() => toggleArrayFilter("dealTypes", type)}
-                    className="mr-2 text-red-600 focus:ring-red-500"
-                  />
-                  <span className="text-sm text-gray-700">{type}</span>
-                </label>
-              ))}
-            </div>
-          </Section>
-
-          <Section
-            id="phases"
-            title="Funding Phases"
-          >
-            <div className="space-y-2 max-h-36 overflow-y-auto p-2 border rounded-md border-gray-200">
-              <label className="flex items-center p-1 rounded font-medium cursor-pointer">
+      {/* Funding Phases */}
+      {dealsTab && (
+        <Section id="phases" title="Funding Phases">
+          <div className="space-y-1 max-h-36 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
+            <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={filters.phases.length === phasesTotal}
+                onChange={() =>
+                  updateFilter(
+                    "phases",
+                    filters.phases.length === phasesTotal
+                      ? []
+                      : filterOptions.phases
+                  )
+                }
+                className="w-3.5 h-3.5 text-red-600"
+              />
+              <span className="text-xs text-gray-700">
+                {selectAllLabel(filters.phases.length, phasesTotal)}
+              </span>
+            </label>
+            {filterOptions.phases?.map((phase) => (
+              <label key={phase} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={filters.phases.length === phasesTotal}
-                  onChange={() => {
-                    if (filters.phases.length === phasesTotal) {
-                      updateFilter("phases", []);
-                    } else {
-                      updateFilter("phases", filterOptions.phases || []);
-                    }
-                  }}
-                  className="mr-2 text-red-600 focus:ring-red-500"
+                  checked={filters.phases.includes(phase)}
+                  onChange={() => toggleArrayFilter("phases", phase)}
+                  className="w-3.5 h-3.5 text-red-600"
                 />
-                <span className="text-sm text-gray-700">
-                  {selectAllLabel(filters.phases.length, phasesTotal)}
-                </span>
+                <span className="text-xs text-gray-700">{phase}</span>
               </label>
-
-              {filterOptions.phases?.map((phase) => (
-                <label key={phase} className="flex items-center p-1 rounded cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={filters.phases.includes(phase)}
-                    onChange={() => toggleArrayFilter("phases", phase)}
-                    className="mr-2 text-red-600 focus:ring-red-500"
-                  />
-                  <span className="text-sm text-gray-700">{phase}</span>
-                </label>
-              ))}
-            </div>
-          </Section>
-        </>
+            ))}
+          </div>
+        </Section>
       )}
     </div>
   );
