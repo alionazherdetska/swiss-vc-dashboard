@@ -45,7 +45,6 @@ export const TimelineChart = ({
             angle={-45}
             textAnchor="end"
             height={60}
-            label={{ value: "Year", position: "insideBottomRight", offset: -5, fill: "#4A5568" }}
           />
           <YAxis
             stroke="#4A5568"

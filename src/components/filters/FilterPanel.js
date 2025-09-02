@@ -113,7 +113,7 @@ const FilterPanel = ({
   return (
     <div
       key={remountKey}
-      className="rounded-lg shadow-sm p-3 sticky border bg-white border-gray-200 text-xs"
+      className="rounded-lg shadow-sm px-4 py-6 sticky border bg-white border-gray-200 text-xs"
     >
       <div className="flex justify-between items-center mb-2">
         <div className="flex items-center gap-2">
@@ -128,16 +128,16 @@ const FilterPanel = ({
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 mb-3">
+      <div className="flex flex-wrap items-center gap-2 mb-8">
         <button
           onClick={() => setAllSections(true)}
-          className="px-2.5 py-1 text-xs font-medium rounded-md border border-green-300 bg-green-50 text-green-800 hover:bg-green-100"
+          className="px-1.5 py-1 text-xs font-medium rounded-md border border-green-300 bg-green-50 text-green-800 hover:bg-green-100"
         >
           Expand all
         </button>
         <button
           onClick={() => setAllSections(false)}
-          className="px-2.5 py-1 text-xs font-medium rounded-md border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100"
+          className="px-1.5 py-1 text-xs font-medium rounded-md border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100"
         >
           Collapse all
         </button>
@@ -149,7 +149,7 @@ const FilterPanel = ({
         title="Year Range"
         defaultOpen
       >
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 ">
           <input
             type="number"
             min="2012"
