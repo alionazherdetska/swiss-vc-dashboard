@@ -231,38 +231,38 @@ const ExpandableQuarterlyAnalysisChart = ({
           <ChartLegend industries={industries} colorOf={colorOf} />
         </div>
 
-        <div className='flex flex-wrap items-center gap-4 p-4 rounded-lg bg-gray-50'>
-          <div className='flex items-center gap-2'>
-            <span className='text-gray-700'>Chart Type:</span>
-            <select
-              value={expandedMode}
-              onChange={(e) => setExpandedMode(e.target.value)}
-              className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
-            >
-              <option value='line'>Line</option>
-              <option value='column'>Column</option>
-            </select>
+        <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50'>
+          <div className='flex flex-wrap items-center gap-4'>
+            <div className='flex items-center gap-2'>
+              <span className='text-gray-700'>Chart Type:</span>
+              <select
+                value={expandedMode}
+                onChange={(e) => setExpandedMode(e.target.value)}
+                className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
+              >
+                <option value='line'>Line</option>
+                <option value='column'>Column</option>
+              </select>
+            </div>
+
+            <label className='flex items-center gap-2'>
+              <input
+                type='checkbox'
+                checked={expandedShowTotal}
+                onChange={(e) => setExpandedShowTotal(e.target.checked)}
+                className='text-red-600 focus:ring-red-500'
+              />
+              <span className='text-gray-700'>Show total</span>
+            </label>
           </div>
 
-          <label className='flex items-center gap-2 ml-auto'>
-        {/* Export button for both charts in preview */}
-        <div className='flex justify-end mb-2'>
           <button
             className='px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
             onClick={() => window.print && window.print()}
-            title='Export both charts (print or save as PDF)'
+            title='Export chart (print or save as PDF)'
           >
-            Export Both Charts
+            Export Chart
           </button>
-        </div>
-            <input
-              type='checkbox'
-              checked={expandedShowTotal}
-              onChange={(e) => setExpandedShowTotal(e.target.checked)}
-              className='text-red-600 focus:ring-red-500'
-            />
-            <span className='text-gray-700'>Show total</span>
-          </label>
         </div>
 
         <ResponsiveContainer width='100%' height={dims.height}>
@@ -402,74 +402,63 @@ const ExpandableQuarterlyAnalysisChart = ({
 
     return (
       <div className='space-y-4'>
-        <div className='flex flex-wrap items-center gap-4 p-4 rounded-lg bg-gray-50'>
-          <div className='flex items-center gap-2'>
-            <span className='text-gray-700'>Left (Volume):</span>
-            <select
-              value={leftModeState}
-              onChange={(e) => onLeftModeChange(e.target.value)}
-              className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
-            >
-              <option value='line'>Line</option>
-              <option value='column'>Column</option>
-            </select>
-          </div>
+        <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50'>
+          <div className='flex flex-wrap items-center gap-4'>
+            <div className='flex items-center gap-2'>
+              <span className='text-gray-700'>Left (Volume):</span>
+              <select
+                value={leftModeState}
+                onChange={(e) => onLeftModeChange(e.target.value)}
+                className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
+              >
+                <option value='line'>Line</option>
+                <option value='column'>Column</option>
+              </select>
+            </div>
 
-          <div className='flex items-center gap-2'>
-            <span className='text-gray-700'>Right (Count):</span>
-            <select
-              value={rightModeState}
-              onChange={(e) => onRightModeChange(e.target.value)}
-              className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
-            >
-              <option value='line'>Line</option>
-              <option value='column'>Column</option>
-            </select>
-          </div>
+            <div className='flex items-center gap-2'>
+              <span className='text-gray-700'>Right (Count):</span>
+              <select
+                value={rightModeState}
+                onChange={(e) => onRightModeChange(e.target.value)}
+                className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
+              >
+                <option value='line'>Line</option>
+                <option value='column'>Column</option>
+              </select>
+            </div>
 
-          <label className='flex items-center gap-2 ml-auto'>
-            <input
-              type='checkbox'
-              checked={showTotalState}
-              onChange={(e) => onShowTotalChange(e.target.checked)}
-              className='text-red-600 focus:ring-red-500'
-            />
-            <span className='text-gray-700'>Show total</span>
-          </label>
+            <label className='flex items-center gap-2'>
+              <input
+                type='checkbox'
+                checked={showTotalState}
+                onChange={(e) => onShowTotalChange(e.target.checked)}
+                className='text-red-600 focus:ring-red-500'
+              />
+              <span className='text-gray-700'>Show total</span>
+            </label>
+          </div>
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           {/* LEFT: Volume */}
           <div className='space-y-2 relative'>
             <div className='flex items-center justify-between gap-2'>
-              <div className='flex items-center gap-2'>
-                <h3 className='text-lg font-semibold text-gray-800'>
-                  Investment Volume vs Year (CHF M)
-                </h3>
-                {!isExpandedView && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setExpandedChart('volume');
-                        setIsExpanded(true);
-                      }}
-                      className='p-2 rounded-md bg-blue-600 text-white shadow-md'
-                      title='Expand Volume Chart'
-                    >
-                      <Maximize2 className='h-5 w-5' />
-                    </button>
-                  </>
-                )}
-                {isExpandedView && (
-                  <button
-                    className='ml-2 px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-                    onClick={() => window.print && window.print()}
-                    title='Export this chart (print or save as PDF)'
-                  >
-                    Export Chart
-                  </button>
-                )}
-              </div>
+              <h3 className='text-lg font-semibold text-gray-800'>
+                Investment Volume vs Year
+              </h3>
+              {!isExpandedView && (
+                <button
+                  onClick={() => {
+                    setExpandedChart('volume');
+                    setIsExpanded(true);
+                  }}
+                  className='p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors'
+                  title='Expand Volume Chart'
+                >
+                  <Maximize2 className='h-5 w-5' />
+                </button>
+              )}
             </div>
 
             <ResponsiveContainer width='100%' height={dims.height}>
@@ -535,34 +524,21 @@ const ExpandableQuarterlyAnalysisChart = ({
           {/* RIGHT: Count */}
           <div className='space-y-2 relative'>
             <div className='flex items-center justify-between gap-2'>
-              <div className='flex items-center gap-2'>
-                <h3 className='text-lg font-semibold text-gray-800'>
-                  Number of Deals vs Year
-                </h3>
-                {!isExpandedView && (
-                  <>
-                    <button
-                      onClick={() => {
-                        setExpandedChart('count');
-                        setIsExpanded(true);
-                      }}
-                      className='p-2 rounded-md bg-green-600 text-white shadow-md'
-                      title='Expand Count Chart'
-                    >
-                      <Maximize2 className='h-5 w-5' />
-                    </button>
-                  </>
-                )}
-                {isExpandedView && (
-                  <button
-                    className='ml-2 px-3 py-1 text-xs font-medium rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
-                    onClick={() => window.print && window.print()}
-                    title='Export this chart (print or save as PDF)'
-                  >
-                    Export Chart
-                  </button>
-                )}
-              </div>
+              <h3 className='text-lg font-semibold text-gray-800'>
+                Number of Deals vs Year
+              </h3>
+              {!isExpandedView && (
+                <button
+                  onClick={() => {
+                    setExpandedChart('count');
+                    setIsExpanded(true);
+                  }}
+                  className='p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors'
+                  title='Expand Count Chart'
+                >
+                  <Maximize2 className='h-5 w-5' />
+                </button>
+              )}
             </div>
 
             <ResponsiveContainer width='100%' height={dims.height}>
