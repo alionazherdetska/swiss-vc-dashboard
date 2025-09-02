@@ -5,7 +5,7 @@ const ChartLegend = ({ industries = [], colorOf, isCompact = false }) => {
   if (!industries || !industries.length) return null;
 
   return (
-    <div className={`p-4 rounded-lg bg-gray-50 ${isCompact ? "w-48" : ""}`}>
+    <div className={`px-4 pb-4 rounded-lg bg-gray-50 ${isCompact ? "w-48" : ""}`}>
       <h4 className="text-sm font-semibold mb-3 text-gray-700">Sectors</h4>
       <div className={isCompact ? "space-y-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2"}>
         {industries.map((industry) => (
