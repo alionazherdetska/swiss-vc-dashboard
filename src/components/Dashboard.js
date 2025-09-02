@@ -24,6 +24,14 @@ const Dashboard = () => {
 	});
 
 	const [activeChart, setActiveChart] = useState('timeline'); // default open
+	const chartTabs = [
+		{ key: 'timeline', label: 'Timeline' },
+		{ key: 'quarterly', label: 'Sector Analysis' },
+		{ key: 'phase', label: 'By Funding Phase' },
+		{ key: 'canton', label: 'By Canton' },
+		{ key: 'ceoGender', label: 'CEO Gender Split' },
+		{ key: 'exits', label: 'Exits' },
+	];
 
 	// Load & process data (companies only for mapping)
 	useEffect(() => {
@@ -149,33 +157,25 @@ const Dashboard = () => {
 						<div className='rounded-lg shadow-sm p-6 border bg-white border-gray-200'>
 							{/* Tab bar */}
 							<div className='flex space-x-2 p-1 rounded-lg mb-6 bg-gray-100'>
-								<button
-									onClick={() => setActiveChart('timeline')}
-									className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
-										activeChart === 'timeline'
-											? 'bg-white text-red-600 shadow-sm border border-red-200'
-											: 'text-gray-600 hover:text-gray-800'
-									}`}
-									title='Show timeline charts'
-								>
-									Timeline
-								</button>
-								<button
-									onClick={() => setActiveChart('quarterly')}
-									className={`flex-1 py-3 px-4 rounded-md text-sm font-medium transition-all ${
-										activeChart === 'quarterly'
-											? 'bg-white text-red-600 shadow-sm border border-red-200'
-											: 'text-gray-600 hover:text-gray-800'
-									}`}
-									title='Show sectoral analysis'
-								>
-									Sectoral Analysis
-								</button>
+								{chartTabs.map(tab => (
+									<button
+										key={tab.key}
+										onClick={() => setActiveChart(tab.key)}
+										className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+											activeChart === tab.key
+												? 'bg-white text-red-600 shadow-sm border border-red-200'
+												: 'text-gray-600 hover:text-gray-800'
+										}`}
+										title={tab.label}
+									>
+										{tab.label}
+									</button>
+								))}
 							</div>
 
 							{/* Active chart rendered by tab selection */}
 							<div className='border rounded-lg p-4 border-gray-200 bg-gray-50'>
-								{activeChart === 'timeline' ? (
+								{activeChart === 'timeline' && (
 									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
 										<TimelineChart
 											data={chartData.timeline}
@@ -190,12 +190,77 @@ const Dashboard = () => {
 											yLabel='Number of Deals'
 										/>
 									</div>
-								) : (
+								)}
+								{activeChart === 'quarterly' && (
 									<ExpandableQuarterlyAnalysisChart
 										deals={filteredDeals}
 										selectedIndustryCount={filters.industries.length}
 										totalIndustryCount={filterOptions.industries.length}
 									/>
+								)}
+								{activeChart === 'phase' && (
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={true}
+											title='By Phase (Placeholder) - Invested Capital'
+											yLabel='Invested Capital CHF (M)'
+										/>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={false}
+											title='By Phase (Placeholder) - Number of Deals'
+											yLabel='Number of Deals'
+										/>
+									</div>
+								)}
+								{activeChart === 'canton' && (
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={true}
+											title='By Canton (Placeholder) - Invested Capital'
+											yLabel='Invested Capital CHF (M)'
+										/>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={false}
+											title='By Canton (Placeholder) - Number of Deals'
+											yLabel='Number of Deals'
+										/>
+									</div>
+								)}
+								{activeChart === 'ceoGender' && (
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={true}
+											title='Male/Female Split (CEO of startups) (Placeholder) - Invested Capital'
+											yLabel='Invested Capital CHF (M)'
+										/>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={false}
+											title='Male/Female Split (CEO of startups) (Placeholder) - Number of Deals'
+											yLabel='Number of Deals'
+										/>
+									</div>
+								)}
+								{activeChart === 'exits' && (
+									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={true}
+											title='Exits (Placeholder) - Invested Capital'
+											yLabel='Invested Capital CHF (M)'
+										/>
+										<TimelineChart
+											data={chartData.timeline}
+											showVolume={false}
+											title='Exits (Placeholder) - Number of Deals'
+											yLabel='Number of Deals'
+										/>
+									</div>
 								)}
 							</div>
 						</div>
