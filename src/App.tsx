@@ -123,7 +123,7 @@ export function App() {
   }
 
   return (
-    <div className="App" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto'}}>
+    <div className="App" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto', padding: '40px 0 0 0'}}>
       <Dashboard/>
     </div>
   );
