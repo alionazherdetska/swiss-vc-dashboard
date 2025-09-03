@@ -91,11 +91,10 @@ const FilterPanel = ({
     selected === total && total > 0 ? "Deselect All" : "Select All";
 
   const sectionIds = useMemo(() => {
-    const base = ["year", "cantons", "industries"];
-    if (companiesTab) base.splice(2, 0, "ceo");
+    const base = ["year", "cantons", "ceo", "industries"]; // Always include CEO gender
     if (dealsTab) base.push("dealtypes", "phases");
     return base;
-  }, [companiesTab, dealsTab]);
+  }, [dealsTab]);
 
   const [remountKey, setRemountKey] = useState(0);
   const setAllSections = (open) => {
@@ -218,42 +217,40 @@ const FilterPanel = ({
         </div>
       </Section>
 
-      {/* CEO Gender */}
-      {companiesTab && (
-        <Section id="ceo" title="CEO Gender">
-          <div className="space-y-1 p-1 border rounded border-gray-200">
-            <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+      {/* CEO Gender - Now shown for both companies and deals */}
+      <Section id="ceo" title="CEO Gender">
+        <div className="space-y-1 p-1 border rounded border-gray-200">
+          <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={(filters.ceoGenders?.length || 0) === ceoTotal}
+              onChange={() =>
+                updateFilter(
+                  "ceoGenders",
+                  (filters.ceoGenders?.length || 0) === ceoTotal
+                    ? []
+                    : filterOptions.ceoGenders
+                )
+              }
+              className="w-3.5 h-3.5 text-red-600"
+            />
+            <span className="text-xs text-gray-700">
+              {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
+            </span>
+          </label>
+          {filterOptions.ceoGenders?.map((gender) => (
+            <label key={gender} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
               <input
                 type="checkbox"
-                checked={(filters.ceoGenders?.length || 0) === ceoTotal}
-                onChange={() =>
-                  updateFilter(
-                    "ceoGenders",
-                    (filters.ceoGenders?.length || 0) === ceoTotal
-                      ? []
-                      : filterOptions.ceoGenders
-                  )
-                }
+                checked={filters.ceoGenders?.includes(gender) || false}
+                onChange={() => toggleArrayFilter("ceoGenders", gender)}
                 className="w-3.5 h-3.5 text-red-600"
               />
-              <span className="text-xs text-gray-700">
-                {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
-              </span>
+              <span className="text-xs text-gray-700">{gender}</span>
             </label>
-            {filterOptions.ceoGenders?.map((gender) => (
-              <label key={gender} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.ceoGenders?.includes(gender) || false}
-                  onChange={() => toggleArrayFilter("ceoGenders", gender)}
-                  className="w-3.5 h-3.5 text-red-600"
-                />
-                <span className="text-xs text-gray-700">{gender}</span>
-              </label>
-            ))}
-          </div>
-        </Section>
-      )}
+          ))}
+        </div>
+      </Section>
 
       {/* Industries */}
       <Section id="industries" title="Industries" defaultOpen>

@@ -16,7 +16,7 @@ const Dashboard = () => {
 	// Filters
 	const [filters, setFilters] = useState({
 		industries: [],
-		ceoGenders: [], // unused visually; harmless to keep
+		ceoGenders: [], // Now used for deals filtering
 		cantons: [],
 		yearRange: [2012, 2025],
 		dealTypes: [],
@@ -60,10 +60,10 @@ const Dashboard = () => {
 		loadData();
 	}, []);
 
-	// Filter options: deals-only
+	// Filter options: deals-only, now including CEO genders
 	const filterOptions = useMemo(() => {
 		if (!deals.length) {
-			return { dealTypes: [], phases: [], dealYears: [], industries: [] };
+			return { dealTypes: [], phases: [], dealYears: [], industries: [], ceoGenders: [] };
 		}
 		return {
 			dealTypes: [...new Set(deals.map((d) => d.Type).filter(Boolean))].sort(),
@@ -72,10 +72,11 @@ const Dashboard = () => {
 			industries: [
 				...new Set(deals.map((d) => d.Industry).filter(Boolean)),
 			].sort(),
+			ceoGenders: [...new Set(deals.map((d) => d['Gender CEO']).filter(Boolean))].sort(),
 		};
 	}, [deals]);
 
-	// Apply filters (deals only)
+	// Apply filters (deals only, now including CEO gender filter)
 	const filteredDeals = useMemo(() => {
 		return deals.filter((item) => {
 			if (
@@ -88,6 +89,11 @@ const Dashboard = () => {
 			if (filters.phases.length && !filters.phases.includes(item.Phase))
 				return false;
 			if (filters.cantons.length && !filters.cantons.includes(item.Canton))
+				return false;
+			if (
+				filters.ceoGenders.length && 
+				!filters.ceoGenders.includes(item['Gender CEO'])
+			)
 				return false;
 			if (
 				item.Year &&
@@ -117,6 +123,7 @@ const Dashboard = () => {
 		setFilters({
 			industries: [],
 			cantons: [],
+			ceoGenders: [],
 			searchQuery: '',
 			yearRange: [2012, 2025],
 			dealTypes: [],
