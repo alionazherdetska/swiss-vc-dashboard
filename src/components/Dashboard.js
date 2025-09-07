@@ -12,6 +12,8 @@ const Dashboard = () => {
 	// Companies only for mapping; UI is deals-only
 	const [deals, setDeals] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [exits, setExits] = useState([]);
+
 
 	// Filters
 	const [filters, setFilters] = useState({
@@ -51,9 +53,18 @@ const Dashboard = () => {
 					setDeals(processedDeals);
 				}
 
-				setLoading(false);
+				if (jsonData.Exits) {
+					const processedExits = jsonData.Exits.map((e) => ({
+						Year: Number(e.Year) || null,
+						VolumeMChf: Number(e.ProceedsMChf ?? e.ExitValueMChf ?? 0),
+					}));
+					setExits(processedExits);
+				}
+
 			} catch {
 				setLoading(false);
+			} finally {
+				setLoading(false);       // always clear loading, success or error
 			}
 		};
 
@@ -75,6 +86,23 @@ const Dashboard = () => {
 			ceoGenders: [...new Set(deals.map((d) => d['Gender CEO']).filter(Boolean))].sort(),
 		};
 	}, [deals]);
+
+	//exits timeline (group by year)
+	const exitsTimeline = useMemo(() => {
+		if (!exits.length) return [];
+
+		const byYear = new Map();
+		for (const e of exits) {
+			if (!e.Year) continue;
+			const y = e.Year;
+			const prev = byYear.get(y) || { year: y, count: 0, volume: 0 };
+			prev.count += 1;
+			// Use your normalized numeric field for exits volume:
+			prev.volume += Number(e.VolumeMChf || 0);
+			byYear.set(y, prev);
+		}
+		return [...byYear.values()].sort((a, b) => a.year - b.year);
+	}, [exits]);
 
 	// Apply filters (deals only, now including CEO gender filter)
 	const filteredDeals = useMemo(() => {
@@ -256,16 +284,16 @@ const Dashboard = () => {
 								{activeChart === 'exits' && (
 									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
 										<TimelineChart
-											data={chartData.timeline}
+											data={exitsTimeline}               // <<< use exits timeline
 											showVolume={true}
-											title='Invested Capital by Exits'
-											yLabel='Invested Capital CHF (M)'
+											title='Exit Value by Year'
+											yLabel='Exit Value CHF (M)'
 										/>
 										<TimelineChart
-											data={chartData.timeline}
+											data={exitsTimeline}               // <<< use exits timeline
 											showVolume={false}
-											title='Number of Deals by Exits'
-											yLabel='Number of Deals'
+											title='Number of Exits by Year'
+											yLabel='Number of Exits'
 										/>
 									</div>
 								)}
