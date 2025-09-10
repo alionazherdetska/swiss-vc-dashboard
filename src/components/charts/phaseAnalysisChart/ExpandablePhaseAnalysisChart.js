@@ -61,7 +61,6 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
         const label = chartType === 'volume' ? 'Investment Volume by Phase vs Year' : 'Number of Deals by Phase vs Year';
         const yLabel = chartType === 'volume' ? 'Investment Volume CHF (M)' : 'Number of Deals';
         const dataKeySuffix = chartType === 'volume' ? '__volume' : '__count';
-        const totalKey = chartType === 'volume' ? '__grandTotalVolume' : '__grandTotalCount';
         const dimsToUse = isExpandedView ? expandedDims : dims;
         const expandColor = chartType === 'volume' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white';
         
@@ -109,7 +108,7 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                             const dataKey = `${sanitizeKey(phase)}${dataKeySuffix}`;
                             const color = colorOf(phase);
                             return modeState === 'column' ? (
-                                <Bar key={dataKey} dataKey={dataKey} fill={color} name={phase} />
+                                <Bar key={dataKey} dataKey={dataKey} fill={color} name={phase} stackId="phase-stack" />
                             ) : (
                                 <Line 
                                     key={dataKey} 

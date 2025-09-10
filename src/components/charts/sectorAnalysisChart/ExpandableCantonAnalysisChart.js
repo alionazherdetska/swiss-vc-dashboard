@@ -8,11 +8,10 @@ import {
     ResponsiveContainer,
     Tooltip,
     XAxis,
-    YAxis,
-    LabelList
+    YAxis
 } from 'recharts';
 import ChartModal from '../../common/ChartModal';
-import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE, OFFICIAL_CANTONS } from '../../../lib/constants';
+import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
 import { sanitizeKey, getChartDims, normalizeCanton } from '../../../lib/utils';
 const downloadIcon = process.env.PUBLIC_URL + '/download.svg';
 
@@ -103,7 +102,7 @@ const ExpandableCantonAnalysisChart = ({ deals, selectedCantonCount, totalCanton
                             return modeState === 'line' ? (
                                 <Line key={key} type='monotone' dataKey={key} stroke={colorOf(canton)} strokeWidth={3} dot={{ r: 4 }} name={canton} />
                             ) : (
-                                <Bar key={key} dataKey={key} fill={colorOf(canton)} name={canton} />
+                                <Bar key={key} dataKey={key} fill={colorOf(canton)} name={canton} stackId="canton-stack" />
                             );
                         })}
                         {showTotalState && <Line type='monotone' dataKey={totalKey} stroke='#000' strokeWidth={2} dot={false} name='Total' />}
@@ -115,17 +114,6 @@ const ExpandableCantonAnalysisChart = ({ deals, selectedCantonCount, totalCanton
 
     return (
         <>
-            <div className='text-center mb-4'>
-                <h2 className='text-xl font-bold text-gray-800'>
-                    Investment Analysis by Canton
-                </h2>
-                <p className='text-gray-600 mt-1'>
-                    {selectedCantonCount > 0 
-                        ? `Showing ${selectedCantonCount} of ${totalCantonCount} cantons` 
-                        : `Showing all ${totalCantonCount} cantons`}
-                </p>
-            </div>
-
             <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50 mb-6'>
                 <div className='flex flex-wrap items-center gap-4'>
                     <span className='text-gray-700'>Left (Value):</span>

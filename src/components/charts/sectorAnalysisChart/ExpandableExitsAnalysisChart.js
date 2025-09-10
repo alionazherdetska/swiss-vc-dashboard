@@ -12,14 +12,13 @@ import {
 import { Maximize2 } from 'lucide-react';
 import ChartModal from '../../common/ChartModal';
 import SortedTooltip from '../sectorAnalysisChart/components/SortedTooltip';
-import ShiftedLine from '../sectorAnalysisChart/components/ShiftedLine';
 import {
   CHART_MARGIN,
   EXPANDED_CHART_MARGIN,
   AXIS_STROKE,
   GRID_STROKE,
 } from '../../../lib/constants';
-import { sanitizeKey, getChartDims, getTicks } from '../../../lib/utils';
+import { getChartDims, getTicks } from '../../../lib/utils';
 
 const EXIT_COLOR = '#E53E3E';
 
