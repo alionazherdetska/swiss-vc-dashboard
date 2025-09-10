@@ -27,6 +27,7 @@ const D3PhaseChart = ({
   margin,
   isExpanded,
   colorOf,
+  showTotal,
 }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
@@ -138,22 +139,35 @@ const D3PhaseChart = ({
           });
           tooltipContent += "</div>";
 
-          // rect position
           const rect = d3.select(this);
           const barX = +rect.attr("x");
           const barY = +rect.attr("y");
           const barW = xScale.bandwidth();
 
-          const tooltipX = margin.left + barX + barW / 2;
-          const tooltipY = margin.top + barY - 10;
-
           tooltip
             .style("opacity", 1)
             .html(tooltipContent)
-            .style("left", `${tooltipX}px`)
-            .style("top", `${tooltipY}px`);
+            .style("left", `${margin.left + barX + barW / 2}px`)
+            .style("top", `${margin.top + barY - 10}px`);
         })
         .on("mouseout", () => tooltip.style("opacity", 0));
+
+      // total line on top of stacked bars
+      if (showTotal) {
+        const line = d3
+          .line()
+          .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .y((d) => yScale(d[totalKey]))
+          .curve(d3.curveMonotoneX);
+
+        g.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", "#000")
+          .attr("stroke-width", 2)
+          .attr("stroke-dasharray", "5,5")
+          .attr("d", line);
+      }
     } else {
       // Line chart
       phases.forEach((phase) => {
@@ -175,6 +189,23 @@ const D3PhaseChart = ({
           .attr("stroke-width", isExpanded ? 3 : 2)
           .attr("d", line);
       });
+
+      // total line
+      if (showTotal) {
+        const totalLine = d3
+          .line()
+          .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .y((d) => yScale(d[totalKey]))
+          .curve(d3.curveMonotoneX);
+
+        g.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", "#000")
+          .attr("stroke-width", 3)
+          .attr("stroke-dasharray", "5,5")
+          .attr("d", totalLine);
+      }
 
       // Invisible overlay per year for tooltip with all phases
       g.selectAll(".year-overlay")
@@ -221,7 +252,7 @@ const D3PhaseChart = ({
         })
         .on("mouseout", () => tooltip.style("opacity", 0));
     }
-  }, [data, phases, isVolume, mode, width, height, margin, isExpanded, colorOf]);
+  }, [data, phases, isVolume, mode, width, height, margin, isExpanded, colorOf, showTotal]);
 
   return (
     <div className="relative">
@@ -242,6 +273,8 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
   const [leftMode, setLeftMode] = useState("line");
   const [rightMode, setRightMode] = useState("line");
   const [modalMode, setModalMode] = useState("line");
+  const [showTotal, setShowTotal] = useState(false);
+  const [modalShowTotal, setModalShowTotal] = useState(true);
 
   const phases = useMemo(
     () =>
@@ -298,77 +331,46 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
           <option value="line">Line</option>
           <option value="column">Column</option>
         </select>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={showTotal}
+            onChange={(e) => setShowTotal(e.target.checked)}
+            className="text-red-600 focus:ring-red-500"
+          />
+          <span className="text-gray-700">Show total</span>
+        </label>
       </div>
 
       {/* Dual charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Volume chart with title + buttons */}
-        <div className="space-y-2 relative">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-md font-semibold text-gray-800">
-              Investment Volume vs Year
-            </h3>
-            <button
-              onClick={() => setExpandedChart("volume")}
-              className="p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors"
-              title="Expand Volume Chart"
-            >
-              <Maximize2 className="h-5 w-5" />
-            </button>
-            <button
-              className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors"
-              title="Export chart (print or save as PDF)"
-            >
-              Export
-              <img src="/download.svg" alt="Download" className="h-5 w-5" />
-            </button>
-          </div>
-          <D3PhaseChart
-            data={rows}
-            phases={phases}
-            isVolume={true}
-            mode={leftMode}
-            width={dims.width / 2}
-            height={dims.height}
-            margin={dims.margin}
-            isExpanded={false}
-            colorOf={colorOf}
-          />
-        </div>
+        {/* Volume chart */}
+        <D3PhaseChart
+          data={rows}
+          phases={phases}
+          isVolume={true}
+          mode={leftMode}
+          width={dims.width / 2}
+          height={dims.height}
+          margin={dims.margin}
+          isExpanded={false}
+          colorOf={colorOf}
+          showTotal={showTotal}
+        />
 
-        {/* Count chart with title + buttons */}
-        <div className="space-y-2 relative">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-md font-semibold text-gray-800">
-              Number of Deals vs Year
-            </h3>
-            <button
-              onClick={() => setExpandedChart("count")}
-              className="p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors"
-              title="Expand Count Chart"
-            >
-              <Maximize2 className="h-5 w-5" />
-            </button>
-            <button
-              className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors"
-              title="Export chart (print or save as PDF)"
-            >
-              Export
-              <img src="/download.svg" alt="Download" className="h-5 w-5" />
-            </button>
-          </div>
-          <D3PhaseChart
-            data={rows}
-            phases={phases}
-            isVolume={false}
-            mode={rightMode}
-            width={dims.width / 2}
-            height={dims.height}
-            margin={dims.margin}
-            isExpanded={false}
-            colorOf={colorOf}
-          />
-        </div>
+        {/* Count chart */}
+        <D3PhaseChart
+          data={rows}
+          phases={phases}
+          isVolume={false}
+          mode={rightMode}
+          width={dims.width / 2}
+          height={dims.height}
+          margin={dims.margin}
+          isExpanded={false}
+          colorOf={colorOf}
+          showTotal={showTotal}
+        />
       </div>
 
       <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
@@ -381,6 +383,26 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
           expandedChart === "volume" ? "Investment Volume" : "Deal Count"
         } Chart`}
       >
+        <div className="flex flex-wrap items-center gap-4 mb-4">
+          <span className="text-gray-700">Chart Type:</span>
+          <select
+            value={modalMode}
+            onChange={(e) => setModalMode(e.target.value)}
+            className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+          >
+            <option value="line">Line</option>
+            <option value="column">Column</option>
+          </select>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={modalShowTotal}
+              onChange={(e) => setModalShowTotal(e.target.checked)}
+              className="text-red-600 focus:ring-red-500"
+            />
+            <span className="text-gray-700">Show total</span>
+          </label>
+        </div>
         <D3PhaseChart
           data={rows}
           phases={phases}
@@ -391,6 +413,7 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
           margin={expandedDims.margin}
           isExpanded={true}
           colorOf={colorOf}
+          showTotal={modalShowTotal}
         />
       </ChartModal>
     </div>
