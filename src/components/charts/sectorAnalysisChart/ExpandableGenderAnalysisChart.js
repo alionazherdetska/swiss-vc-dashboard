@@ -1,481 +1,427 @@
-
-import React, { useMemo, useState } from 'react';
-import {
-    CartesianGrid,
-    ComposedChart,
-    Line,
-    Bar,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import * as d3 from 'd3';
 import { Maximize2 } from 'lucide-react';
 import ChartModal from '../../common/ChartModal';
 import ChartLegend from '../sectorAnalysisChart/components/ChartLegend';
-import SortedTooltip from '../sectorAnalysisChart/components/SortedTooltip';
-import ShiftedLine from '../sectorAnalysisChart/components/ShiftedLine';
 import {
-    CHART_MARGIN,
-    EXPANDED_CHART_MARGIN,
-    ENHANCED_COLOR_PALETTE,
-    AXIS_STROKE,
-    GRID_STROKE,
+  AXIS_STROKE,
+  GRID_STROKE,
+  ENHANCED_COLOR_PALETTE,
+  CHART_MARGIN,
+  EXPANDED_CHART_MARGIN,
 } from '../../../lib/constants';
-import {
-    sanitizeKey,
-    getChartDims,
-    getTicks,
-    makeDistributedColorFn,
-} from '../../../lib/utils';
+import { sanitizeKey, getChartDims, makeDistributedColorFn } from '../../../lib/utils';
 
 // Gender color map
 const GENDER_COLOR_MAP = {
-    Male: '#3182CE',
-    Female: '#E53E3E',
-    Other: '#38A169',
+  Male: '#3182CE',
+  Female: '#E53E3E',
+  Other: '#38A169',
 };
 
-const ExpandableGenderAnalysisChart = ({ deals }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [expandedChart, setExpandedChart] = useState('volume'); // 'volume' | 'count'
-    const [leftMode, setLeftMode] = useState('line');
-    const [rightMode, setRightMode] = useState('line');
-    const [showTotal, setShowTotal] = useState(false);
-    const [expandedMode, setExpandedMode] = useState('line');
-    const [expandedShowTotal, setExpandedShowTotal] = useState(true);
+/* -------------------------------
+   D3 Chart Component
+-------------------------------- */
+const D3GenderChart = ({
+  data,
+  genders,
+  isVolume,
+  mode,
+  width,
+  height,
+  margin,
+  isExpanded,
+  colorOf,
+  showTotal,
+}) => {
+  const svgRef = useRef();
+  const tooltipRef = useRef();
 
-    // Filter out deals with unknown gender
-    const filteredDeals = useMemo(() => deals.filter(d => {
-        const gender = d['Gender CEO'];
-        return gender && gender !== 'Unknown';
-    }), [deals]);
+  useEffect(() => {
+    if (!data || !data.length || !genders.length) return;
 
-    // Get all years and genders
-    const yearSet = useMemo(() => {
-        const set = new Set();
-        filteredDeals.forEach(d => {
-            if (d.Year) set.add(Number(d.Year));
+    const svg = d3.select(svgRef.current);
+    svg.selectAll('*').remove();
+
+    const adjustedMargin = {
+      ...margin,
+      bottom: isExpanded ? margin.bottom + 30 : margin.bottom + 20,
+      left: margin.left + 10,
+      right: margin.right + 10,
+    };
+
+    const chartWidth = width - adjustedMargin.left - adjustedMargin.right;
+    const chartHeight = height - adjustedMargin.top - adjustedMargin.bottom;
+
+    const g = svg
+      .append('g')
+      .attr('transform', `translate(${adjustedMargin.left},${adjustedMargin.top})`);
+
+    const metricSuffix = isVolume ? 'volume' : 'count';
+    const totalKey = `__grandTotal${isVolume ? 'Volume' : 'Count'}`;
+
+    // scales
+    const xScale = d3
+      .scaleBand()
+      .domain(data.map((d) => d.year))
+      .range([0, chartWidth])
+      .padding(0.2);
+
+    const maxValue = d3.max(data, (d) => d[totalKey]) || 0;
+
+    const yScale = d3
+      .scaleLinear()
+      .domain([0, maxValue * 1.1])
+      .range([chartHeight, 0]);
+
+    // grid
+    g.selectAll('.grid-line')
+      .data(yScale.ticks(5))
+      .enter()
+      .append('line')
+      .attr('class', 'grid-line')
+      .attr('x1', 0)
+      .attr('x2', chartWidth)
+      .attr('y1', (d) => yScale(d))
+      .attr('y2', (d) => yScale(d))
+      .attr('stroke', GRID_STROKE)
+      .attr('stroke-dasharray', '3,3')
+      .attr('opacity', 0.6);
+
+    // axes
+    g.append('g')
+      .attr('transform', `translate(0,${chartHeight})`)
+      .call(d3.axisBottom(xScale))
+      .selectAll('text')
+      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('fill', AXIS_STROKE)
+      .style('text-anchor', 'end')
+      .attr('dx', '-.8em')
+      .attr('dy', '.15em')
+      .attr('transform', 'rotate(-45)');
+
+    g.append('g')
+      .call(d3.axisLeft(yScale).ticks(5))
+      .selectAll('text')
+      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('fill', AXIS_STROKE);
+
+    g.append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 0 - adjustedMargin.left)
+      .attr('x', 0 - chartHeight / 2)
+      .attr('dy', '1em')
+      .style('text-anchor', 'middle')
+      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('fill', AXIS_STROKE)
+      .text(isVolume ? 'Investment Volume CHF (M)' : 'Number of Deals');
+
+    const tooltip = d3.select(tooltipRef.current);
+
+    if (mode === 'column') {
+      // stacked bar
+      const stack = d3
+        .stack()
+        .keys(genders.map((g) => `${sanitizeKey(g)}__${metricSuffix}`));
+
+      const stackedData = stack(data);
+
+      g.selectAll('.gender-group')
+        .data(stackedData)
+        .enter()
+        .append('g')
+        .attr('fill', (d, i) => colorOf(genders[i]))
+        .selectAll('rect')
+        .data((d) => d)
+        .enter()
+        .append('rect')
+        .attr('x', (d) => xScale(d.data.year))
+        .attr('y', (d) => yScale(d[1]))
+        .attr('height', (d) => yScale(d[0]) - yScale(d[1]))
+        .attr('width', xScale.bandwidth());
+    } else {
+      // line chart
+      genders.forEach((gender) => {
+        const lineData = data.map((d) => ({
+          year: d.year,
+          value: d[`${sanitizeKey(gender)}__${metricSuffix}`] || 0,
+        }));
+
+        const line = d3
+          .line()
+          .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .y((d) => yScale(d.value))
+          .curve(d3.curveMonotoneX);
+
+        g.append('path')
+          .datum(lineData)
+          .attr('fill', 'none')
+          .attr('stroke', colorOf(gender))
+          .attr('stroke-width', isExpanded ? 3 : 2)
+          .attr('d', line);
+      });
+    }
+
+    // year overlays for tooltips
+    g.selectAll('.year-overlay')
+      .data(data)
+      .enter()
+      .append('rect')
+      .attr('class', 'year-overlay')
+      .attr('x', (d) => xScale(d.year))
+      .attr('width', xScale.bandwidth())
+      .attr('y', 0)
+      .attr('height', chartHeight)
+      .attr('fill', 'transparent')
+      .on('mouseover', function (event, d) {
+        let html = `<div class="bg-white p-3 border rounded-lg shadow-lg">
+          <div class="font-semibold text-gray-800 mb-2">${d.year}</div>`;
+
+        genders.forEach((g) => {
+          const value = d[`${sanitizeKey(g)}__${metricSuffix}`] || 0;
+          if (value > 0) {
+            html += `
+              <div class="flex items-center gap-2 mb-1">
+                <div class="w-3 h-3 rounded" style="background:${colorOf(g)}"></div>
+                <span class="text-gray-700">${g}: <strong>${
+              isVolume ? value.toFixed(1) + 'M CHF' : value
+            }</strong></span>
+              </div>`;
+          }
         });
-        return set;
-    }, [filteredDeals]);
 
-    const genderSet = useMemo(() => {
-        const set = new Set();
-        filteredDeals.forEach(d => {
-            set.add(d['Gender CEO']);
-        });
-        return set;
-    }, [filteredDeals]);
-
-    const years = useMemo(() => Array.from(yearSet).sort((a, b) => a - b), [yearSet]);
-    const genders = useMemo(() => Array.from(genderSet), [genderSet]);
-
-    // Start from first year with data
-    const firstYearWithData = useMemo(() => {
-        for (const y of years) {
-            if (filteredDeals.some(d => Number(d.Year) === y)) return y;
+        if (showTotal) {
+          const total = d[totalKey] || 0;
+          html += `
+            <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+              <div class="w-3 h-3 rounded bg-black"></div>
+              <span class="text-gray-700 font-semibold">Total: <strong>${
+                isVolume ? total.toFixed(1) + 'M CHF' : total
+              }</strong></span>
+            </div>`;
         }
-        return years[0];
-    }, [years, filteredDeals]);
-    const visibleYears = useMemo(() => years.filter(y => y >= firstYearWithData), [years, firstYearWithData]);
 
-    // Prepare chart rows: { year, gender__count, gender__volume, totalCount, totalVolume }
-    const rows = useMemo(() => {
-        return visibleYears.map(year => {
-            const entry = { year };
-            let tc = 0;
-            let tv = 0;
-            genders.forEach(gender => {
-                const dealsForGender = filteredDeals.filter(d => Number(d.Year) === year && d['Gender CEO'] === gender);
-                const cKey = `${sanitizeKey(gender)}__count`;
-                const vKey = `${sanitizeKey(gender)}__volume`;
-                const count = dealsForGender.length;
-                const volume = dealsForGender.reduce((sum, d) => sum + (d.VolumeMChf || 0), 0);
-                entry[cKey] = count;
-                entry[vKey] = Math.round(volume * 10) / 10;
-                tc += count;
-                tv += volume;
-            });
-            entry.totalCount = tc;
-            entry.totalVolume = Math.round(tv * 10) / 10;
-            entry.__grandTotalCount = tc;
-            entry.__grandTotalVolume = Math.round(tv * 10) / 10;
-            return entry;
-        });
-    }, [visibleYears, genders, filteredDeals]);
+        html += `</div>`;
 
-    // Color function
-    const colorFn = makeDistributedColorFn(GENDER_COLOR_MAP, ENHANCED_COLOR_PALETTE);
-    const colorOf = (gender) => colorFn(gender, genders);
+        // position above year center
+        const x = margin.left + xScale(d.year) + xScale.bandwidth() / 2;
+        const y = margin.top - 10;
 
-    // Axis maxima and ticks
-    const volumeMax = useMemo(() => rows.length ? Math.max(...rows.map(r => r.totalVolume || 0)) : 0, [rows]);
-    const countMax = useMemo(() => rows.length ? Math.max(...rows.map(r => r.totalCount || 0)) : 0, [rows]);
-    const volumeTicks = getTicks(0, volumeMax, 5);
-    const countTicks = getTicks(0, countMax, 2);
-    const padPct = 0.04;
-    const volumeDomain = [0, Math.ceil(volumeMax * (1 + padPct))];
-    const countDomain = [0, Math.ceil(countMax * (1 + padPct))];
+        tooltip
+          .style('opacity', 1)
+          .html(html)
+          .style('left', `${x}px`)
+          .style('top', `${y}px`);
+      })
+      .on('mouseout', () => tooltip.style('opacity', 0));
+  }, [data, genders, isVolume, mode, width, height, margin, isExpanded, colorOf, showTotal]);
 
-    // Chart legend
-    const Legend = () => (
-        <div className='flex start'>
-            <ChartLegend items={genders} colorOf={colorOf} title="Genders" />
-        </div>
-    );
+  return (
+    <div className="relative">
+      <svg ref={svgRef} width={width} height={height}></svg>
+      <div
+        ref={tooltipRef}
+        className="absolute pointer-events-none opacity-0 transition-opacity z-50"
+      ></div>
+    </div>
+  );
+};
 
-    // Expanded modal chart
-    const ExpandedChartContent = () => {
-        const isVolumeChart = expandedChart === 'volume';
-        const dims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
-        const ticks = isVolumeChart ? volumeTicks : countTicks;
-        const domain = isVolumeChart ? volumeDomain : countDomain;
-            return (
-                <div className='space-y-4'>
-                    <Legend />
-                    <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50'>
-                        <div className='flex flex-wrap items-center gap-4'>
-                            <span className='text-gray-700'>Chart Type:</span>
-                            <select
-                                value={expandedMode}
-                                onChange={e => setExpandedMode(e.target.value)}
-                                className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
-                            >
-                                <option value='line'>Line</option>
-                                <option value='column'>Column</option>
-                            </select>
-                        </div>
-                        <button
-                            className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                            style={{ minHeight: '40px' }}
-                            title='Export chart (print or save as PDF)'
-                        >
-                            Export
-                            <img src='/download.svg' alt='Download' className='h-5 w-5' />
-                        </button>
-                    </div>
-                    <ResponsiveContainer width='100%' height={dims.height}>
-                        <ComposedChart data={rows} margin={dims.margin} style={{ overflow: 'visible' }}>
-                            <CartesianGrid strokeDasharray='3 3' stroke={GRID_STROKE} />
-                            <XAxis
-                                type='category'
-                                dataKey='year'
-                                stroke={AXIS_STROKE}
-                                fontSize={16}
-                                padding={{ left: 24, right: 24 }}
-                                tickMargin={12}
-                                height={60}
-                            />
-                            <YAxis
-                                stroke={AXIS_STROKE}
-                                fontSize={16}
-                                ticks={ticks}
-                                domain={domain}
-                                allowDecimals={false}
-                                label={{
-                                    value: isVolumeChart ? 'Investment Volume CHF (M)' : 'Number of Deals',
-                                    angle: -90,
-                                    position: 'insideLeft',
-                                    fill: AXIS_STROKE,
-                                    fontSize: 16,
-                                    style: { textAnchor: 'middle' },
-                                }}
-                            />
-                            <Tooltip wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }} content={<SortedTooltip isVolume={isVolumeChart} />} />
-                            {expandedMode === 'column'
-                                ? genders.map(gender => (
-                                        <Bar
-                                            key={gender}
-                                            dataKey={`${sanitizeKey(gender)}__${isVolumeChart ? 'volume' : 'count'}`}
-                                            stackId={`stack-${isVolumeChart ? 'volume' : 'count'}`}
-                                            fill={colorOf(gender)}
-                                            legendType='none'
-                                        />
-                                    ))
-                                : genders.map(gender => (
-                                        <Line
-                                            key={gender}
-                                            type='monotone'
-                                            dataKey={`${sanitizeKey(gender)}__${isVolumeChart ? 'volume' : 'count'}`}
-                                            stroke={colorOf(gender)}
-                                            strokeWidth={3}
-                                            dot={false}
-                                            legendType='none'
-                                        />
-                                    ))}
-                            {expandedShowTotal && (
-                                expandedMode === 'column' ? (
-                                    <Line
-                                        type='monotone'
-                                        dataKey={isVolumeChart ? '__grandTotalVolume' : '__grandTotalCount'}
-                                        stroke='#000'
-                                        strokeWidth={3}
-                                        dot={false}
-                                        legendType='none'
-                                        shape={props => <ShiftedLine {...props} offset={12} />}
-                                    />
-                                ) : (
-                                    <Line
-                                        type='monotone'
-                                        dataKey={isVolumeChart ? '__grandTotalVolume' : '__grandTotalCount'}
-                                        stroke='#000'
-                                        strokeWidth={3}
-                                        dot={false}
-                                        legendType='none'
-                                    />
-                                )
-                            )}
-                        </ComposedChart>
-                    </ResponsiveContainer>
-                </div>
-            );
-    };
+/* -------------------------------
+   Expandable Gender Analysis Chart
+-------------------------------- */
+const ExpandableGenderAnalysisChart = ({ deals }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [expandedChart, setExpandedChart] = useState('volume');
+  const [leftMode, setLeftMode] = useState('line');
+  const [rightMode, setRightMode] = useState('line');
+  const [showTotal, setShowTotal] = useState(false);
+  const [expandedMode, setExpandedMode] = useState('line');
+  const [expandedShowTotal, setExpandedShowTotal] = useState(true);
 
-    // Dual chart (page view)
-    const ChartContent = () => {
-        const dims = getChartDims(false, undefined, CHART_MARGIN);
-            return (
-                <div className='space-y-4'>
-                    <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50'>
-                        <div className='flex flex-wrap items-center gap-4'>
-                            <span className='text-gray-700'>Left (Volume):</span>
-                            <select
-                                value={leftMode}
-                                onChange={e => setLeftMode(e.target.value)}
-                                className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
-                            >
-                                <option value='line'>Line</option>
-                                <option value='column'>Column</option>
-                            </select>
-                            <span className='text-gray-700'>Right (Count):</span>
-                            <select
-                                value={rightMode}
-                                onChange={e => setRightMode(e.target.value)}
-                                className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
-                            >
-                                <option value='line'>Line</option>
-                                <option value='column'>Column</option>
-                            </select>
-                            <label className='flex items-center gap-2'>
-                                <input
-                                    type='checkbox'
-                                    checked={showTotal}
-                                    onChange={e => setShowTotal(e.target.checked)}
-                                    className='text-red-600 focus:ring-red-500'
-                                />
-                                <span className='text-gray-700'>Show total</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div className='grid grid-cols-1 md:grid-cols-2'>
-                        {/* LEFT: Volume */}
-                        <div className='space-y-2 relative'>
-                            <div className='flex items-center gap-2'>
-                                <h3 className='text-md font-semibold text-gray-800'>Investment Volume vs Year</h3>
-                                <button
-                                    onClick={() => { setExpandedChart('volume'); setIsExpanded(true); }}
-                                    className='p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors'
-                                    title='Expand Volume Chart'
-                                >
-                                    <Maximize2 className='h-5 w-5' />
-                                </button>
-                                <button
-                                    className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                                    style={{ minHeight: '40px' }}
-                                    title='Export chart (print or save as PDF)'
-                                >
-                                    Export
-                                    <img src='/download.svg' alt='Download' className='h-5 w-5' />
-                                </button>
-                            </div>
-                            <ResponsiveContainer width='100%' height={dims.height}>
-                                <ComposedChart data={rows} margin={dims.margin} style={{ overflow: 'visible' }}>
-                                    <CartesianGrid strokeDasharray='3 3' stroke={GRID_STROKE} />
-                                    <XAxis
-                                        type='category'
-                                        dataKey='year'
-                                        stroke={AXIS_STROKE}
-                                        fontSize={12}
-                                        padding={{ left: 18, right: 18 }}
-                                        tickMargin={12}
-                                        height={60}
-                                    />
-                                    <YAxis
-                                        stroke={AXIS_STROKE}
-                                        fontSize={12}
-                                        ticks={volumeTicks}
-                                        domain={volumeDomain}
-                                        allowDecimals={false}
-                                        allowDataOverflow
-                                        label={{
-                                            value: 'Investment Volume CHF (M)',
-                                            angle: -90,
-                                            position: 'insideLeft',
-                                            fill: AXIS_STROKE,
-                                            fontSize: 13,
-                                            style: { textAnchor: 'middle' },
-                                        }}
-                                    />
-                                    <Tooltip wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }} content={<SortedTooltip isVolume />} />
-                                    {leftMode === 'column'
-                                        ? genders.map(gender => (
-                                                <Bar
-                                                    key={gender}
-                                                    dataKey={`${sanitizeKey(gender)}__volume`}
-                                                    stackId='stack-volume'
-                                                    fill={colorOf(gender)}
-                                                    legendType='none'
-                                                />
-                                            ))
-                                        : genders.map(gender => (
-                                                <Line
-                                                    key={gender}
-                                                    type='monotone'
-                                                    dataKey={`${sanitizeKey(gender)}__volume`}
-                                                    stroke={colorOf(gender)}
-                                                    strokeWidth={2}
-                                                    dot={false}
-                                                    legendType='none'
-                                                />
-                                            ))}
-                                    {showTotal && (
-                                        leftMode === 'column' ? (
-                                            <Line
-                                                type='monotone'
-                                                dataKey='__grandTotalVolume'
-                                                stroke='#000'
-                                                strokeWidth={3}
-                                                dot={false}
-                                                legendType='none'
-                                                shape={props => <ShiftedLine {...props} offset={8} />}
-                                            />
-                                        ) : (
-                                            <Line
-                                                type='monotone'
-                                                dataKey='__grandTotalVolume'
-                                                stroke='#000'
-                                                strokeWidth={3}
-                                                dot={false}
-                                                legendType='none'
-                                            />
-                                        )
-                                    )}
-                                </ComposedChart>
-                            </ResponsiveContainer>
-                        </div>
-                        {/* RIGHT: Count */}
-                        <div className='space-y-2 relative'>
-                            <div className='flex items-center gap-2'>
-                                <h3 className='text-md font-semibold text-gray-800'>Number of Deals vs Year</h3>
-                                <button
-                                    onClick={() => { setExpandedChart('count'); setIsExpanded(true); }}
-                                    className='p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors'
-                                    title='Expand Count Chart'
-                                >
-                                    <Maximize2 className='h-5 w-5' />
-                                </button>
-                                <button
-                                    className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                                    style={{ minHeight: '40px' }}
-                                    title='Export chart (print or save as PDF)'
-                                >
-                                    Export
-                                    <img src='/download.svg' alt='Download' className='h-5 w-5' />
-                                </button>
-                            </div>
-                            <ResponsiveContainer width='100%' height={dims.height}>
-                                <ComposedChart data={rows} margin={dims.margin} style={{ overflow: 'visible' }}>
-                                    <CartesianGrid strokeDasharray='3 3' stroke={GRID_STROKE} />
-                                    <XAxis
-                                        type='category'
-                                        dataKey='year'
-                                        stroke={AXIS_STROKE}
-                                        fontSize={12}
-                                        padding={{ left: 18, right: 18 }}
-                                        tickMargin={12}
-                                        height={60}
-                                    />
-                                    <YAxis
-                                        stroke={AXIS_STROKE}
-                                        fontSize={12}
-                                        ticks={countTicks}
-                                        domain={countDomain}
-                                        allowDecimals={false}
-                                        label={{
-                                            value: 'Number of Deals',
-                                            angle: -90,
-                                            position: 'insideLeft',
-                                            fill: AXIS_STROKE,
-                                            fontSize: 13,
-                                            style: { textAnchor: 'middle' },
-                                        }}
-                                    />
-                                    <Tooltip wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }} content={<SortedTooltip isVolume={false} />} />
-                                    {rightMode === 'column'
-                                        ? genders.map(gender => (
-                                                <Bar
-                                                    key={gender}
-                                                    dataKey={`${sanitizeKey(gender)}__count`}
-                                                    stackId='stack-count'
-                                                    fill={colorOf(gender)}
-                                                    legendType='none'
-                                                />
-                                            ))
-                                        : genders.map(gender => (
-                                                <Line
-                                                    key={gender}
-                                                    type='monotone'
-                                                    dataKey={`${sanitizeKey(gender)}__count`}
-                                                    stroke={colorOf(gender)}
-                                                    strokeWidth={2}
-                                                    dot={false}
-                                                    legendType='none'
-                                                />
-                                            ))}
-                                    {showTotal && (
-                                        rightMode === 'column' ? (
-                                            <Line
-                                                type='monotone'
-                                                dataKey='__grandTotalCount'
-                                                stroke='#000'
-                                                strokeWidth={3}
-                                                dot={false}
-                                                legendType='none'
-                                                shape={props => <ShiftedLine {...props} offset={8} />}
-                                            />
-                                        ) : (
-                                            <Line
-                                                type='monotone'
-                                                dataKey='__grandTotalCount'
-                                                stroke='#000'
-                                                strokeWidth={3}
-                                                dot={false}
-                                                legendType='none'
-                                            />
-                                        )
-                                    )}
-                                </ComposedChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-                    <Legend />
-                </div>
-            );
-    };
+  // filter out deals without gender
+  const filteredDeals = useMemo(
+    () => deals.filter((d) => d['Gender CEO'] && d['Gender CEO'] !== 'Unknown'),
+    [deals]
+  );
+
+  const years = useMemo(
+    () => Array.from(new Set(filteredDeals.map((d) => Number(d.Year)))).sort((a, b) => a - b),
+    [filteredDeals]
+  );
+
+  const genders = useMemo(
+    () => Array.from(new Set(filteredDeals.map((d) => d['Gender CEO']))),
+    [filteredDeals]
+  );
+
+  const rows = useMemo(() => {
+    return years.map((year) => {
+      const entry = { year };
+      let totalCount = 0;
+      let totalVolume = 0;
+      genders.forEach((g) => {
+        const dealsForGender = filteredDeals.filter(
+          (d) => Number(d.Year) === year && d['Gender CEO'] === g
+        );
+        const count = dealsForGender.length;
+        const volume = dealsForGender.reduce((sum, d) => sum + (d.VolumeMChf || 0), 0);
+        entry[`${sanitizeKey(g)}__count`] = count;
+        entry[`${sanitizeKey(g)}__volume`] = Math.round(volume * 10) / 10;
+        totalCount += count;
+        totalVolume += volume;
+      });
+      entry.__grandTotalCount = totalCount;
+      entry.__grandTotalVolume = Math.round(totalVolume * 10) / 10;
+      return entry;
+    });
+  }, [years, genders, filteredDeals]);
+
+  const colorFn = makeDistributedColorFn(GENDER_COLOR_MAP, ENHANCED_COLOR_PALETTE);
+  const colorOf = (g) => colorFn(g, genders);
+
+  const dims = getChartDims(false, undefined, CHART_MARGIN);
+  const expandedDims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
+
+  const ChartContent = ({ chartType, mode, showTotalState, onModeChange }) => {
+    const isVolumeChart = chartType === 'volume';
+    const dimsToUse = chartType === expandedChart && isExpanded ? expandedDims : dims;
+    const chartWidth =
+      chartType === expandedChart && isExpanded
+        ? dimsToUse.width || 800
+        : (dimsToUse.width || 800) / 2 - 20;
 
     return (
-        <>
-            <ChartContent />
-            <ChartModal
-                isOpen={isExpanded}
-                onClose={() => setIsExpanded(false)}
-                title={`Expanded ${expandedChart === 'volume' ? 'Investment Volume' : 'Deal Count'} Chart`}
-            >
-                <ExpandedChartContent />
-            </ChartModal>
-        </>
+      <div>
+        <div className="flex items-center mb-2">
+          <h3 className="text-md font-semibold text-gray-800 mr-2">
+            {isVolumeChart ? 'Investment Volume vs Year' : 'Number of Deals vs Year'}
+          </h3>
+          <button
+            className={`p-2 rounded-md ${
+              isVolumeChart ? 'bg-blue-600' : 'bg-green-600'
+            } text-white shadow-md hover:opacity-90`}
+            title="Expand chart"
+            onClick={() => {
+              setExpandedChart(chartType);
+              setIsExpanded(true);
+            }}
+          >
+            <Maximize2 className="w-5 h-5" />
+          </button>
+          <button
+            className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200"
+            title="Export chart"
+          >
+            Export
+            <img src="/download.svg" alt="Download" className="h-5 w-5" />
+          </button>
+        </div>
+        <D3GenderChart
+          data={rows}
+          genders={genders}
+          isVolume={isVolumeChart}
+          mode={mode}
+          width={chartWidth}
+          height={dimsToUse.height}
+          margin={dimsToUse.margin}
+          isExpanded={chartType === expandedChart && isExpanded}
+          colorOf={colorOf}
+          showTotal={showTotalState}
+        />
+      </div>
     );
+  };
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50">
+        <div className="flex flex-wrap items-center gap-4">
+          <span className="text-gray-700">Left (Volume):</span>
+          <select
+            value={leftMode}
+            onChange={(e) => setLeftMode(e.target.value)}
+            className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+          >
+            <option value="line">Line</option>
+            <option value="column">Column</option>
+          </select>
+          <span className="text-gray-700">Right (Count):</span>
+          <select
+            value={rightMode}
+            onChange={(e) => setRightMode(e.target.value)}
+            className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+          >
+            <option value="line">Line</option>
+            <option value="column">Column</option>
+          </select>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={showTotal}
+              onChange={(e) => setShowTotal(e.target.checked)}
+              className="text-red-600 focus:ring-red-500"
+            />
+            <span className="text-gray-700">Show total</span>
+          </label>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ChartContent
+          chartType="volume"
+          mode={leftMode}
+          showTotalState={showTotal}
+          onModeChange={setLeftMode}
+        />
+        <ChartContent
+          chartType="count"
+          mode={rightMode}
+          showTotalState={showTotal}
+          onModeChange={setRightMode}
+        />
+      </div>
+
+      <ChartLegend items={genders} colorOf={colorOf} title="Genders" />
+
+      <ChartModal
+        isOpen={isExpanded}
+        onClose={() => setIsExpanded(false)}
+        title={`Expanded ${expandedChart === 'volume' ? 'Investment Volume' : 'Deal Count'} Chart`}
+      >
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-700">Chart Type:</span>
+              <select
+                value={expandedMode}
+                onChange={(e) => setExpandedMode(e.target.value)}
+                className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+              >
+                <option value="line">Line</option>
+                <option value="column">Column</option>
+              </select>
+            </div>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={expandedShowTotal}
+                onChange={(e) => setExpandedShowTotal(e.target.checked)}
+                className="text-red-600 focus:ring-red-500"
+              />
+              <span className="text-gray-700">Show total</span>
+            </label>
+          </div>
+          <ChartContent
+            chartType={expandedChart}
+            mode={expandedMode}
+            showTotalState={expandedShowTotal}
+            onModeChange={setExpandedMode}
+          />
+        </div>
+      </ChartModal>
+    </>
+  );
 };
 
 export default ExpandableGenderAnalysisChart;
