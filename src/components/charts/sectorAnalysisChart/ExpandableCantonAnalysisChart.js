@@ -114,7 +114,7 @@ const ExpandableCantonAnalysisChart = ({ deals, selectedCantonCount, totalCanton
 
     return (
         <>
-            <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50 mb-6'>
+            <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50'>
                 <div className='flex flex-wrap items-center gap-4'>
                     <span className='text-gray-700'>Left (Value):</span>
                     <select

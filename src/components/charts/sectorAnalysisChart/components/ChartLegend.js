@@ -16,7 +16,7 @@ const ChartLegend = ({
   if (!dataItems || !dataItems.length) return null;
 
   return (
-    <div className={`px-4 py-4 rounded-lg bg-gray-50 ${isCompact ? "w-48" : ""}`}>
+    <div className={`px-4 rounded-lg bg-gray-50 ${isCompact ? "w-48" : ""}`}>
       <h4 className="text-sm font-semibold mb-3 text-gray-700">{legendTitle}</h4>
       <div className={isCompact ? "space-y-2" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2"}>
         {dataItems.map((item) => (
