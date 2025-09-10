@@ -268,7 +268,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
       </div>
 
       {/* Title + Expand */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-2 pl-4">
         <h3 className="text-md font-semibold text-gray-800">Number of Exits vs Year</h3>
         <button
           onClick={() => setIsExpanded(true)}
