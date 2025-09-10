@@ -112,7 +112,7 @@ const D3GenderChart = ({
       .attr('x', 0 - chartHeight / 2)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
-      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('font-size', isExpanded ? '18px' : '12px')
       .style('fill', AXIS_STROKE)
       .text(isVolume ? 'Investment Volume CHF (M)' : 'Number of Deals');
 

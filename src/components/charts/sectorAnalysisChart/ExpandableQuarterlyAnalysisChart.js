@@ -132,7 +132,7 @@ const D3MultiSeriesChart = ({
       .attr('x', 0 - (chartHeight / 2))
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
-      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('font-size', isExpanded ? '18px' : '12px')
       .style('fill', AXIS_STROKE)
       .text(isVolume ? 'Investment Volume CHF (M)' : 'Number of Deals');
 
@@ -428,7 +428,7 @@ const ExpandableQuarterlyAnalysisChart = ({
   /* ---------- Expanded (modal) content ---------- */
   const ExpandedChartContent = () => {
     const isVolumeChart = expandedChart === 'volume';
-    const dims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
+    const dims = getChartDims(true, 620, EXPANDED_CHART_MARGIN);
 
     return (
       <div className='space-y-4'>
