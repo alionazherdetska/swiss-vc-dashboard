@@ -55,8 +55,19 @@ const D3PhaseChart = ({
       .range([0, chartWidth])
       .padding(0.1);
 
-    // Y scale
-    const maxValue = d3.max(data, (d) => d[totalKey]) || 0;
+    // Y scale: adjust depending on showTotal
+    let maxValue;
+    if (showTotal) {
+      maxValue = d3.max(data, (d) => d[totalKey]) || 0;
+    } else {
+      maxValue =
+        d3.max(
+          phases.flatMap((phase) =>
+            data.map((d) => d[`${sanitizeKey(phase)}${metricSuffix}`] || 0)
+          )
+        ) || 0;
+    }
+
     const yScale = d3
       .scaleLinear()
       .domain([0, maxValue * 1.1])
@@ -127,14 +138,22 @@ const D3PhaseChart = ({
         .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
         .attr("width", xScale.bandwidth())
         .on("mouseover", function (event, d) {
-          const year = d.data.year;
-          let tooltipContent = `<div class="bg-white p-3 border rounded-lg shadow-lg"><div class="font-semibold text-gray-800 mb-2">${year}</div>`;
+          const containerRect =
+            svgRef.current.parentElement.getBoundingClientRect();
+          const x = event.clientX - containerRect.left;
+          const y = event.clientY - containerRect.top;
+
+          let tooltipContent = `<div class="bg-white p-3 border rounded-lg shadow-lg"><div class="font-semibold text-gray-800 mb-2">${d.data.year}</div>`;
           phases.forEach((phase) => {
             const value = d.data[`${sanitizeKey(phase)}${metricSuffix}`] || 0;
             if (value > 0) {
               tooltipContent += `<div class="flex items-center gap-2 mb-1">
-                <div class="w-3 h-3 rounded" style="background:${colorOf(phase)}"></div>
-                <span class="text-gray-700">${phase}: <strong>${isVolume ? value.toFixed(1) + "M CHF" : value}</strong></span>
+                <div class="w-3 h-3 rounded" style="background:${colorOf(
+                  phase
+                )}"></div>
+                <span class="text-gray-700">${phase}: <strong>${
+                isVolume ? value.toFixed(1) + "M CHF" : value
+              }</strong></span>
               </div>`;
             }
           });
@@ -143,8 +162,8 @@ const D3PhaseChart = ({
           tooltip
             .style("opacity", 1)
             .html(tooltipContent)
-            .style("left", `${event.pageX + 15}px`)
-            .style("top", `${event.pageY - 40}px`);
+            .style("left", `${x + 15}px`)
+            .style("top", `${y - 60}px`);
         })
         .on("mouseout", () => tooltip.style("opacity", 0));
 
@@ -205,7 +224,10 @@ const D3PhaseChart = ({
   return (
     <div className="relative">
       <svg ref={svgRef} width={width} height={height}></svg>
-      <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 z-50"></div>
+      <div
+        ref={tooltipRef}
+        className="absolute pointer-events-none opacity-0 z-50"
+      ></div>
     </div>
   );
 };
@@ -222,7 +244,8 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
   const [modalShowTotal, setModalShowTotal] = useState(true);
 
   const phases = useMemo(
-    () => Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort(),
+    () =>
+      Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort(),
     [deals]
   );
 
@@ -256,17 +279,30 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
       {/* Controls bar */}
       <div className="flex items-center gap-4 p-4 rounded bg-transparent">
         <span className="text-gray-700">Left (Volume):</span>
-        <select value={leftMode} onChange={(e) => setLeftMode(e.target.value)} className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700">
+        <select
+          value={leftMode}
+          onChange={(e) => setLeftMode(e.target.value)}
+          className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+        >
           <option value="line">Line</option>
           <option value="column">Column</option>
         </select>
         <span className="text-gray-700">Right (Count):</span>
-        <select value={rightMode} onChange={(e) => setRightMode(e.target.value)} className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700">
+        <select
+          value={rightMode}
+          onChange={(e) => setRightMode(e.target.value)}
+          className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+        >
           <option value="line">Line</option>
           <option value="column">Column</option>
         </select>
         <label className="flex items-center gap-2">
-          <input type="checkbox" checked={showTotal} onChange={(e) => setShowTotal(e.target.checked)} className="text-red-600 focus:ring-red-500" />
+          <input
+            type="checkbox"
+            checked={showTotal}
+            onChange={(e) => setShowTotal(e.target.checked)}
+            className="text-red-600 focus:ring-red-500"
+          />
           <span className="text-gray-700">Show total</span>
         </label>
       </div>
@@ -275,58 +311,120 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Volume chart */}
         <div className="space-y-3">
-          <h3 className="text-md font-semibold text-gray-800 pl-4">Investment Volume vs Year</h3>
+          <h3 className="text-md font-semibold text-gray-800 pl-4">
+            Investment Volume vs Year
+          </h3>
           <div className="flex gap-2 pl-4">
-<button
-                    className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                    style={{ minHeight: '40px' }}
-                    title='Export chart (print or save as PDF)'
-                  >
-                    Export
-                    <img src="/download.svg" alt="Download" className="h-5 w-5" />
-                  </button>            <button onClick={() => setExpandedChart("volume")} className="p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700">
+            <button
+              className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors"
+              style={{ minHeight: "40px" }}
+              title="Export chart (print or save as PDF)"
+            >
+              Export
+              <img src="/download.svg" alt="Download" className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setExpandedChart("volume")}
+              className="p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700"
+            >
               <Maximize2 className="h-5 w-5" />
             </button>
           </div>
-          <D3PhaseChart data={rows} phases={phases} isVolume={true} mode={leftMode} width={dims.width / 2} height={dims.height} margin={dims.margin} isExpanded={false} colorOf={colorOf} showTotal={showTotal} />
+          <D3PhaseChart
+            data={rows}
+            phases={phases}
+            isVolume={true}
+            mode={leftMode}
+            width={dims.width / 2}
+            height={dims.height}
+            margin={dims.margin}
+            isExpanded={false}
+            colorOf={colorOf}
+            showTotal={showTotal}
+          />
         </div>
 
         {/* Count chart */}
         <div className="space-y-3">
-          <h3 className="text-md font-semibold text-gray-800 pl-4">Number of Deals vs Year</h3>
+          <h3 className="text-md font-semibold text-gray-800 pl-4">
+            Number of Deals vs Year
+          </h3>
           <div className="flex gap-2 pl-4">
-<button
-                    className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                    style={{ minHeight: '40px' }}
-                    title='Export chart (print or save as PDF)'
-                  >
-                    Export
-                    <img src="/download.svg" alt="Download" className="h-5 w-5" />
-                  </button>            <button onClick={() => setExpandedChart("count")} className="p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700">
+            <button
+              className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors"
+              style={{ minHeight: "40px" }}
+              title="Export chart (print or save as PDF)"
+            >
+              Export
+              <img src="/download.svg" alt="Download" className="h-5 w-5" />
+            </button>
+            <button
+              onClick={() => setExpandedChart("count")}
+              className="p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700"
+            >
               <Maximize2 className="h-5 w-5" />
             </button>
           </div>
-          <D3PhaseChart data={rows} phases={phases} isVolume={false} mode={rightMode} width={dims.width / 2} height={dims.height} margin={dims.margin} isExpanded={false} colorOf={colorOf} showTotal={showTotal} />
+          <D3PhaseChart
+            data={rows}
+            phases={phases}
+            isVolume={false}
+            mode={rightMode}
+            width={dims.width / 2}
+            height={dims.height}
+            margin={dims.margin}
+            isExpanded={false}
+            colorOf={colorOf}
+            showTotal={showTotal}
+          />
         </div>
       </div>
 
       <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
 
       {/* Expanded modal */}
-      <ChartModal isOpen={expandedChart !== null} onClose={() => setExpandedChart(null)} title={`Expanded ${expandedChart === "volume" ? "Investment Volume" : "Deal Count"} Chart`}>
+      <ChartModal
+        isOpen={expandedChart !== null}
+        onClose={() => setExpandedChart(null)}
+        title={`Expanded ${
+          expandedChart === "volume" ? "Investment Volume" : "Deal Count"
+        } Chart`}
+      >
         <div className="flex flex-wrap items-center gap-4 mb-4">
           <span className="text-gray-700">Chart Type:</span>
-          <select value={modalMode} onChange={(e) => setModalMode(e.target.value)} className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700">
+          <select
+            value={modalMode}
+            onChange={(e) => setModalMode(e.target.value)}
+            className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
+          >
             <option value="line">Line</option>
             <option value="column">Column</option>
           </select>
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={modalShowTotal} onChange={(e) => setModalShowTotal(e.target.checked)} className="text-red-600 focus:ring-red-500" />
+            <input
+              type="checkbox"
+              checked={modalShowTotal}
+              onChange={(e) => setModalShowTotal(e.target.checked)}
+              className="text-red-600 focus:ring-red-500"
+            />
             <span className="text-gray-700">Show total</span>
           </label>
         </div>
-        <D3PhaseChart data={rows} phases={phases} isVolume={expandedChart === "volume"} mode={modalMode} width={expandedDims.width} height={expandedDims.height} margin={expandedDims.margin} isExpanded={true} colorOf={colorOf} showTotal={modalShowTotal} />
-        <div className="mt-4 flex justify-center"><ChartLegend items={phases} colorOf={colorOf} title="Phases" /></div>
+        <D3PhaseChart
+          data={rows}
+          phases={phases}
+          isVolume={expandedChart === "volume"}
+          mode={modalMode}
+          width={expandedDims.width}
+          height={expandedDims.height}
+          margin={expandedDims.margin}
+          isExpanded={true}
+          colorOf={colorOf}
+          showTotal={modalShowTotal}
+        />
+        <div className="mt-4 flex justify-center">
+          <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
+        </div>
       </ChartModal>
     </div>
   );
