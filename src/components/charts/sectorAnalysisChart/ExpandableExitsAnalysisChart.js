@@ -216,7 +216,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
                     angle: -90,
                     position: 'insideLeft',
                     fill: AXIS_STROKE,
-                    fontSize: 12,
+                    fontSize: 13,
                     style: { textAnchor: 'middle' },
                   }}
                 />
@@ -270,7 +270,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
                     angle: -90,
                     position: 'insideLeft',
                     fill: AXIS_STROKE,
-                    fontSize: 12,
+                    fontSize: 13,
                     style: { textAnchor: 'middle' },
                   }}
                 />

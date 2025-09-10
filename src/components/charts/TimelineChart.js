@@ -26,7 +26,7 @@ export const TimelineChart = ({
     <div className="space-y-2">
       <div className="flex items-center mb-2">
         {title && (
-          <h3 className="text-lg font-bold text-gray-800 mr-2">
+          <h3 className="text-md font-semibold text-gray-800 mr-2">
             {title}
           </h3>
         )}

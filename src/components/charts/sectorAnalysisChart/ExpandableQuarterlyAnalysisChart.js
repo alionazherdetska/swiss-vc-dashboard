@@ -445,7 +445,7 @@ const ExpandableQuarterlyAnalysisChart = ({
           {/* LEFT: Volume */}
           <div className='space-y-2 relative'>
             <div className='flex items-center gap-2'>
-              <h3 className='text-lg font-semibold text-gray-800'>
+              <h3 className='text-md font-semibold text-gray-800'>
                 Investment Volume vs Year
               </h3>
               {!isExpandedView && (
@@ -496,7 +496,7 @@ const ExpandableQuarterlyAnalysisChart = ({
                     angle: -90,
                     position: 'insideLeft',
                     fill: AXIS_STROKE,
-                    fontSize: 12,
+                    fontSize: 13,
                     style: { textAnchor: 'middle' },
                   }}
                 />
@@ -535,7 +535,7 @@ const ExpandableQuarterlyAnalysisChart = ({
           {/* RIGHT: Count */}
           <div className='space-y-2 relative'>
             <div className='flex items-center gap-2'>
-              <h3 className='text-lg font-semibold text-gray-800'>
+              <h3 className='text-md font-semibold text-gray-800'>
                 Number of Deals vs Year
               </h3>
               {!isExpandedView && (
@@ -585,9 +585,9 @@ const ExpandableQuarterlyAnalysisChart = ({
                     angle: -90,
                     position: 'insideLeft',
                     fill: AXIS_STROKE,
-                    fontSize: 12,
+                    fontSize: 13,
                     style: { textAnchor: 'middle' },
-                  }}
+                }}
                 />
                 <Tooltip
                   wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}

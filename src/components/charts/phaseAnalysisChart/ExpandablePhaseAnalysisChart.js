@@ -58,7 +58,7 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
 
     // Chart content (dual charts)
     const ChartContent = ({ chartType, modeState, onModeChange, isExpandedView = false }) => {
-        const label = chartType === 'volume' ? 'Investment Volume by Phase vs Year' : 'Number of Deals by Phase vs Year';
+        const label = chartType === 'volume' ? 'Investment Volume vs Year' : 'Number of Deals vs Year';
         const yLabel = chartType === 'volume' ? 'Investment Volume CHF (M)' : 'Number of Deals';
         const dataKeySuffix = chartType === 'volume' ? '__volume' : '__count';
         const dimsToUse = isExpandedView ? expandedDims : dims;
@@ -70,12 +70,11 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
         return (
             <div>
                 <div className='flex items-center mb-2'>
-                    <h3 className='text-lg font-bold text-gray-800 mr-2'>{label}</h3>
+                    <h3 className="text-md font-semibold text-gray-800 mr-2">{label}</h3>
                     {!isExpandedView && (
                         <>
                             <button
-                                className={`h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md ${expandColor} hover:opacity-90 border-none shadow-none transition-colors mr-2`}
-                                style={{ minHeight: '40px' }}
+                                className={`p-2 rounded-md bg-blue-600 text-white shadow-md ${expandColor} hover:opacity-90 border-none shadow-none transition-colors`}
                                 title='Expand chart'
                                 onClick={() => setExpandedChart(chartType)}
                             >
@@ -83,7 +82,6 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                             </button>
                             <button
                                 className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                                style={{ minHeight: '40px' }}
                                 title='Export chart (print or save as PDF)'
                             >
                                 Export
@@ -101,7 +99,8 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                             angle: -90, 
                             position: 'insideLeft', 
                             fill: AXIS_STROKE, 
-                            fontSize: 16 
+                            fontSize: 13,
+                            style: { textAnchor: 'middle' },
                         }} />
                         <Tooltip formatter={tooltipFormatter} />
                         {phases.map(phase => {
@@ -144,8 +143,7 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                         </select>
                     </div>
                     <button
-                        className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                        style={{ minHeight: '40px' }}
+                className='p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors'
                         title='Export chart (print or save as PDF)'
                     >
                         Export
