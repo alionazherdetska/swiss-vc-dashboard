@@ -11,6 +11,7 @@ import {
     YAxis
 } from 'recharts';
 import ChartModal from '../../common/ChartModal';
+import ChartLegend from './components/ChartLegend';
 import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
 import { sanitizeKey, getChartDims, normalizeCanton } from '../../../lib/utils';
 const downloadIcon = process.env.PUBLIC_URL + '/download.svg';
@@ -168,15 +169,8 @@ const ExpandableCantonAnalysisChart = ({ deals, selectedCantonCount, totalCanton
                 </div>
             </div>
             
-            <div className='flex flex-wrap gap-4 mt-4'>
-                <span className='font-semibold'>Cantons</span>
-                        {cantons.map((canton, idx) => (
-                            <span key={canton} className='flex items-center gap-2 text-sm'>
-                                <span style={{ background: colorOf(canton), width: 16, height: 16, borderRadius: 4, display: 'inline-block' }}></span>
-                                {canton}
-                            </span>
-                        ))}
-            </div>
+            <ChartLegend items={cantons} colorOf={colorOf} title="Cantons" />
+            
             <ChartModal
                 isOpen={!!expandedChart}
                 onClose={() => setExpandedChart(null)}

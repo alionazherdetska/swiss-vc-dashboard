@@ -175,7 +175,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
           {/* LEFT: Value */}
           <div className='space-y-2 relative'>
             <div className='flex items-center gap-2'>
-              <h3 className='text-lg font-semibold text-gray-800'>Exit Value vs Year</h3>
+              <h3 className='text-md font-semibold text-gray-800'>Exit Value vs Year</h3>
               <button
                 onClick={() => { setExpandedChart('volume'); setIsExpanded(true); }}
                 className='p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors'
@@ -230,7 +230,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
           {/* RIGHT: Count */}
           <div className='space-y-2 relative'>
             <div className='flex items-center gap-2'>
-              <h3 className='text-lg font-semibold text-gray-800'>Number of Exits vs Year</h3>
+              <h3 className='text-md font-semibold text-gray-800'>Number of Exits vs Year</h3>
               <button
                 onClick={() => { setExpandedChart('count'); setIsExpanded(true); }}
                 className='p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors'

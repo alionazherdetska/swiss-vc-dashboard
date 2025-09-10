@@ -11,6 +11,7 @@ import {
     YAxis,
 } from 'recharts';
 import ChartModal from '../../common/ChartModal';
+import ChartLegend from '../sectorAnalysisChart/components/ChartLegend';
 import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
 import { sanitizeKey, getChartDims } from '../../../lib/utils';
 
@@ -199,21 +200,7 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                 />
             </div>
 
-            <div className='flex flex-wrap gap-4 mt-4'>
-                <span className='font-semibold'>Phases</span>
-                {phases.map((phase, idx) => (
-                    <span key={phase} className='flex items-center gap-2 text-sm'>
-                        <span style={{ 
-                            background: colorOf(phase), 
-                            width: 16, 
-                            height: 16, 
-                            borderRadius: 4, 
-                            display: 'inline-block' 
-                        }}></span>
-                        {phase}
-                    </span>
-                ))}
-            </div>
+            <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
 
             <ChartModal
                 isOpen={expandedChart !== null}

@@ -121,7 +121,7 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
     // Chart legend
     const Legend = () => (
         <div className='flex justify-center'>
-            <ChartLegend industries={genders} colorOf={colorOf} />
+            <ChartLegend items={genders} colorOf={colorOf} title="Genders" />
         </div>
     );
 
