@@ -201,7 +201,7 @@ const Dashboard = () => {
 
 					{/* Charts Panel with tab-like chart selector */}
 					<div className='lg:col-span-4'>
-						<div className='rounded-lg shadow-sm p-6 border bg-white border-gray-200'>
+						<div className='flex flex-col gap-2 rounded-lg shadow-sm p-6 border bg-white border-gray-200'>
 							{/* Tab bar */}
 							<div className='flex space-x-2 p-1 rounded-lg bg-gray-100'>
 								{chartTabs.map(tab => (
