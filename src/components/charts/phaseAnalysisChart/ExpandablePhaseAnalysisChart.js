@@ -382,7 +382,7 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
   }, [deals, phases]);
 
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 690, EXPANDED_CHART_MARGIN);
 
   return (
     <div className="space-y-6">
@@ -520,6 +520,7 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
             <span className="text-gray-700">Show total</span>
           </label>
         </div>
+        <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
         <D3PhaseChart
           data={rows}
           phases={phases}
@@ -532,9 +533,6 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
           colorOf={colorOf}
           showTotal={modalShowTotal}
         />
-        <div className="mt-4 flex justify-center">
-          <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
-        </div>
       </ChartModal>
     </div>
   );

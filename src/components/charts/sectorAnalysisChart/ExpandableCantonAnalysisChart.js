@@ -350,7 +350,7 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
   }, [deals]);
 
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 660, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 650, EXPANDED_CHART_MARGIN);
 
   return (
     <div className="space-y-6">
@@ -488,6 +488,11 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
                 <span className="text-gray-700">Show total</span>
               </label>
             </div>
+          <ChartLegend 
+            items={modalShowTotal ? [...cantons, 'Total'] : cantons} 
+            colorOf={colorOf} 
+            title="Legend" 
+          />
             <D3CantonChart
               data={rows}
               cantons={cantons}
@@ -500,13 +505,6 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
               colorOf={colorOf}
               showTotal={modalShowTotal}
             />
-            <div>
-              <ChartLegend 
-                items={modalShowTotal ? [...cantons, 'Total'] : cantons} 
-                colorOf={colorOf} 
-                title="Legend" 
-              />
-            </div>
           </>
         )}
       </ChartModal>
