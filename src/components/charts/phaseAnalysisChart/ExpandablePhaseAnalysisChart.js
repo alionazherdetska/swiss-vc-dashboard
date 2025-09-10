@@ -55,17 +55,27 @@ const D3PhaseChart = ({
       .range([0, chartWidth])
       .padding(0.1);
 
-    // Y scale: adjust depending on showTotal
+    // Y scale: fix for proper stacked chart calculation
     let maxValue;
     if (showTotal) {
       maxValue = d3.max(data, (d) => d[totalKey]) || 0;
     } else {
-      maxValue =
-        d3.max(
-          phases.flatMap((phase) =>
-            data.map((d) => d[`${sanitizeKey(phase)}${metricSuffix}`] || 0)
-          )
-        ) || 0;
+      if (mode === "column") {
+        // For stacked charts, calculate the sum of all phases per year
+        maxValue = d3.max(data, (d) => {
+          return phases.reduce((sum, phase) => {
+            return sum + (d[`${sanitizeKey(phase)}${metricSuffix}`] || 0);
+          }, 0);
+        }) || 0;
+      } else {
+        // For line charts, use individual phase max
+        maxValue =
+          d3.max(
+            phases.flatMap((phase) =>
+              data.map((d) => d[`${sanitizeKey(phase)}${metricSuffix}`] || 0)
+            )
+          ) || 0;
+      }
     }
 
     const yScale = d3
@@ -183,10 +193,12 @@ const D3PhaseChart = ({
           .attr("d", line);
       }
     } else {
+      // Line chart with stable tooltips using overlay approach
       phases.forEach((phase) => {
         const lineData = data.map((d) => ({
           year: d.year,
           value: d[`${sanitizeKey(phase)}${metricSuffix}`] || 0,
+          originalData: d,
         }));
 
         const line = d3
@@ -195,28 +207,126 @@ const D3PhaseChart = ({
           .y((d) => yScale(d.value))
           .curve(d3.curveMonotoneX);
 
+        // Draw the line
         g.append("path")
           .datum(lineData)
           .attr("fill", "none")
           .attr("stroke", colorOf(phase))
           .attr("stroke-width", isExpanded ? 3 : 2)
           .attr("d", line);
+
+        // Add visible dots for each data point
+        g.selectAll(`.visible-dot-${sanitizeKey(phase)}`)
+          .data(lineData)
+          .enter()
+          .append("circle")
+          .attr("class", `visible-dot-${sanitizeKey(phase)}`)
+          .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr("cy", (d) => yScale(d.value))
+          .attr("r", 3)
+          .attr("fill", colorOf(phase))
+          .attr("stroke", "white")
+          .attr("stroke-width", 1);
+      });
+
+      // Create a single overlay for hover detection per year
+      data.forEach((yearData) => {
+        const x = xScale(yearData.year) + xScale.bandwidth() / 2;
+        
+        g.append("rect")
+          .attr("class", "hover-overlay")
+          .attr("x", x - xScale.bandwidth() / 2)
+          .attr("y", 0)
+          .attr("width", xScale.bandwidth())
+          .attr("height", chartHeight)
+          .attr("fill", "transparent")
+          .style("cursor", "pointer")
+          .on("mouseover", function (event) {
+            // Highlight all dots for this year
+            phases.forEach((phase) => {
+              const value = yearData[`${sanitizeKey(phase)}${metricSuffix}`] || 0;
+              if (value > 0) {
+                g.selectAll(`.visible-dot-${sanitizeKey(phase)}`)
+                  .filter((d) => d.year === yearData.year)
+                  .attr("r", 5)
+                  .attr("stroke-width", 2);
+              }
+            });
+
+            const containerRect =
+              svgRef.current.parentElement.getBoundingClientRect();
+            const mouseX = event.clientX - containerRect.left;
+            const mouseY = event.clientY - containerRect.top;
+
+            let tooltipContent = `<div class="bg-white p-3 border rounded-lg shadow-lg">
+              <div class="font-semibold text-gray-800 mb-2">${yearData.year}</div>`;
+
+            phases.forEach((phase) => {
+              const value = yearData[`${sanitizeKey(phase)}${metricSuffix}`] || 0;
+              if (value > 0) {
+                tooltipContent += `<div class="flex items-center gap-2 mb-1">
+                  <div class="w-3 h-3 rounded" style="background:${colorOf(phase)}"></div>
+                  <span class="text-gray-700">${phase}: <strong>${
+                    isVolume ? value.toFixed(1) + "M CHF" : value
+                  }</strong></span>
+                </div>`;
+              }
+            });
+
+            tooltipContent += "</div>";
+
+            tooltip
+              .style("opacity", 1)
+              .html(tooltipContent)
+              .style("left", `${mouseX + 15}px`)
+              .style("top", `${mouseY - 60}px`);
+          })
+          .on("mouseout", function () {
+            // Reset all dots for this year
+            phases.forEach((phase) => {
+              g.selectAll(`.visible-dot-${sanitizeKey(phase)}`)
+                .filter((d) => d.year === yearData.year)
+                .attr("r", 3)
+                .attr("stroke-width", 1);
+            });
+
+            tooltip.style("opacity", 0);
+          });
       });
 
       if (showTotal) {
+        const totalLineData = data.map((d) => ({
+          year: d.year,
+          value: d[totalKey],
+          originalData: d,
+        }));
+
         const totalLine = d3
           .line()
           .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
-          .y((d) => yScale(d[totalKey]))
+          .y((d) => yScale(d.value))
           .curve(d3.curveMonotoneX);
 
         g.append("path")
-          .datum(data)
+          .datum(totalLineData)
           .attr("fill", "none")
           .attr("stroke", "#000")
           .attr("stroke-width", 3)
           .attr("stroke-dasharray", "5,5")
           .attr("d", totalLine);
+
+        // Add visible dots for total line
+        g.selectAll(".visible-dot-total")
+          .data(totalLineData)
+          .enter()
+          .append("circle")
+          .attr("class", "visible-dot-total")
+          .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr("cy", (d) => yScale(d.value))
+          .attr("r", 3)
+          .attr("fill", "#000")
+          .attr("stroke", "white")
+          .attr("stroke-width", 1);
       }
     }
   }, [data, phases, isVolume, mode, width, height, margin, isExpanded, colorOf, showTotal]);
