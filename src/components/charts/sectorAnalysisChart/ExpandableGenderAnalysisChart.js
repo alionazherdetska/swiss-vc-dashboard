@@ -354,9 +354,9 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
 
   // filter out deals without gender
   const filteredDeals = useMemo(
-    () => deals.filter((d) => d['Gender CEO'] && d['Gender CEO'] !== 'Unknown'),
-    [deals]
-  );
+  () => deals.filter((d) => d['Gender CEO'] && d['Gender CEO'] !== 'Unknown' && Number(d.Year) < 2025),
+  [deals]
+);
 
   const years = useMemo(
     () => Array.from(new Set(filteredDeals.map((d) => Number(d.Year)))).sort((a, b) => a - b),

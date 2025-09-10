@@ -11,6 +11,9 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
   useEffect(() => {
     if (!data || data.length === 0) return;
 
+    const filteredData = data.filter(d => Number(d.year) < 2025);
+    
+    if (filteredData.length === 0) return;
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
@@ -31,11 +34,11 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
     // Scales
     const xScale = d3
       .scaleBand()
-      .domain(data.map((d) => d.year))
+      .domain(filteredData.map((d) => d.year))
       .range([0, chartWidth])
       .padding(0.1);
 
-    const yMax = d3.max(data, (d) => d[chartKey]) || 0;
+    const yMax = d3.max(filteredData, (d) => d[chartKey]) || 0;
 
     const yScale = d3
       .scaleLinear()
@@ -103,13 +106,13 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
 
     // Area
     g.append("path")
-      .datum(data)
+      .datum(filteredData)
       .attr("fill", `url(#${gradientId})`)
       .attr("d", area);
 
     // Line
     g.append("path")
-      .datum(data)
+      .datum(filteredData)
       .attr("fill", "none")
       .attr("stroke", "#E84A5F")
       .attr("stroke-width", 2)
@@ -140,7 +143,7 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
       .on("mousemove", function (event) {
         const [mx] = d3.pointer(event, this);
         const year = Math.round(xScale.domain()[Math.floor(mx / xScale.step())]);
-        const row = data.find((d) => +d.year === +year);
+        const row = filteredData.find((d) => +d.year === +year);
         if (!row) return;
 
         const value = row[chartKey] || 0;

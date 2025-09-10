@@ -365,8 +365,8 @@ const ExpandablePhaseAnalysisChart = ({ deals }) => {
   const rows = useMemo(() => {
     const byYear = {};
     deals.forEach((d) => {
-      if (!d.Phase || !d.Year) return;
-      const year = d.Year;
+      if (!d.Phase || !d.Year || d.Year >= 2025) return; // Filter out 2025 and beyond
+      const year = d.Year; // This line was missing due to comment placement
       const phaseKey = sanitizeKey(d.Phase);
       if (!byYear[year]) byYear[year] = { year };
       byYear[year][`${phaseKey}__volume`] =

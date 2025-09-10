@@ -217,8 +217,10 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [chartMode, setChartMode] = useState('line');
 
-  const filteredExits = useMemo(() => exits.filter(e => e.Year), [exits]);
-
+const filteredExits = useMemo(() => 
+    exits.filter(e => e.Year && Number(e.Year) < 2025), 
+    [exits]
+  );
   const years = useMemo(
     () => Array.from(new Set(filteredExits.map(e => Number(e.Year)))).sort((a, b) => a - b),
     [filteredExits]

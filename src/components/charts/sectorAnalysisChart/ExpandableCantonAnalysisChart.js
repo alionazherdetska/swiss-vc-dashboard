@@ -334,7 +334,7 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
     const byYear = {};
     deals.forEach((d) => {
       const c = normalizeCanton(d.Canton);
-      if (!c || c === 'Unknown' || !d.Year) return;
+      if (!c || c === 'Unknown' || !d.Year || d.Year >= 2025) return; // Filter out 2025 and beyond
       const year = d.Year;
       const key = sanitizeKey(c);
       if (!byYear[year]) byYear[year] = { year };
