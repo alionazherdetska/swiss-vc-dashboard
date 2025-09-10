@@ -12,6 +12,8 @@ import {
 } from '../../../lib/constants';
 import { sanitizeKey, getChartDims, makeDistributedColorFn } from '../../../lib/utils';
 
+const downloadIcon = process.env.PUBLIC_URL + '/download.svg';
+
 // Gender color map
 const GENDER_COLOR_MAP = {
   Male: '#3182CE',
@@ -67,7 +69,22 @@ const D3GenderChart = ({
       .range([0, chartWidth])
       .padding(0.2);
 
-    const maxValue = d3.max(data, (d) => d[totalKey]) || 0;
+    // Calculate max value considering both individual genders and total
+    let maxValue = 0;
+    if (mode === 'column') {
+      // For stacked columns, max is the total
+      maxValue = d3.max(data, (d) => d[totalKey]) || 0;
+    } else {
+      // For line charts, consider both individual gender values and total
+      data.forEach((d) => {
+        genders.forEach((g) => {
+          maxValue = Math.max(maxValue, d[`${sanitizeKey(g)}__${metricSuffix}`] || 0);
+        });
+        if (showTotal) {
+          maxValue = Math.max(maxValue, d[totalKey] || 0);
+        }
+      });
+    }
 
     const yScale = d3
       .scaleLinear()
@@ -138,7 +155,51 @@ const D3GenderChart = ({
         .attr('x', (d) => xScale(d.data.year))
         .attr('y', (d) => yScale(d[1]))
         .attr('height', (d) => yScale(d[0]) - yScale(d[1]))
-        .attr('width', xScale.bandwidth());
+        .attr('width', xScale.bandwidth())
+        .on('mouseover', function (event, d) {
+          const year = d.data.year;
+          let html = `<div class="bg-white p-3 border rounded-lg shadow-lg">
+            <div class="font-semibold text-gray-800 mb-2">${year}</div>`;
+
+          genders.forEach((g) => {
+            const value = d.data[`${sanitizeKey(g)}__${metricSuffix}`] || 0;
+            if (value > 0) {
+              html += `
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="w-3 h-3 rounded" style="background:${colorOf(g)}"></div>
+                  <span class="text-gray-700">${g}: <strong>${
+                isVolume ? value.toFixed(1) + 'M CHF' : value
+              }</strong></span>
+                </div>`;
+            }
+          });
+
+          if (showTotal) {
+            const total = d.data[totalKey] || 0;
+            if (total > 0) {
+              html += `
+                <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+                  <div class="w-3 h-3 rounded bg-black"></div>
+                  <span class="text-gray-700 font-semibold">Total: <strong>${
+                    isVolume ? total.toFixed(1) + 'M CHF' : total
+                  }</strong></span>
+                </div>`;
+            }
+          }
+
+          html += `</div>`;
+
+          const rect = d3.select(this);
+          const barCenterX = +rect.attr('x') + xScale.bandwidth() / 2;
+          const barTopY = +rect.attr('y');
+
+          tooltip
+            .style('opacity', 1)
+            .html(html)
+            .style('left', `${adjustedMargin.left + barCenterX}px`)
+            .style('top', `${Math.max(adjustedMargin.top + barTopY - 48, 10)}px`);
+        })
+        .on('mouseout', () => tooltip.style('opacity', 0));
     } else {
       // line chart
       genders.forEach((gender) => {
@@ -153,67 +214,119 @@ const D3GenderChart = ({
           .y((d) => yScale(d.value))
           .curve(d3.curveMonotoneX);
 
+        // Draw the line
         g.append('path')
           .datum(lineData)
           .attr('fill', 'none')
           .attr('stroke', colorOf(gender))
           .attr('stroke-width', isExpanded ? 3 : 2)
           .attr('d', line);
+
+        // Add dots for each data point
+        g.selectAll(`.dot-${sanitizeKey(gender)}`)
+          .data(lineData)
+          .enter()
+          .append('circle')
+          .attr('class', `dot-${sanitizeKey(gender)}`)
+          .attr('cx', (d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr('cy', (d) => yScale(d.value))
+          .attr('r', isExpanded ? 5 : 4)
+          .attr('fill', colorOf(gender))
+          .attr('stroke', '#ffffff')
+          .attr('stroke-width', isExpanded ? 2 : 1.5);
       });
-    }
 
-    // year overlays for tooltips
-    g.selectAll('.year-overlay')
-      .data(data)
-      .enter()
-      .append('rect')
-      .attr('class', 'year-overlay')
-      .attr('x', (d) => xScale(d.year))
-      .attr('width', xScale.bandwidth())
-      .attr('y', 0)
-      .attr('height', chartHeight)
-      .attr('fill', 'transparent')
-      .on('mouseover', function (event, d) {
-        let html = `<div class="bg-white p-3 border rounded-lg shadow-lg">
-          <div class="font-semibold text-gray-800 mb-2">${d.year}</div>`;
+      // Add total line if showTotal is enabled
+      if (showTotal) {
+        const totalLineData = data.map((d) => ({
+          year: d.year,
+          value: d[totalKey] || 0,
+        }));
 
-        genders.forEach((g) => {
-          const value = d[`${sanitizeKey(g)}__${metricSuffix}`] || 0;
-          if (value > 0) {
-            html += `
-              <div class="flex items-center gap-2 mb-1">
-                <div class="w-3 h-3 rounded" style="background:${colorOf(g)}"></div>
-                <span class="text-gray-700">${g}: <strong>${
-              isVolume ? value.toFixed(1) + 'M CHF' : value
-            }</strong></span>
-              </div>`;
-          }
-        });
+        const totalLine = d3
+          .line()
+          .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .y((d) => yScale(d.value))
+          .curve(d3.curveMonotoneX);
 
-        if (showTotal) {
-          const total = d[totalKey] || 0;
-          html += `
-            <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
-              <div class="w-3 h-3 rounded bg-black"></div>
-              <span class="text-gray-700 font-semibold">Total: <strong>${
-                isVolume ? total.toFixed(1) + 'M CHF' : total
+        // Draw the total line
+        g.append('path')
+          .datum(totalLineData)
+          .attr('fill', 'none')
+          .attr('stroke', '#000000')
+          .attr('stroke-width', isExpanded ? 4 : 3)
+          .attr('stroke-dasharray', '5,5')
+          .attr('d', totalLine);
+
+        // Add dots for total line
+        g.selectAll('.dot-total')
+          .data(totalLineData)
+          .enter()
+          .append('circle')
+          .attr('class', 'dot-total')
+          .attr('cx', (d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr('cy', (d) => yScale(d.value))
+          .attr('r', isExpanded ? 6 : 5)
+          .attr('fill', '#000000')
+          .attr('stroke', '#ffffff')
+          .attr('stroke-width', isExpanded ? 2 : 1.5);
+      }
+
+      // year overlays for tooltips (only for line chart)
+      g.selectAll('.year-overlay')
+        .data(data)
+        .enter()
+        .append('rect')
+        .attr('class', 'year-overlay')
+        .attr('x', (d) => xScale(d.year))
+        .attr('width', xScale.bandwidth())
+        .attr('y', 0)
+        .attr('height', chartHeight)
+        .attr('fill', 'transparent')
+        .on('mouseover', function (event, d) {
+          let html = `<div class="bg-white p-3 border rounded-lg shadow-lg">
+            <div class="font-semibold text-gray-800 mb-2">${d.year}</div>`;
+
+          genders.forEach((g) => {
+            const value = d[`${sanitizeKey(g)}__${metricSuffix}`] || 0;
+            if (value > 0) {
+              html += `
+                <div class="flex items-center gap-2 mb-1">
+                  <div class="w-3 h-3 rounded" style="background:${colorOf(g)}"></div>
+                  <span class="text-gray-700">${g}: <strong>${
+                isVolume ? value.toFixed(1) + 'M CHF' : value
               }</strong></span>
-            </div>`;
-        }
+                </div>`;
+            }
+          });
 
-        html += `</div>`;
+          if (showTotal) {
+            const total = d[totalKey] || 0;
+            if (total > 0) {
+              html += `
+                <div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+                  <div class="w-3 h-3 rounded bg-black"></div>
+                  <span class="text-gray-700 font-semibold">Total: <strong>${
+                    isVolume ? total.toFixed(1) + 'M CHF' : total
+                  }</strong></span>
+                </div>`;
+            }
+          }
 
-        // position above year center
-        const x = margin.left + xScale(d.year) + xScale.bandwidth() / 2;
-        const y = margin.top - 10;
+          html += `</div>`;
 
-        tooltip
-          .style('opacity', 1)
-          .html(html)
-          .style('left', `${x}px`)
-          .style('top', `${y}px`);
-      })
-      .on('mouseout', () => tooltip.style('opacity', 0));
+          // position above year center
+          const x = adjustedMargin.left + xScale(d.year) + xScale.bandwidth() / 2;
+          const y = adjustedMargin.top - 10;
+
+          tooltip
+            .style('opacity', 1)
+            .html(html)
+            .style('left', `${x}px`)
+            .style('top', `${y}px`);
+        })
+        .on('mouseout', () => tooltip.style('opacity', 0));
+    }
   }, [data, genders, isVolume, mode, width, height, margin, isExpanded, colorOf, showTotal]);
 
   return (
@@ -278,10 +391,13 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
   }, [years, genders, filteredDeals]);
 
   const colorFn = makeDistributedColorFn(GENDER_COLOR_MAP, ENHANCED_COLOR_PALETTE);
-  const colorOf = (g) => colorFn(g, genders);
+  const colorOf = (g) => {
+    if (g === 'Total') return '#000000';
+    return colorFn(g, genders);
+  };
 
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 690, EXPANDED_CHART_MARGIN);
 
   const ChartContent = ({ chartType, mode, showTotalState, onModeChange }) => {
     const isVolumeChart = chartType === 'volume';
@@ -293,30 +409,35 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
 
     return (
       <div>
-        <div className="flex items-center mb-2">
-          <h3 className="text-md font-semibold text-gray-800 mr-2">
-            {isVolumeChart ? 'Investment Volume vs Year' : 'Number of Deals vs Year'}
-          </h3>
-          <button
-            className={`p-2 rounded-md ${
-              isVolumeChart ? 'bg-blue-600' : 'bg-green-600'
-            } text-white shadow-md hover:opacity-90`}
-            title="Expand chart"
-            onClick={() => {
-              setExpandedChart(chartType);
-              setIsExpanded(true);
-            }}
-          >
-            <Maximize2 className="w-5 h-5" />
-          </button>
-          <button
-            className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200"
-            title="Export chart"
-          >
-            Export
-            <img src="/download.svg" alt="Download" className="h-5 w-5" />
-          </button>
-        </div>
+        {/* Only show header with buttons when not expanded */}
+        {!(chartType === expandedChart && isExpanded) && (
+          <div className="flex flex-col gap-2 mb-2 pl-4">
+            <h3 className="text-md font-semibold text-gray-800">
+              {isVolumeChart ? 'Investment Volume vs Year' : 'Number of Deals vs Year'}
+            </h3>
+            <div className='flex gap-2'>
+              <button
+                className={`p-2 rounded-md ${
+                  isVolumeChart ? 'bg-blue-600' : 'bg-green-600'
+                } text-white shadow-md hover:opacity-90`}
+                title="Expand chart"
+                onClick={() => {
+                  setExpandedChart(chartType);
+                  setIsExpanded(true);
+                }}
+              >
+                <Maximize2 className="w-5 h-5" />
+              </button>
+              <button
+                className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200"
+                title="Export chart"
+              >
+                Export
+                <img src={downloadIcon} alt="Download" className="h-5 w-5" />
+              </button>
+            </div>
+          </div>
+        )}
         <D3GenderChart
           data={rows}
           genders={genders}
@@ -382,7 +503,11 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
         />
       </div>
 
-      <ChartLegend items={genders} colorOf={colorOf} title="Genders" />
+      <ChartLegend 
+        items={showTotal ? [...genders, 'Total'] : genders} 
+        colorOf={colorOf} 
+        title="Genders" 
+      />
 
       <ChartModal
         isOpen={isExpanded}
@@ -418,6 +543,13 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
             showTotalState={expandedShowTotal}
             onModeChange={setExpandedMode}
           />
+          <div>
+            <ChartLegend 
+              items={expandedShowTotal ? [...genders, 'Total'] : genders} 
+              colorOf={colorOf} 
+              title="Legend" 
+            />
+          </div>
         </div>
       </ChartModal>
     </>

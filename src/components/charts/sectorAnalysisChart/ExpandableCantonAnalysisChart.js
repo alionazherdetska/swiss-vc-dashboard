@@ -182,13 +182,63 @@ const D3CantonChart = ({
           .y((d) => yScale(d.value))
           .curve(d3.curveMonotoneX);
 
+        // Draw the line
         g.append('path')
           .datum(lineData)
           .attr('fill', 'none')
           .attr('stroke', colorOf(c))
           .attr('stroke-width', isExpanded ? 3 : 2)
           .attr('d', line);
+
+        // Add dots for each data point
+        g.selectAll(`.dot-${sanitizeKey(c)}`)
+          .data(lineData)
+          .enter()
+          .append('circle')
+          .attr('class', `dot-${sanitizeKey(c)}`)
+          .attr('cx', (d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr('cy', (d) => yScale(d.value))
+          .attr('r', isExpanded ? 5 : 4)
+          .attr('fill', colorOf(c))
+          .attr('stroke', '#ffffff')
+          .attr('stroke-width', isExpanded ? 2 : 1.5);
       });
+
+      // Add total line if showTotal is enabled
+      if (showTotal) {
+        const totalLineData = data.map((d) => ({
+          year: d.year,
+          value: d[totalKey] || 0,
+        }));
+
+        const totalLine = d3
+          .line()
+          .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .y((d) => yScale(d.value))
+          .curve(d3.curveMonotoneX);
+
+        // Draw the total line
+        g.append('path')
+          .datum(totalLineData)
+          .attr('fill', 'none')
+          .attr('stroke', '#000000')
+          .attr('stroke-width', isExpanded ? 4 : 3)
+          .attr('stroke-dasharray', '5,5')
+          .attr('d', totalLine);
+
+        // Add dots for total line
+        g.selectAll('.dot-total')
+          .data(totalLineData)
+          .enter()
+          .append('circle')
+          .attr('class', 'dot-total')
+          .attr('cx', (d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr('cy', (d) => yScale(d.value))
+          .attr('r', isExpanded ? 6 : 5)
+          .attr('fill', '#000000')
+          .attr('stroke', '#ffffff')
+          .attr('stroke-width', isExpanded ? 2 : 1.5);
+      }
 
       // Year overlays for combined tooltip
       g.selectAll('.year-overlay')
@@ -274,8 +324,10 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
     [deals]
   );
 
-  const colorOf = (c) =>
-    ENHANCED_COLOR_PALETTE[cantons.indexOf(c) % ENHANCED_COLOR_PALETTE.length];
+  const colorOf = (c) => {
+    if (c === 'Total') return '#000000';
+    return ENHANCED_COLOR_PALETTE[cantons.indexOf(c) % ENHANCED_COLOR_PALETTE.length];
+  };
 
   // Rows by year
   const rows = useMemo(() => {
@@ -298,7 +350,7 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
   }, [deals]);
 
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 660, EXPANDED_CHART_MARGIN);
 
   return (
     <div className="space-y-6">
@@ -335,11 +387,11 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
       {/* Dual charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Volume */}
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-md font-semibold text-gray-800">
-              Investment Volume vs Year
-            </h3>
+        <div className="flex flex-col gap-2 mb-2 pl-4">
+          <h3 className="text-md font-semibold text-gray-800">
+            Investment Volume vs Year
+          </h3>
+          <div className='flex gap-2'>
             <button
               onClick={() => setExpandedChart('volume')}
               className="p-2 rounded-md bg-blue-600 text-white"
@@ -370,23 +422,25 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
 
         {/* Count */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex flex-col start gap-2 mb-2">
             <h3 className="text-md font-semibold text-gray-800">
               Number of Deals vs Year
             </h3>
-            <button
-              onClick={() => setExpandedChart('count')}
-              className="p-2 rounded-md bg-green-600 text-white"
-              title="Expand Count Chart"
-            >
-              <Maximize2 className="h-5 w-5" />
-            </button>
-            <button
-              className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900"
-              title="Export chart (print or save as PDF)"
-            >
-              Export <img src={downloadIcon} alt="Download" className="h-5 w-5" />
-            </button>
+            <div className='flex gap-2'>
+              <button
+                onClick={() => setExpandedChart('count')}
+                className="p-2 rounded-md bg-green-600 text-white"
+                title="Expand Count Chart"
+              >
+                <Maximize2 className="h-5 w-5" />
+              </button>
+              <button
+                className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900"
+                title="Export chart (print or save as PDF)"
+              >
+                Export <img src={downloadIcon} alt="Download" className="h-5 w-5" />
+              </button>
+            </div>
           </div>
           <D3CantonChart
             data={rows}
@@ -446,6 +500,13 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
               colorOf={colorOf}
               showTotal={modalShowTotal}
             />
+            <div>
+              <ChartLegend 
+                items={modalShowTotal ? [...cantons, 'Total'] : cantons} 
+                colorOf={colorOf} 
+                title="Legend" 
+              />
+            </div>
           </>
         )}
       </ChartModal>
