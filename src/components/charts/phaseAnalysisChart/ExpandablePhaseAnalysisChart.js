@@ -108,7 +108,7 @@ const D3PhaseChart = ({
 
     // Y axis
     g.append("g")
-      .call(d3.axisLeft(yScale).ticks(5))
+      .call(d3.axisLeft(yScale).ticks(10))
       .selectAll("text")
       .style("font-size", isExpanded ? "14px" : "12px")
       .style("fill", AXIS_STROKE);
