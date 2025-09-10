@@ -1,22 +1,11 @@
-import { useMemo, useState } from 'react';
-import {
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import * as d3 from 'd3';
 import { Maximize2 } from 'lucide-react';
 import ChartModal from '../../common/ChartModal';
 
 import ChartLegend from './components/ChartLegend';
-import SortedTooltip from './components/SortedTooltip';
-import ShiftedLine from './components/ShiftedLine';
 
 import prepareQuarterlyRows from './helpers/PrepareQuarterlyRows';
-import createSeriesRenderers from './helpers/CreateSeriesRenderers';
 
 import {
   CHART_MARGIN,
@@ -30,9 +19,370 @@ import {
 import {
   sanitizeKey,
   getChartDims,
-  getTicks,
   makeDistributedColorFn,
 } from '../../../lib/utils';
+
+// D3 Multi-Series Chart Component
+const D3MultiSeriesChart = ({ 
+  data, 
+  industries, 
+  isVolume, 
+  mode, 
+  width, 
+  height, 
+  margin, 
+  isExpanded, 
+  colorOf, 
+  showTotal,
+  selectedIndustries = []
+}) => {
+  const svgRef = useRef();
+  const tooltipRef = useRef();
+
+  useEffect(() => {
+    if (!data || data.length === 0 || !industries || industries.length === 0) return;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove();
+
+    // Adjust margin for rotated labels
+    const adjustedMargin = {
+      ...margin,
+      bottom: isExpanded ? margin.bottom + 20 : margin.bottom + 15
+    };
+
+    const chartWidth = width - adjustedMargin.left - adjustedMargin.right;
+    const chartHeight = height - adjustedMargin.top - adjustedMargin.bottom;
+
+    // Create main group
+    const g = svg.append('g')
+      .attr('transform', `translate(${adjustedMargin.left},${adjustedMargin.top})`);
+
+    // Filter industries based on selection
+    const visibleIndustries = selectedIndustries.length > 0 ? selectedIndustries : industries;
+    const metricSuffix = isVolume ? 'volume' : 'count';
+
+    // Scales
+    const xScale = d3.scaleBand()
+      .domain(data.map(d => d.year))
+      .range([0, chartWidth])
+      .padding(0.1);
+
+    // Calculate max value for scale
+    let maxValue = 0;
+    if (mode === 'column') {
+      // For stacked columns, use total values
+      maxValue = d3.max(data, d => d[`total${isVolume ? 'Volume' : 'Count'}`]) || 0;
+    } else {
+      // For lines, find max individual industry value
+      for (const row of data) {
+        for (const industry of visibleIndustries) {
+          const value = row[`${sanitizeKey(industry)}__${metricSuffix}`] || 0;
+          if (value > maxValue) maxValue = value;
+        }
+      }
+      if (showTotal) {
+        const totalMax = d3.max(data, d => d[`total${isVolume ? 'Volume' : 'Count'}`]) || 0;
+        maxValue = Math.max(maxValue, totalMax);
+      }
+    }
+
+    const yScale = d3.scaleLinear()
+      .domain([0, maxValue * 1.1])
+      .range([chartHeight, 0]);
+
+    // Grid lines
+    const yTicks = yScale.ticks(5);
+    g.selectAll('.grid-line')
+      .data(yTicks)
+      .enter()
+      .append('line')
+      .attr('class', 'grid-line')
+      .attr('x1', 0)
+      .attr('x2', chartWidth)
+      .attr('y1', d => yScale(d))
+      .attr('y2', d => yScale(d))
+      .attr('stroke', GRID_STROKE)
+      .attr('stroke-dasharray', '3,3')
+      .attr('opacity', 0.6);
+
+    // X axis
+    g.append('g')
+      .attr('transform', `translate(0,${chartHeight})`)
+      .call(d3.axisBottom(xScale))
+      .selectAll('text')
+      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('fill', AXIS_STROKE)
+      .style('text-anchor', 'end')
+      .attr('dx', '-.8em')
+      .attr('dy', '.15em')
+      .attr('transform', 'rotate(-45)');
+
+    // Y axis
+    g.append('g')
+      .call(d3.axisLeft(yScale).ticks(5))
+      .selectAll('text')
+      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('fill', AXIS_STROKE);
+
+    // Y axis label
+    g.append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 0 - adjustedMargin.left)
+      .attr('x', 0 - (chartHeight / 2))
+      .attr('dy', '1em')
+      .style('text-anchor', 'middle')
+      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('fill', AXIS_STROKE)
+      .text(isVolume ? 'Investment Volume CHF (M)' : 'Number of Deals');
+
+    // Tooltip
+    const tooltip = d3.select(tooltipRef.current);
+
+    if (mode === 'column') {
+      // Stacked bar chart
+      const stack = d3.stack()
+        .keys(visibleIndustries.map(ind => `${sanitizeKey(ind)}__${metricSuffix}`))
+        .order(d3.stackOrderNone)
+        .offset(d3.stackOffsetNone);
+
+      const stackedData = stack(data);
+
+      g.selectAll('.industry-group')
+        .data(stackedData)
+        .enter()
+        .append('g')
+        .attr('class', 'industry-group')
+        .attr('fill', (d, i) => colorOf(visibleIndustries[i]))
+        .selectAll('rect')
+        .data(d => d)
+        .enter()
+        .append('rect')
+        .attr('x', d => xScale(d.data.year))
+        .attr('y', d => yScale(d[1]))
+        .attr('height', d => yScale(d[0]) - yScale(d[1]))
+        .attr('width', xScale.bandwidth())
+        .attr('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+          const industryIndex = stackedData.findIndex(series => series.includes(d));
+          const industry = visibleIndustries[industryIndex];
+          const value = d.data[`${sanitizeKey(industry)}__${metricSuffix}`];
+          const roundedValue = isVolume ? Math.round(value * 10) / 10 : Math.round(value);
+          
+          // Get the SVG container position for relative positioning
+          const svgRect = svgRef.current.getBoundingClientRect();
+          const containerRect = svgRef.current.parentElement.getBoundingClientRect();
+          
+          // Calculate position relative to the chart container
+          const x = event.clientX - containerRect.left;
+          const y = event.clientY - containerRect.top;
+          
+          d3.select(this).attr('opacity', 0.8);
+          tooltip.style('opacity', 1)
+            .html(`<div class="bg-white p-3 border rounded-lg shadow-lg border-gray-300">
+              <div class="font-semibold text-gray-800 mb-1">${d.data.year}</div>
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded" style="background-color: ${colorOf(industry)}"></div>
+                <span class="text-gray-700">${industry}: <strong>${roundedValue}${isVolume ? 'M CHF' : ''}</strong></span>
+              </div>
+            </div>`)
+            .style('left', Math.min(x + 15, width - 200) + 'px')
+            .style('top', Math.max(y - 60, 10) + 'px');
+        })
+        .on('mouseout', function() {
+          d3.select(this).attr('opacity', 1);
+          tooltip.style('opacity', 0);
+        });
+    } else {
+      // Line chart
+      visibleIndustries.forEach(industry => {
+        const lineData = data.map(d => ({
+          year: d.year,
+          value: d[`${sanitizeKey(industry)}__${metricSuffix}`] || 0
+        })).filter(d => d.value > 0);
+
+        if (lineData.length === 0) return;
+
+        const line = d3.line()
+          .x(d => xScale(d.year) + xScale.bandwidth() / 2)
+          .y(d => yScale(d.value))
+          .curve(d3.curveMonotoneX);
+
+        // Draw line
+        g.append('path')
+          .datum(lineData)
+          .attr('fill', 'none')
+          .attr('stroke', colorOf(industry))
+          .attr('stroke-width', isExpanded ? 3 : 2)
+          .attr('d', line);
+
+        // Draw points
+        g.selectAll(`.dots-${sanitizeKey(industry)}`)
+          .data(lineData)
+          .enter()
+          .append('circle')
+          .attr('class', `dots-${sanitizeKey(industry)}`)
+          .attr('cx', d => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr('cy', d => yScale(d.value))
+          .attr('r', 4)
+          .attr('fill', colorOf(industry))
+          .attr('cursor', 'pointer')
+          .on('mouseover', function(event, d) {
+            // Get the SVG container position for relative positioning
+            const svgRect = svgRef.current.getBoundingClientRect();
+            const containerRect = svgRef.current.parentElement.getBoundingClientRect();
+            
+            // Calculate position relative to the chart container
+            const x = event.clientX - containerRect.left;
+            const y = event.clientY - containerRect.top;
+            
+            const roundedValue = isVolume ? Math.round(d.value * 10) / 10 : Math.round(d.value);
+            
+            d3.select(this).attr('r', 6);
+            tooltip.style('opacity', 1)
+              .html(`<div class="bg-white p-3 border rounded-lg shadow-lg border-gray-300">
+                <div class="font-semibold text-gray-800 mb-1">${d.year}</div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded" style="background-color: ${colorOf(industry)}"></div>
+                  <span class="text-gray-700">${industry}: <strong>${roundedValue}${isVolume ? 'M CHF' : ''}</strong></span>
+                </div>
+              </div>`)
+              .style('left', Math.min(x + 15, width - 200) + 'px')
+              .style('top', Math.max(y - 60, 10) + 'px');
+          })
+          .on('mouseout', function() {
+            d3.select(this).attr('r', 4);
+            tooltip.style('opacity', 0);
+          });
+      });
+
+      // Show total line if enabled
+      if (showTotal) {
+        const totalData = data.map(d => ({
+          year: d.year,
+          value: d[`total${isVolume ? 'Volume' : 'Count'}`] || 0
+        }));
+
+        const totalLine = d3.line()
+          .x(d => xScale(d.year) + xScale.bandwidth() / 2)
+          .y(d => yScale(d.value))
+          .curve(d3.curveMonotoneX);
+
+        g.append('path')
+          .datum(totalData)
+          .attr('fill', 'none')
+          .attr('stroke', '#000')
+          .attr('stroke-width', isExpanded ? 4 : 3)
+          .attr('stroke-dasharray', '5,5')
+          .attr('d', totalLine);
+
+        g.selectAll('.total-dots')
+          .data(totalData)
+          .enter()
+          .append('circle')
+          .attr('class', 'total-dots')
+          .attr('cx', d => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr('cy', d => yScale(d.value))
+          .attr('r', 5)
+          .attr('fill', '#000')
+          .attr('cursor', 'pointer')
+          .on('mouseover', function(event, d) {
+            // Get the SVG container position for relative positioning
+            const svgRect = svgRef.current.getBoundingClientRect();
+            const containerRect = svgRef.current.parentElement.getBoundingClientRect();
+            
+            // Calculate position relative to the chart container
+            const x = event.clientX - containerRect.left;
+            const y = event.clientY - containerRect.top;
+            
+            const roundedValue = isVolume ? Math.round(d.value * 10) / 10 : Math.round(d.value);
+            
+            d3.select(this).attr('r', 7);
+            tooltip.style('opacity', 1)
+              .html(`<div class="bg-white p-3 border rounded-lg shadow-lg border-gray-300">
+                <div class="font-semibold text-gray-800 mb-1">${d.year}</div>
+                <div class="flex items-center gap-2">
+                  <div class="w-3 h-3 rounded bg-black"></div>
+                  <span class="text-gray-700">Total: <strong>${roundedValue}${isVolume ? 'M CHF' : ''}</strong></span>
+                </div>
+              </div>`)
+              .style('left', Math.min(x + 15, width - 200) + 'px')
+              .style('top', Math.max(y - 60, 10) + 'px');
+          })
+          .on('mouseout', function() {
+            d3.select(this).attr('r', 5);
+            tooltip.style('opacity', 0);
+          });
+      }
+
+      // Add invisible overlay for comprehensive year tooltip in line mode
+      g.selectAll('.year-overlay')
+        .data(data)
+        .enter()
+        .append('rect')
+        .attr('class', 'year-overlay')
+        .attr('x', d => xScale(d.year))
+        .attr('width', xScale.bandwidth())
+        .attr('y', 0)
+        .attr('height', chartHeight)
+        .attr('fill', 'transparent')
+        .attr('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+          // Get the SVG container position for relative positioning
+          const svgRect = svgRef.current.getBoundingClientRect();
+          const containerRect = svgRef.current.parentElement.getBoundingClientRect();
+          
+          // Calculate position relative to the chart container
+          const x = event.clientX - containerRect.left;
+          const y = event.clientY - containerRect.top;
+          
+          // Create comprehensive tooltip showing all industries for this year
+          let tooltipContent = `<div class="bg-white p-3 border rounded-lg shadow-lg border-gray-300">
+            <div class="font-semibold text-gray-800 mb-2">${d.year}</div>`;
+          
+          // Add each visible industry
+          visibleIndustries.forEach(industry => {
+            const value = d[`${sanitizeKey(industry)}__${metricSuffix}`] || 0;
+            if (value > 0) {
+              const roundedValue = isVolume ? Math.round(value * 10) / 10 : Math.round(value);
+              tooltipContent += `<div class="flex items-center gap-2 mb-1">
+                <div class="w-3 h-3 rounded" style="background-color: ${colorOf(industry)}"></div>
+                <span class="text-gray-700 text-sm">${industry}: <strong>${roundedValue}${isVolume ? 'M CHF' : ''}</strong></span>
+              </div>`;
+            }
+          });
+          
+          // Add total if enabled
+          if (showTotal) {
+            const totalValue = d[`__grandTotal${isVolume ? 'Volume' : 'Count'}`] || 0;
+            const roundedTotal = isVolume ? Math.round(totalValue * 10) / 10 : Math.round(totalValue);
+            tooltipContent += `<div class="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200">
+              <div class="w-3 h-3 rounded bg-black"></div>
+              <span class="text-gray-700 font-semibold">Total: <strong>${roundedTotal}${isVolume ? 'M CHF' : ''}</strong></span>
+            </div>`;
+          }
+          
+          tooltipContent += '</div>';
+          
+          tooltip.style('opacity', 1)
+            .html(tooltipContent)
+            .style('left', Math.min(x + 15, width - 250) + 'px')
+            .style('top', Math.max(y - 80, 10) + 'px');
+        })
+        .on('mouseout', function() {
+          tooltip.style('opacity', 0);
+        });
+    }
+
+  }, [data, industries, isVolume, mode, width, height, margin, isExpanded, colorOf, showTotal, selectedIndustries]);
+
+  return (
+    <div className="relative">
+      <svg ref={svgRef} width={width} height={height}></svg>
+      <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50"></div>
+    </div>
+  );
+};
 
 /* ===========================
    ExpandableQuarterlyAnalysisChart
@@ -75,155 +425,10 @@ const ExpandableQuarterlyAnalysisChart = ({
       ? externalColorOf
       : (name) => colorFn(name, industries);
 
-  /* Axis maxima and ticks (computed once here) */
-  const volumeMaxPerIndustry = useMemo(() => {
-    let m = 0;
-    for (const r of rows) {
-      for (const ind of industries) {
-        const v = r[`${sanitizeKey(ind)}__volume`] || 0;
-        if (v > m) m = v;
-      }
-    }
-    return m;
-  }, [rows, industries]);
-
-  const totalVolumeMax = useMemo(
-    () => (rows.length ? Math.max(...rows.map((r) => r.totalVolume || 0)) : 0),
-    [rows]
-  );
-
-  const totalCountMax = useMemo(
-    () => (rows.length ? Math.max(...rows.map((r) => r.totalCount || 0)) : 0),
-    [rows]
-  );
-
-  const countMaxPerIndustry = useMemo(() => {
-    let m = 0;
-    for (const r of rows) {
-      for (const ind of industries) {
-        const v = r[`${sanitizeKey(ind)}__count`] || 0;
-        if (v > m) m = v;
-      }
-    }
-    return m;
-  }, [rows, industries]);
-
-  const volumeTicksLine = getTicks(0, volumeMaxPerIndustry, 500);
-  const volumeTicksStack = getTicks(0, totalVolumeMax, 500);
-  const countTicksStack = getTicks(0, totalCountMax, 50);
-  const countTicksLine = getTicks(0, countMaxPerIndustry, 50);
-
-  const padPct = 0.04;
-  const volumeDomainStack = [0, Math.ceil(totalVolumeMax * (1 + padPct))];
-  const countDomainStack = [0, Math.ceil(totalCountMax * (1 + padPct))];
-  const volumeDomainLine = [0, Math.ceil(volumeMaxPerIndustry * (1 + padPct))];
-  const countDomainLine = [0, Math.ceil(countMaxPerIndustry * (1 + padPct))];
-
-  const withTotalMax = {
-    volume: Math.max(volumeMaxPerIndustry, totalVolumeMax),
-    count: Math.max(countMaxPerIndustry, totalCountMax),
-  };
-  const volumeTicksLineWithTotal = getTicks(0, withTotalMax.volume, 500);
-  const countTicksLineWithTotal = getTicks(0, withTotalMax.count, 50);
-  const volumeDomainLineWithTotal = [
-    0,
-    Math.ceil(withTotalMax.volume * (1 + padPct)),
-  ];
-  const countDomainLineWithTotal = [
-    0,
-    Math.ceil(withTotalMax.count * (1 + padPct)),
-  ];
-
-  /* Label rules config */
-  const effectiveSelectedCount =
-    Array.isArray(selectedIndustries) && selectedIndustries.length > 0
-      ? selectedIndustries.length
-      : industries.length;
-  const shouldFullyLabelLines = effectiveSelectedCount <= 3;
-
-  const latestYear = useMemo(
-    () => (rows.length ? Math.max(...rows.map((r) => Number(r.year) || 0)) : 0),
-    [rows]
-  );
-  const latestRow = useMemo(
-    () => rows.find((r) => Number(r.year) === latestYear),
-    [rows, latestYear]
-  );
-  const visibleIndustrySet = useMemo(
-    () =>
-      new Set(
-        (selectedIndustries?.length ? selectedIndustries : industries) ?? []
-      ),
-    [selectedIndustries, industries]
-  );
-  const top3For2024 = useMemo(() => {
-    const out = { volume: new Set(), count: new Set() };
-    if (!latestRow || latestYear !== 2024) return out;
-
-    const pickTop3 = (metricSuffix) => {
-      const scored = industries
-        .filter((ind) => visibleIndustrySet.has(ind))
-        .map((ind) => ({
-          ind,
-          v: Number(latestRow[`${sanitizeKey(ind)}__${metricSuffix}`] || 0),
-        }))
-        .filter(({ v }) => v > 0)
-        .sort((a, b) => b.v - a.v)
-        .slice(0, 3)
-        .map(({ ind }) => ind);
-      return new Set(scored);
-    };
-
-    out.volume = pickTop3('volume');
-    out.count = pickTop3('count');
-    return out;
-  }, [industries, latestRow, latestYear, visibleIndustrySet]);
-
   /* ---------- Expanded (modal) content ---------- */
   const ExpandedChartContent = () => {
     const isVolumeChart = expandedChart === 'volume';
-    const metricSuffix = isVolumeChart ? 'volume' : 'count';
     const dims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
-
-    const volTicks =
-      expandedMode === 'column'
-        ? volumeTicksStack
-        : expandedShowTotal
-        ? volumeTicksLineWithTotal
-        : volumeTicksLine;
-
-    const cntTicks =
-      expandedMode === 'column'
-        ? countTicksStack
-        : expandedShowTotal
-        ? countTicksLineWithTotal
-        : countTicksLine;
-
-    const domain = isVolumeChart
-      ? expandedMode === 'column'
-        ? volumeDomainStack
-        : expandedShowTotal
-        ? volumeDomainLineWithTotal
-        : volumeDomainLine
-      : expandedMode === 'column'
-      ? countDomainStack
-      : expandedShowTotal
-      ? countDomainLineWithTotal
-      : countDomainLine;
-
-    const { main } = createSeriesRenderers({
-      industries,
-      colorOf,
-      rows,
-      top5,
-      mode: expandedMode,
-      metricSuffix,
-      isExpandedView: true,
-      chartDims: dims,
-      shouldFullyLabelLines,
-      latestYear,
-      top3For2024,
-    });
 
     return (
       <div className='space-y-4'>
@@ -266,63 +471,19 @@ const ExpandableQuarterlyAnalysisChart = ({
           </button>
         </div>
 
-        <ResponsiveContainer width='100%' height={dims.height}>
-          <ComposedChart data={rows} margin={dims.margin} style={{ overflow: 'visible' }}>
-            <CartesianGrid strokeDasharray='3 3' stroke={GRID_STROKE} />
-            <XAxis
-              type='category'
-              dataKey='year'
-              stroke={AXIS_STROKE}
-              fontSize={16}
-              padding={{ left: 24, right: 24 }}
-              tickMargin={12}
-              height={60}
-            />
-            <YAxis
-              stroke={AXIS_STROKE}
-              fontSize={16}
-              ticks={isVolumeChart ? volTicks : cntTicks}
-              domain={domain}
-              allowDecimals={false}
-              label={{
-                value: isVolumeChart ? 'Investment Volume CHF (M)' : 'Number of Deals',
-                angle: -90,
-                position: 'insideLeft',
-                fill: AXIS_STROKE,
-                fontSize: 16,
-                style: { textAnchor: 'middle' },
-              }}
-            />
-            <Tooltip
-              wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
-              content={<SortedTooltip isVolume={isVolumeChart} />}
-            />
-
-            {expandedShowTotal &&
-              (expandedMode === 'column' ? (
-                <Line
-                  type='monotone'
-                  dataKey={isVolumeChart ? '__grandTotalVolume' : '__grandTotalCount'}
-                  stroke='#000'
-                  strokeWidth={3}
-                  dot={false}
-                  legendType='none'
-                  shape={(props) => <ShiftedLine {...props} offset={12} />}
-                />
-              ) : (
-                <Line
-                  type='monotone'
-                  dataKey={isVolumeChart ? '__grandTotalVolume' : '__grandTotalCount'}
-                  stroke='#000'
-                  strokeWidth={3}
-                  dot={false}
-                  legendType='none'
-                />
-              ))}
-
-            {main}
-          </ComposedChart>
-        </ResponsiveContainer>
+        <D3MultiSeriesChart
+          data={rows}
+          industries={industries}
+          isVolume={isVolumeChart}
+          mode={expandedMode}
+          width={dims.width || 800}
+          height={dims.height}
+          margin={dims.margin}
+          isExpanded={true}
+          colorOf={colorOf}
+          showTotal={expandedShowTotal}
+          selectedIndustries={selectedIndustries}
+        />
       </div>
     );
   };
@@ -343,63 +504,7 @@ const ExpandableQuarterlyAnalysisChart = ({
       isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN
     );
 
-    // VOLUME axis config
-    const volTicks =
-      leftModeState === 'column'
-        ? volumeTicksStack
-        : showTotalState
-        ? volumeTicksLineWithTotal
-        : volumeTicksLine;
-
-    const volDomain =
-      leftModeState === 'column'
-        ? volumeDomainStack
-        : showTotalState
-        ? volumeDomainLineWithTotal
-        : volumeDomainLine;
-
-    const { main: leftMain } = createSeriesRenderers({
-      industries,
-      colorOf,
-      rows,
-      top5,
-      mode: leftModeState,
-      metricSuffix: 'volume',
-      isExpandedView,
-      chartDims: dims,
-      shouldFullyLabelLines,
-      latestYear,
-      top3For2024,
-    });
-
-    // COUNT axis config
-    const cntTicks =
-      rightModeState === 'column'
-        ? countTicksStack
-        : showTotalState
-        ? countTicksLineWithTotal
-        : countTicksLine;
-
-    const cntDomain =
-      rightModeState === 'column'
-        ? countDomainStack
-        : showTotalState
-        ? countDomainLineWithTotal
-        : countDomainLine;
-
-    const { main: rightMain } = createSeriesRenderers({
-      industries,
-      colorOf,
-      rows,
-      top5,
-      mode: rightModeState,
-      metricSuffix: 'count',
-      isExpandedView,
-      chartDims: dims,
-      shouldFullyLabelLines,
-      latestYear,
-      top3For2024,
-    });
+    const chartWidth = dims.width ? dims.width / 2 - 20 : 400;
 
     return (
       <div className='space-y-4'>
@@ -441,10 +546,10 @@ const ExpandableQuarterlyAnalysisChart = ({
           </div>
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-2'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {/* LEFT: Volume */}
           <div className='space-y-2 relative'>
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 mb-2'>
               <h3 className='text-md font-semibold text-gray-800'>
                 Investment Volume vs Year
               </h3>
@@ -472,69 +577,24 @@ const ExpandableQuarterlyAnalysisChart = ({
               )}
             </div>
 
-            <ResponsiveContainer width='100%' height={dims.height}>
-              <ComposedChart data={rows} margin={dims.margin} style={{ overflow: 'visible' }}>
-                <CartesianGrid strokeDasharray='3 3' stroke={GRID_STROKE} />
-                <XAxis
-                  type='category'
-                  dataKey='year'
-                  stroke={AXIS_STROKE}
-                  fontSize={12}
-                  padding={{ left: 18, right: 18 }}
-                  tickMargin={12}
-                  height={60}
-                />
-                <YAxis
-                  stroke={AXIS_STROKE}
-                  fontSize={12}
-                  ticks={volTicks}
-                  domain={volDomain}
-                  allowDecimals={false}
-                  allowDataOverflow
-                  label={{
-                    value: 'Investment Volume CHF (M)',
-                    angle: -90,
-                    position: 'insideLeft',
-                    fill: AXIS_STROKE,
-                    fontSize: 13,
-                    style: { textAnchor: 'middle' },
-                  }}
-                />
-                <Tooltip
-                  wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
-                  content={<SortedTooltip isVolume />}
-                />
-
-                {showTotalState &&
-                  (leftModeState === 'column' ? (
-                    <Line
-                      type='linear'
-                      dataKey='__grandTotalVolume'
-                      stroke='#000'
-                      strokeWidth={isExpandedView ? 4 : 3}
-                      dot={false}
-                      legendType='none'
-                      shape={(props) => <ShiftedLine {...props} offset={8} />}
-                    />
-                  ) : (
-                    <Line
-                      type='monotone'
-                      dataKey='__grandTotalVolume'
-                      stroke='#000'
-                      strokeWidth={isExpandedView ? 4 : 3}
-                      dot={false}
-                      legendType='none'
-                    />
-                  ))}
-
-                {leftMain}
-              </ComposedChart>
-            </ResponsiveContainer>
+            <D3MultiSeriesChart
+              data={rows}
+              industries={industries}
+              isVolume={true}
+              mode={leftModeState}
+              width={dims.width ? dims.width / 2 - 20 : 400}
+              height={dims.height}
+              margin={dims.margin}
+              isExpanded={false}
+              colorOf={colorOf}
+              showTotal={showTotalState}
+              selectedIndustries={selectedIndustries}
+            />
           </div>
 
           {/* RIGHT: Count */}
           <div className='space-y-2 relative'>
-            <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 mb-2'>
               <h3 className='text-md font-semibold text-gray-800'>
                 Number of Deals vs Year
               </h3>
@@ -562,63 +622,19 @@ const ExpandableQuarterlyAnalysisChart = ({
               )}
             </div>
 
-            <ResponsiveContainer width='100%' height={dims.height}>
-              <ComposedChart data={rows} margin={dims.margin} style={{ overflow: 'visible' }}>
-                <CartesianGrid strokeDasharray='3 3' stroke={GRID_STROKE} />
-                <XAxis
-                  type='category'
-                  dataKey='year'
-                  stroke={AXIS_STROKE}
-                  fontSize={12}
-                  padding={{ left: 18, right: 18 }}
-                  tickMargin={12}
-                  height={60}
-                />
-                <YAxis
-                  stroke={AXIS_STROKE}
-                  fontSize={12}
-                  ticks={cntTicks}
-                  domain={cntDomain}
-                  allowDecimals={false}
-                  label={{
-                    value: 'Number of Deals',
-                    angle: -90,
-                    position: 'insideLeft',
-                    fill: AXIS_STROKE,
-                    fontSize: 13,
-                    style: { textAnchor: 'middle' },
-                }}
-                />
-                <Tooltip
-                  wrapperStyle={{ pointerEvents: 'none', zIndex: 9999 }}
-                  content={<SortedTooltip isVolume={false} />}
-                />
-
-                {showTotalState &&
-                  (rightModeState === 'column' ? (
-                    <Line
-                      type='linear'
-                      dataKey='__grandTotalCount'
-                      stroke='#000'
-                      strokeWidth={isExpandedView ? 4 : 3}
-                      dot={false}
-                      legendType='none'
-                      shape={(props) => <ShiftedLine {...props} offset={8} />}
-                    />
-                  ) : (
-                    <Line
-                      type='monotone'
-                      dataKey='__grandTotalCount'
-                      stroke='#000'
-                      strokeWidth={isExpandedView ? 4 : 3}
-                      dot={false}
-                      legendType='none'
-                    />
-                  ))}
-
-                {rightMain}
-              </ComposedChart>
-            </ResponsiveContainer>
+            <D3MultiSeriesChart
+              data={rows}
+              industries={industries}
+              isVolume={false}
+              mode={rightModeState}
+              width={dims.width ? dims.width / 2 - 20 : 400}
+              height={dims.height}
+              margin={dims.margin}
+              isExpanded={false}
+              colorOf={colorOf}
+              showTotal={showTotalState}
+              selectedIndustries={selectedIndustries}
+            />
           </div>
         </div>
 
