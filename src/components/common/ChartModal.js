@@ -36,7 +36,7 @@ const ChartModal = ({ isOpen, onClose, title, children, controls }) => {
       onClick={onClose}
     >
       <div
-        className="bg-gray-100 rounded-lg shadow-xl w-full h-full grid"
+        className="bg-gray-50 rounded-lg shadow-xl w-full h-full grid"
         style={{
           maxWidth: "65vw",
           maxHeight: "90vh",
@@ -46,10 +46,10 @@ const ChartModal = ({ isOpen, onClose, title, children, controls }) => {
         onClick={stop}
       >
         {/* Header */}
-        <div className="flex-shrink-0 bg-gray-100 border-b border-gray-200 px-8 py-3 sm:py-4 rounded-t-lg" // px-8 = 2rem
+        <div className="flex-shrink-0 bg-gray-50 border-b border-gray-200 px-8 py-3 sm:py-4 rounded-t-lg" // px-8 = 2rem
 >
           <div className="flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4 pl-8">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4 pl-4">
               {title}
             </h2>
             <button
@@ -65,7 +65,7 @@ const ChartModal = ({ isOpen, onClose, title, children, controls }) => {
 
         {/* Controls (optional) */}
         {controls && (
-          <div className="flex-shrink-0 bg-gray-100 px-8 py-2 sm:px-6 sm:py-3"
+          <div className="flex-shrink-0 bg-gray-50 px-8 py-2 sm:px-6 sm:py-3"
           style={{ paddingLeft: "4rem" }}>
             {controls}
           </div>
