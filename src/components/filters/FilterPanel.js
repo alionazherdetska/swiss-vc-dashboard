@@ -21,7 +21,7 @@ const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
     try {
       window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0");
     } catch {}
-  }, [open]);
+  }, [open, STORAGE_KEY]);
 
   const contentRef = useRef(null);
   const [maxH, setMaxH] = useState("0px");

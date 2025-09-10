@@ -61,7 +61,13 @@ const Dashboard = () => {
 					const processedExits = jsonData.Exits.map((e) => ({
 						...e, // Pass through all fields
 						Year: Number(e.Year) || null,
-						VolumeMChf: Number(e.ProceedsMChf ?? e.ExitValueMChf ?? 0),
+						VolumeMChf: Number(
+							e['Amount for publication (CHF m)'] ?? 
+							e['amount (CHF m) public and confidential - nur zur Gesamtauswertung (nicht f\u00fcr Publikation)'] ?? 
+							e.ProceedsMChf ?? 
+							e.ExitValueMChf ?? 
+							0
+						),
 					}));
 					console.log('Processed exits:', processedExits); // Debug log
 					setExits(processedExits);
