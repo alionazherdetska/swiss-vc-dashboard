@@ -28,9 +28,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
   const [expandedChart, setExpandedChart] = useState('volume'); // 'volume' | 'count'
   const [leftMode, setLeftMode] = useState('line');
   const [rightMode, setRightMode] = useState('line');
-  const [showTotal, setShowTotal] = useState(false);
   const [expandedMode, setExpandedMode] = useState('line');
-  const [expandedShowTotal, setExpandedShowTotal] = useState(true);
 
   // Filter exits with valid year
   const filteredExits = useMemo(() => {
@@ -141,28 +139,6 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
             {expandedMode === 'column'
               ? <Bar dataKey={`exits__${isVolumeChart ? 'volume' : 'count'}`} stackId={`stack-${isVolumeChart ? 'volume' : 'count'}`} fill={EXIT_COLOR} legendType='none' />
               : <Line type='monotone' dataKey={`exits__${isVolumeChart ? 'volume' : 'count'}`} stroke={EXIT_COLOR} strokeWidth={3} dot={false} legendType='none' />}
-            {expandedShowTotal && (
-              expandedMode === 'column' ? (
-                <Line
-                  type='monotone'
-                  dataKey={isVolumeChart ? '__grandTotalVolume' : '__grandTotalCount'}
-                  stroke='#000'
-                  strokeWidth={3}
-                  dot={false}
-                  legendType='none'
-                  shape={props => <ShiftedLine {...props} offset={12} />}
-                />
-              ) : (
-                <Line
-                  type='monotone'
-                  dataKey={isVolumeChart ? '__grandTotalVolume' : '__grandTotalCount'}
-                  stroke='#000'
-                  strokeWidth={3}
-                  dot={false}
-                  legendType='none'
-                />
-              )
-            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -194,15 +170,6 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
               <option value='line'>Line</option>
               <option value='column'>Column</option>
             </select>
-            <label className='flex items-center gap-2'>
-              <input
-                type='checkbox'
-                checked={showTotal}
-                onChange={e => setShowTotal(e.target.checked)}
-                className='text-red-600 focus:ring-red-500'
-              />
-              <span className='text-gray-700'>Show total</span>
-            </label>
           </div>
         </div>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -258,28 +225,6 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
                 {leftMode === 'column'
                   ? <Bar dataKey='exits__volume' stackId='stack-volume' fill={EXIT_COLOR} legendType='none' />
                   : <Line type='monotone' dataKey='exits__volume' stroke={EXIT_COLOR} strokeWidth={2} dot={false} legendType='none' />}
-                {showTotal && (
-                  leftMode === 'column' ? (
-                    <Line
-                      type='monotone'
-                      dataKey='__grandTotalVolume'
-                      stroke='#000'
-                      strokeWidth={3}
-                      dot={false}
-                      legendType='none'
-                      shape={props => <ShiftedLine {...props} offset={8} />}
-                    />
-                  ) : (
-                    <Line
-                      type='monotone'
-                      dataKey='__grandTotalVolume'
-                      stroke='#000'
-                      strokeWidth={3}
-                      dot={false}
-                      legendType='none'
-                    />
-                  )
-                )}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -334,28 +279,6 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
                 {rightMode === 'column'
                   ? <Bar dataKey='exits__count' stackId='stack-count' fill={EXIT_COLOR} legendType='none' />
                   : <Line type='monotone' dataKey='exits__count' stroke={EXIT_COLOR} strokeWidth={2} dot={false} legendType='none' />}
-                {showTotal && (
-                  rightMode === 'column' ? (
-                    <Line
-                      type='monotone'
-                      dataKey='__grandTotalCount'
-                      stroke='#000'
-                      strokeWidth={3}
-                      dot={false}
-                      legendType='none'
-                      shape={props => <ShiftedLine {...props} offset={8} />}
-                    />
-                  ) : (
-                    <Line
-                      type='monotone'
-                      dataKey='__grandTotalCount'
-                      stroke='#000'
-                      strokeWidth={3}
-                      dot={false}
-                      legendType='none'
-                    />
-                  )
-                )}
               </ComposedChart>
             </ResponsiveContainer>
           </div>
