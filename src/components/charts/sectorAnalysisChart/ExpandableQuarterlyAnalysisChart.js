@@ -441,7 +441,7 @@ const ExpandableQuarterlyAnalysisChart = ({
           </div>
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2'>
           {/* LEFT: Volume */}
           <div className='space-y-2 relative'>
             <div className='flex items-center gap-2'>
