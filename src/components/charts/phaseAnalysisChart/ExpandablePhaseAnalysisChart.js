@@ -109,7 +109,7 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                             const dataKey = `${sanitizeKey(phase)}${dataKeySuffix}`;
                             const color = colorOf(phase);
                             return modeState === 'column' ? (
-                                <Bar key={dataKey} dataKey={dataKey} stackId="stack" fill={color} name={phase} />
+                                <Bar key={dataKey} dataKey={dataKey} fill={color} name={phase} />
                             ) : (
                                 <Line 
                                     key={dataKey} 
@@ -200,6 +200,22 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                     modeState={rightMode} 
                     onModeChange={setRightMode} 
                 />
+            </div>
+
+            <div className='flex flex-wrap gap-4 mt-4'>
+                <span className='font-semibold'>Phases</span>
+                {phases.map((phase, idx) => (
+                    <span key={phase} className='flex items-center gap-2 text-sm'>
+                        <span style={{ 
+                            background: colorOf(phase), 
+                            width: 16, 
+                            height: 16, 
+                            borderRadius: 4, 
+                            display: 'inline-block' 
+                        }}></span>
+                        {phase}
+                    </span>
+                ))}
             </div>
 
             <ChartModal

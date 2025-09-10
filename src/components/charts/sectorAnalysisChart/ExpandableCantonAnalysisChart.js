@@ -115,6 +115,49 @@ const ExpandableCantonAnalysisChart = ({ deals, selectedCantonCount, totalCanton
 
     return (
         <>
+            <div className='text-center mb-4'>
+                <h2 className='text-xl font-bold text-gray-800'>
+                    Investment Analysis by Canton
+                </h2>
+                <p className='text-gray-600 mt-1'>
+                    {selectedCantonCount > 0 
+                        ? `Showing ${selectedCantonCount} of ${totalCantonCount} cantons` 
+                        : `Showing all ${totalCantonCount} cantons`}
+                </p>
+            </div>
+
+            <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50 mb-6'>
+                <div className='flex flex-wrap items-center gap-4'>
+                    <span className='text-gray-700'>Left (Value):</span>
+                    <select
+                        value={leftMode}
+                        onChange={e => setLeftMode(e.target.value)}
+                        className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
+                    >
+                        <option value='line'>Line</option>
+                        <option value='column'>Column</option>
+                    </select>
+                    <span className='text-gray-700'>Right (Count):</span>
+                    <select
+                        value={rightMode}
+                        onChange={e => setRightMode(e.target.value)}
+                        className='px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700'
+                    >
+                        <option value='line'>Line</option>
+                        <option value='column'>Column</option>
+                    </select>
+                    <label className='flex items-center gap-2'>
+                        <input
+                            type='checkbox'
+                            checked={showTotal}
+                            onChange={e => setShowTotal(e.target.checked)}
+                            className='text-red-600 focus:ring-red-500'
+                        />
+                        <span className='text-gray-700'>Show total</span>
+                    </label>
+                </div>
+            </div>
+
             <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 <div>
                     <ChartContent
@@ -137,9 +180,7 @@ const ExpandableCantonAnalysisChart = ({ deals, selectedCantonCount, totalCanton
                     />
                 </div>
             </div>
-            <div className='mt-4 text-sm text-gray-500'>
-                Showing {selectedCantonCount} of {totalCantonCount} cantons
-            </div>
+            
             <div className='flex flex-wrap gap-4 mt-4'>
                 <span className='font-semibold'>Cantons</span>
                         {cantons.map((canton, idx) => (
