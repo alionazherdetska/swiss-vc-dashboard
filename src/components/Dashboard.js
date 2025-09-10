@@ -7,6 +7,10 @@ import { TimelineChart } from './charts/TimelineChart.js';
 import { processCompanies, processDeals, generateChartData } from '../lib/utils';
 import { SAMPLE_DATA } from '../lib/constants.js';
 import ExpandableQuarterlyAnalysisChart from './charts/sectorAnalysisChart/ExpandableQuarterlyAnalysisChart.js';
+import ExpandablePhaseAnalysisChart from './charts/phaseAnalysisChart/ExpandablePhaseAnalysisChart.js';
+import ExpandableCantonAnalysisChart from './charts/sectorAnalysisChart/ExpandableCantonAnalysisChart.js';
+import ExpandableGenderAnalysisChart from './charts/sectorAnalysisChart/ExpandableGenderAnalysisChart.js';
+import ExpandableExitsAnalysisChart from './charts/sectorAnalysisChart/ExpandableExitsAnalysisChart.js';
 
 const Dashboard = () => {
 	// Companies only for mapping; UI is deals-only
@@ -55,9 +59,11 @@ const Dashboard = () => {
 
 				if (jsonData.Exits) {
 					const processedExits = jsonData.Exits.map((e) => ({
+						...e, // Pass through all fields
 						Year: Number(e.Year) || null,
 						VolumeMChf: Number(e.ProceedsMChf ?? e.ExitValueMChf ?? 0),
 					}));
+					console.log('Processed exits:', processedExits); // Debug log
 					setExits(processedExits);
 				}
 
@@ -234,68 +240,32 @@ const Dashboard = () => {
 									/>
 								)}
 								{activeChart === 'phase' && (
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={true}
-											title='Invested Capital by Phase'
-											yLabel='Invested Capital CHF (M)'
+										<ExpandablePhaseAnalysisChart
+											deals={filteredDeals}
+											selectedPhaseCount={filters.phases.length}
+											totalPhaseCount={filterOptions.phases.length}
 										/>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={false}
-											title='Number of Deals by Phase'
-											yLabel='Number of Deals'
-										/>
-									</div>
 								)}
 								{activeChart === 'canton' && (
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={true}
-											title='Invested Capital by Canton'
-											yLabel='Invested Capital CHF (M)'
+										<ExpandableCantonAnalysisChart
+											deals={filteredDeals}
+											selectedCantonCount={filters.cantons.length}
+											totalCantonCount={filterOptions.industries.length}
 										/>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={false}
-											title='Number of Deals by Canton'
-											yLabel='Number of Deals'
-										/>
-									</div>
 								)}
 								{activeChart === 'ceoGender' && (
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={true}
-											title='Invested Capital by CEO Gender'
-											yLabel='Invested Capital CHF (M)'
+										<ExpandableGenderAnalysisChart
+											deals={filteredDeals}
+											selectedGenderCount={filters.ceoGenders.length}
+											totalGenderCount={filterOptions.ceoGenders.length}
 										/>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={false}
-											title='Number of Deals by CEO Gender'
-											yLabel='Number of Deals'
-										/>
-									</div>
 								)}
 								{activeChart === 'exits' && (
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-										<TimelineChart
-											data={exitsTimeline}               // <<< use exits timeline
-											showVolume={true}
-											title='Exit Value by Year'
-											yLabel='Exit Value CHF (M)'
+										<ExpandableExitsAnalysisChart
+											exits={exits}
+											selectedYearCount={exitsTimeline.length}
+											totalYearCount={exitsTimeline.length}
 										/>
-										<TimelineChart
-											data={exitsTimeline}               // <<< use exits timeline
-											showVolume={false}
-											title='Number of Exits by Year'
-											yLabel='Number of Exits'
-										/>
-									</div>
 								)}
 							</div>
 						</div>

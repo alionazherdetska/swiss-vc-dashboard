@@ -197,6 +197,7 @@ export const processDeals = (dealsData, companiesData = []) => {
       return {
         ...deal,
         Amount: parsedAmountM,
+        VolumeMChf: parsedAmountM, // <-- ensure charting uses this
         Valuation: deal.Valuation ? parseFloat(deal.Valuation) : null,
         Year: year,
         Quarter: quarter,
