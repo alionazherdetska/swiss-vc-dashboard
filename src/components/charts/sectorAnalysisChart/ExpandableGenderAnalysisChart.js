@@ -237,17 +237,19 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
               <span className="text-gray-700">Show total</span>
             </label>
           </div>
-            <ChartLegend 
-              items={expandedShowTotal ? [...genders, 'Total'] : genders} 
-              colorOf={colorOf} 
-              title="Legend" 
-            />
           <ChartContent
             chartType={expandedChart}
             mode={expandedMode}
             showTotalState={expandedShowTotal}
             onModeChange={setExpandedMode}
           />
+          <div>
+            <ChartLegend 
+              items={expandedShowTotal ? [...genders, 'Total'] : genders} 
+              colorOf={colorOf} 
+              title="Legend" 
+            />
+          </div>
         </div>
       </ChartModal>
     </>
