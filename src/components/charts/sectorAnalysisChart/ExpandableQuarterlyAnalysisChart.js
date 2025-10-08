@@ -132,7 +132,7 @@ const D3MultiSeriesChart = ({
       .attr('x', 0 - (chartHeight / 2))
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
-      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('font-size', isExpanded ? '18px' : '12px')
       .style('fill', AXIS_STROKE)
       .text(isVolume ? 'Investment Volume CHF (M)' : 'Number of Deals');
 
@@ -412,6 +412,7 @@ const ExpandableQuarterlyAnalysisChart = ({
   }, [deals, data]);
 
   const { rows, industries } = useMemo(
+  const { rows, industries } = useMemo(
     () => prepareQuarterlyRows(dealsSource),
     [dealsSource]
   );
@@ -424,7 +425,7 @@ const ExpandableQuarterlyAnalysisChart = ({
   /* ---------- Expanded (modal) content ---------- */
   const ExpandedChartContent = () => {
     const isVolumeChart = expandedChart === 'volume';
-    const dims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
+    const dims = getChartDims(true, 620, EXPANDED_CHART_MARGIN);
 
     return (
       <div className='space-y-4'>
@@ -500,6 +501,7 @@ const ExpandableQuarterlyAnalysisChart = ({
       isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN
     );
 
+
     return (
       <div className='space-y-4'>
         <div className='flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50'>
@@ -543,12 +545,21 @@ const ExpandableQuarterlyAnalysisChart = ({
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           {/* LEFT: Volume */}
           <div className='space-y-2 relative'>
-            <div className='flex items-center gap-2 mb-2'>
+            <div className='flex flex-col gap-2 mb-2 pl-4'>
               <h3 className='text-md font-semibold text-gray-800'>
                 Investment Volume vs Year
               </h3>
+              <div className='flex gap-3'>
               {!isExpandedView && (
                 <>
+                  <button
+                    className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
+                    style={{ minHeight: '40px' }}
+                    title='Export chart (print or save as PDF)'
+                  >
+                    Export
+                    <img src="/download.svg" alt="Download" className="h-5 w-5" />
+                  </button>
                   <button
                     onClick={() => {
                       setExpandedChart('volume');
@@ -559,16 +570,9 @@ const ExpandableQuarterlyAnalysisChart = ({
                   >
                     <Maximize2 className='h-5 w-5' />
                   </button>
-                  <button
-                    className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                    style={{ minHeight: '40px' }}
-                    title='Export chart (print or save as PDF)'
-                  >
-                    Export
-                    <img src="/download.svg" alt="Download" className="h-5 w-5" />
-                  </button>
                 </>
               )}
+              </div>
             </div>
 
             <D3MultiSeriesChart
@@ -588,32 +592,34 @@ const ExpandableQuarterlyAnalysisChart = ({
 
           {/* RIGHT: Count */}
           <div className='space-y-2 relative'>
-            <div className='flex items-center gap-2 mb-2'>
+            <div className='flex flex-col gap-2 mb-2 pl-4'>
               <h3 className='text-md font-semibold text-gray-800'>
-                Number of Deals vs Year
+                Investment Volume vs Year
               </h3>
+              <div className='flex gap-3'>
               {!isExpandedView && (
                 <>
                   <button
-                    onClick={() => {
-                      setExpandedChart('count');
-                      setIsExpanded(true);
-                    }}
-                    className='p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors'
-                    title='Expand Count Chart'
-                  >
-                    <Maximize2 className='h-5 w-5' />
-                  </button>
-                  <button
-                    className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors"
+                    className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
                     style={{ minHeight: '40px' }}
                     title='Export chart (print or save as PDF)'
                   >
                     Export
                     <img src="/download.svg" alt="Download" className="h-5 w-5" />
                   </button>
+                  <button
+                    onClick={() => {
+                      setExpandedChart('volume');
+                      setIsExpanded(true);
+                    }}
+                    className='p-2 rounded-md bg-green-600 text-white shadow-md hover:bg-green-700 transition-colors'
+                    title='Expand Volume Chart'
+                  >
+                    <Maximize2 className='h-5 w-5' />
+                  </button>
                 </>
               )}
+              </div>
             </div>
 
             <D3MultiSeriesChart

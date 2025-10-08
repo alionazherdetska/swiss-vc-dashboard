@@ -9,61 +9,53 @@ import {
   GRID_STROKE,
 } from '../../../lib/constants';
 import { getChartDims } from '../../../lib/utils';
+import { getChartDims } from '../../../lib/utils';
 
 const EXIT_COLOR = '#E53E3E';
 const HOVER_COLOR = '#C53030';
 
-// D3 Chart Component
-const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) => {
+/* ===========================
+   D3 Chart for Exits
+   =========================== */
+const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded, gradientId }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
-
-  // Create a stable key for the data to force re-render when data actually changes
-  const dataHash = useMemo(() => {
-    return JSON.stringify(data?.map(d => ({ 
-      year: d.year, 
-      count: d.exits__count, 
-      volume: d.exits__volume 
-    })) || []);
-  }, [data]);
 
   useEffect(() => {
     if (!data || data.length === 0) return;
 
-    console.log('D3Chart re-rendering with data:', data); // Debug log
-
     const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
+    svg.selectAll('*').remove();
 
-    // Adjust margin for rotated labels
     const adjustedMargin = {
       ...margin,
-      bottom: isExpanded ? margin.bottom + 20 : margin.bottom + 15
+      bottom: isExpanded ? margin.bottom + 20 : margin.bottom + 15,
     };
 
     const chartWidth = width - adjustedMargin.left - adjustedMargin.right;
     const chartHeight = height - adjustedMargin.top - adjustedMargin.bottom;
 
-    // Create main group
-    const g = svg.append('g')
+    const g = svg
+      .append('g')
       .attr('transform', `translate(${adjustedMargin.left},${adjustedMargin.top})`);
 
+    const dataKey = isVolume ? 'exits__volume' : 'exits__count';
+
     // Scales
-    const xScale = d3.scaleBand()
+    const xScale = d3
+      .scaleBand()
       .domain(data.map(d => d.year))
       .range([0, chartWidth])
       .padding(0.1);
 
-    const dataKey = isVolume ? 'exits__volume' : 'exits__count';
     const maxValue = d3.max(data, d => d[dataKey]) || 0;
-    const yScale = d3.scaleLinear()
-      .domain([0, maxValue * 1.1])
-      .range([chartHeight, 0]);
+    const yMaxRounded = Math.max(10, Math.ceil(maxValue / 10) * 10);
+    const yScale = d3.scaleLinear().domain([0, yMaxRounded]).range([chartHeight, 0]);
+    const tickValues = d3.range(0, yMaxRounded + 1, 10);
 
-    // Grid lines
-    const yTicks = yScale.ticks(5);
+    // Grid
     g.selectAll('.grid-line')
-      .data(yTicks)
+      .data(tickValues)
       .enter()
       .append('line')
       .attr('class', 'grid-line')
@@ -75,7 +67,7 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
       .attr('stroke-dasharray', '3,3')
       .attr('opacity', 0.6);
 
-    // X axis
+    // Axes
     g.append('g')
       .attr('transform', `translate(0,${chartHeight})`)
       .call(d3.axisBottom(xScale))
@@ -87,21 +79,19 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
       .attr('dy', '.15em')
       .attr('transform', 'rotate(-45)');
 
-    // Y axis
     g.append('g')
-      .call(d3.axisLeft(yScale).ticks(5))
+      .call(d3.axisLeft(yScale).tickValues(tickValues))
       .selectAll('text')
       .style('font-size', isExpanded ? '14px' : '12px')
       .style('fill', AXIS_STROKE);
 
-    // Y axis label
     g.append('text')
       .attr('transform', 'rotate(-90)')
       .attr('y', 0 - adjustedMargin.left)
-      .attr('x', 0 - (chartHeight / 2))
+      .attr('x', 0 - chartHeight / 2)
       .attr('dy', '1em')
       .style('text-anchor', 'middle')
-      .style('font-size', isExpanded ? '14px' : '12px')
+      .style('font-size', isExpanded ? '16px' : '12px')
       .style('fill', AXIS_STROKE)
       .text(isVolume ? 'Exit Value CHF (M)' : 'Number of Exits');
 
@@ -109,7 +99,7 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
     const tooltip = d3.select(tooltipRef.current);
 
     if (mode === 'column') {
-      // Bar chart
+      // Bars
       g.selectAll('.bar')
         .data(data)
         .enter()
@@ -120,8 +110,7 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
         .attr('y', d => yScale(d[dataKey]))
         .attr('height', d => chartHeight - yScale(d[dataKey]))
         .attr('fill', EXIT_COLOR)
-        .attr('cursor', 'pointer')
-        .on('mouseover', function(event, d) {
+        .on('mouseover', function (event, d) {
           d3.select(this).attr('fill', HOVER_COLOR);
           
           // Get the SVG container position for relative positioning
@@ -147,15 +136,24 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
           tooltip.style('opacity', 0);
         });
     } else {
-      // Line chart with area fill
-      const line = d3.line()
-        .x(d => xScale(d.year) + xScale.bandwidth() / 2)
-        .y(d => yScale(d[dataKey]))
-        .curve(d3.curveMonotoneX);
+      // Line + area
+      const defs = svg.append('defs');
+      const grad = defs
+        .append('linearGradient')
+        .attr('id', gradientId)
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', 0)
+        .attr('y2', 1);
 
-      // Area fill
-      const area = d3.area()
-        .x(d => xScale(d.year) + xScale.bandwidth() / 2)
+      grad.append('stop').attr('offset', '0%').attr('stop-color', EXIT_COLOR).attr('stop-opacity', 0.28);
+      grad.append('stop').attr('offset', '100%').attr('stop-color', EXIT_COLOR).attr('stop-opacity', 0.05);
+
+      const xCenter = d => xScale(d.year) + xScale.bandwidth() / 2;
+
+      const area = d3
+        .area()
+        .x(xCenter)
         .y0(chartHeight)
         .y1(d => yScale(d[dataKey]))
         .curve(d3.curveMonotoneX);
@@ -264,61 +262,41 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
           tooltip.style('opacity', 0);
         });
     }
-
-  }, [data, isVolume, mode, width, height, margin, isExpanded, dataHash]);
+  }, [data, isVolume, mode, width, height, margin, isExpanded, gradientId]);
 
   return (
     <div className="relative">
       <svg ref={svgRef} width={width} height={height}></svg>
-      <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50"></div>
+      <div ref={tooltipRef} className="absolute pointer-events-none opacity-0"></div>
     </div>
   );
 };
 
+/* ===========================
+   ExpandableExitsAnalysisChart
+   =========================== */
 const ExpandableExitsAnalysisChart = ({ exits }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [chartMode, setChartMode] = useState('line');
-  const [rightMode, setRightMode] = useState('line'); // Keep for backward compatibility
 
-  // Filter exits with valid year
-  const filteredExits = useMemo(() => {
-    const filtered = exits.filter(e => e.Year);
-    console.log('ExpandableExitsAnalysisChart - Filtered exits:', filtered); // Debug log
-    console.log('ExpandableExitsAnalysisChart - Total exits received:', exits.length); // Debug log
-    return filtered;
-  }, [exits]);
+const filteredExits = useMemo(() => 
+    exits.filter(e => e.Year && Number(e.Year) < 2025), 
+    [exits]
+  );
+  const years = useMemo(
+    () => Array.from(new Set(filteredExits.map(e => Number(e.Year)))).sort((a, b) => a - b),
+    [filteredExits]
+  );
 
-  const years = useMemo(() => {
-    const yearArray = Array.from(new Set(filteredExits.map(e => Number(e.Year)))).sort((a, b) => a - b);
-    console.log('ExpandableExitsAnalysisChart - Available years:', yearArray); // Debug log
-    return yearArray;
-  }, [filteredExits]);
-  
-  // Start from first year with data
-  const firstYearWithData = useMemo(() => {
-    for (const y of years) {
-      if (filteredExits.some(e => Number(e.Year) === y)) return y;
-    }
-    return years[0];
-  }, [years, filteredExits]);
-  
-  const visibleYears = useMemo(() => years.filter(y => y >= firstYearWithData), [years, firstYearWithData]);
-
-  // Prepare chart rows: { year, exits_count, exits_volume, totalCount, totalVolume }
   const rows = useMemo(() => {
-    const result = visibleYears.map(year => {
+    return years.map(year => {
       const items = filteredExits.filter(e => Number(e.Year) === year);
       const count = items.length;
       const volume = items.reduce((sum, e) => sum + (e.VolumeMChf || 0), 0);
-      console.log(`ExpandableExitsAnalysisChart - Year ${year}: count=${count}, volume=${volume}, items:`, items); // Debug log
       return {
         year,
         exits__count: count,
         exits__volume: Math.round(volume * 10) / 10,
-        totalCount: count,
-        totalVolume: Math.round(volume * 10) / 10,
-        __grandTotalCount: count,
-        __grandTotalVolume: Math.round(volume * 10) / 10,
       };
     });
     console.log('ExpandableExitsAnalysisChart - Chart rows:', result); // Debug log
