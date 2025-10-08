@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import { Maximize2 } from 'lucide-react';
 import ChartModal from '../../common/ChartModal';
+import ExportButton from '../../common/ExportButton';
 import {
   CHART_MARGIN,
   EXPANDED_CHART_MARGIN,
@@ -344,14 +345,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
               <option value='column'>Column</option>
             </select>
           </div>
-          <button
-            className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-            style={{ minHeight: '40px' }}
-            title='Export chart (print or save as PDF)'
-          >
-            Export
-            <img src='/download.svg' alt='Download' className='h-5 w-5' />
-          </button>
+          <ExportButton />
         </div>
         <D3Chart
           data={rows}
@@ -396,14 +390,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
             >
               <Maximize2 className='h-5 w-5' />
             </button>
-            <button
-              className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-              style={{ minHeight: '40px' }}
-              title='Export chart (print or save as PDF)'
-            >
-              Export
-              <img src='/download.svg' alt='Download' className='h-5 w-5' />
-            </button>
+            <ExportButton />
           </div>
           <D3Chart
             data={rows}

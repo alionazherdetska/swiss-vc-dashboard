@@ -11,6 +11,7 @@ import {
     YAxis,
 } from 'recharts';
 import ChartModal from '../../common/ChartModal';
+import ExportButton from '../../common/ExportButton';
 import ChartLegend from '../sectorAnalysisChart/components/ChartLegend';
 import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
 import { sanitizeKey, getChartDims } from '../../../lib/utils';
@@ -81,13 +82,7 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                             >
                                 <Maximize2 className='w-5 h-5' />
                             </button>
-                            <button
-                                className='h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors'
-                                title='Export chart (print or save as PDF)'
-                            >
-                                Export
-                                <img src='/download.svg' alt='Download' className='h-5 w-5' />
-                            </button>
+                            <ExportButton />
                         </>
                     )}
                 </div>
@@ -143,13 +138,7 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                             <option value='column'>Column</option>
                         </select>
                     </div>
-                    <button
-                className='p-2 rounded-md bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-colors'
-                        title='Export chart (print or save as PDF)'
-                    >
-                        Export
-                        <img src='/download.svg' alt='Download' className='h-5 w-5' />
-                    </button>
+                    <ExportButton />
                 </div>
                 <ChartContent 
                     chartType={chartType} 

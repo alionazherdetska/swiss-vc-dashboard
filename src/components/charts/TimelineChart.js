@@ -8,6 +8,7 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import ExportButton from '../common/ExportButton';
 
 const CHART_MARGIN = { top: 50, right: 50, left: 10, bottom: 10 };
 
@@ -30,14 +31,7 @@ export const TimelineChart = ({
             {title}
           </h3>
         )}
-        <button
-          className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors"
-          style={{ minHeight: '40px' }}
-          title="Export chart (print or save as PDF)"
-        >
-          Export
-          <img src="/download.svg" alt="Download" className="h-5 w-5" />
-        </button>
+        <ExportButton />
       </div>
       <ResponsiveContainer width="100%" height={400}>
         <AreaChart data={data} margin={CHART_MARGIN}>

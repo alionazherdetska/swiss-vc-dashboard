@@ -1,5 +1,6 @@
 import React from 'react';
 import { Maximize2 } from 'lucide-react';
+import ExportButton from './ExportButton';
 
 /**
  * Reusable chart header component
@@ -40,15 +41,7 @@ const ChartHeader = ({
       {(showExpandButton || showExportButton || children) && (
         <div className="flex gap-2 ml-auto">
           {showExportButton && (
-            <button
-              onClick={onExport}
-              className="h-10 px-4 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors"
-              style={{ minHeight: '40px' }}
-              title="Export chart (print or save as PDF)"
-            >
-              Export
-              <img src="/download.svg" alt="Download" className="h-5 w-5" />
-            </button>
+            <ExportButton onClick={onExport} />
           )}
           
           {showExpandButton && (
