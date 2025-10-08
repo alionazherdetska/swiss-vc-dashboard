@@ -170,7 +170,6 @@ const D3MultiSeriesChart = ({
           const roundedValue = isVolume ? Math.round(value * 10) / 10 : Math.round(value);
           
           // Get the SVG container position for relative positioning
-          const svgRect = svgRef.current.getBoundingClientRect();
           const containerRect = svgRef.current.parentElement.getBoundingClientRect();
           
           // Calculate position relative to the chart container
@@ -229,7 +228,6 @@ const D3MultiSeriesChart = ({
           .attr('cursor', 'pointer')
           .on('mouseover', function(event, d) {
             // Get the SVG container position for relative positioning
-            const svgRect = svgRef.current.getBoundingClientRect();
             const containerRect = svgRef.current.parentElement.getBoundingClientRect();
             
             // Calculate position relative to the chart container
@@ -288,7 +286,6 @@ const D3MultiSeriesChart = ({
           .attr('cursor', 'pointer')
           .on('mouseover', function(event, d) {
             // Get the SVG container position for relative positioning
-            const svgRect = svgRef.current.getBoundingClientRect();
             const containerRect = svgRef.current.parentElement.getBoundingClientRect();
             
             // Calculate position relative to the chart container
@@ -329,7 +326,6 @@ const D3MultiSeriesChart = ({
         .attr('cursor', 'pointer')
         .on('mouseover', function(event, d) {
           // Get the SVG container position for relative positioning
-          const svgRect = svgRef.current.getBoundingClientRect();
           const containerRect = svgRef.current.parentElement.getBoundingClientRect();
           
           // Calculate position relative to the chart container
@@ -415,7 +411,7 @@ const ExpandableQuarterlyAnalysisChart = ({
     return [];
   }, [deals, data]);
 
-  const { rows, industries, top5 } = useMemo(
+  const { rows, industries } = useMemo(
     () => prepareQuarterlyRows(dealsSource),
     [dealsSource]
   );
@@ -503,8 +499,6 @@ const ExpandableQuarterlyAnalysisChart = ({
       undefined,
       isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN
     );
-
-    const chartWidth = dims.width ? dims.width / 2 - 20 : 400;
 
     return (
       <div className='space-y-4'>

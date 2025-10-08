@@ -43,7 +43,7 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
     const [rightMode, setRightMode] = useState('line');
     const [showTotal, setShowTotal] = useState(false);
     const [expandedMode, setExpandedMode] = useState('line');
-    const [expandedShowTotal, setExpandedShowTotal] = useState(true);
+    const [expandedShowTotal] = useState(true);
 
     // Filter out deals with unknown gender
     const filteredDeals = useMemo(() => deals.filter(d => {

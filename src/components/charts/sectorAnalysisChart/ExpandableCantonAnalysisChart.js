@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import { Maximize2 } from 'lucide-react';
 import ChartModal from '../../common/ChartModal';
 import ChartLegend from './components/ChartLegend';
-import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE, CHART_MARGIN, EXPANDED_CHART_MARGIN } from '../../../lib/constants';
+import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
 import { sanitizeKey, getChartDims, normalizeCanton } from '../../../lib/utils';
 const downloadIcon = process.env.PUBLIC_URL + '/download.svg';
 

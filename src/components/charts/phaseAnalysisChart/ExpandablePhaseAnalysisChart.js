@@ -1,21 +1,19 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
-import * as d3 from 'd3';
+import React, { useMemo, useState } from 'react';
 import { Maximize2 } from 'lucide-react';
+import {
+    CartesianGrid,
+    ComposedChart,
+    Line,
+    Bar,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 import ChartModal from '../../common/ChartModal';
 import ChartLegend from '../sectorAnalysisChart/components/ChartLegend';
-
-import {
-  CHART_MARGIN,
-  EXPANDED_CHART_MARGIN,
-  ENHANCED_COLOR_PALETTE,
-  AXIS_STROKE,
-  GRID_STROKE,
-} from '../../../lib/constants';
-
-import {
-  sanitizeKey,
-  getChartDims,
-} from '../../../lib/utils';
+import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
+import { sanitizeKey, getChartDims } from '../../../lib/utils';
 
 const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
     const [expandedChart, setExpandedChart] = useState(null); // 'volume' | 'count' | null

@@ -8,7 +8,7 @@ import {
   AXIS_STROKE,
   GRID_STROKE,
 } from '../../../lib/constants';
-import { getChartDims, getTicks } from '../../../lib/utils';
+import { getChartDims } from '../../../lib/utils';
 
 const EXIT_COLOR = '#E53E3E';
 const HOVER_COLOR = '#C53030';
@@ -125,7 +125,6 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
           d3.select(this).attr('fill', HOVER_COLOR);
           
           // Get the SVG container position for relative positioning
-          const svgRect = svgRef.current.getBoundingClientRect();
           const containerRect = svgRef.current.parentElement.getBoundingClientRect();
           
           // Calculate position relative to the chart container
@@ -207,7 +206,6 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
         .attr('cursor', 'pointer')
         .on('mouseover', function(event, d) {
           // Get the SVG container position for relative positioning
-          const svgRect = svgRef.current.getBoundingClientRect();
           const containerRect = svgRef.current.parentElement.getBoundingClientRect();
           
           // Calculate position relative to the chart container
@@ -244,7 +242,6 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
           d3.select(this).attr('r', 6).attr('fill', HOVER_COLOR);
           
           // Get the SVG container position for relative positioning
-          const svgRect = svgRef.current.getBoundingClientRect();
           const containerRect = svgRef.current.parentElement.getBoundingClientRect();
           
           // Calculate position relative to the chart container
@@ -328,15 +325,6 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
     console.log('ExpandableExitsAnalysisChart - Total exits for all years:', result.reduce((sum, r) => sum + r.exits__count, 0)); // Debug log
     return result;
   }, [visibleYears, filteredExits]);
-
-  // Axis maxima and ticks
-  const volumeMax = useMemo(() => rows.length ? Math.max(...rows.map(r => r.totalVolume || 0)) : 0, [rows]);
-  const countMax = useMemo(() => rows.length ? Math.max(...rows.map(r => r.totalCount || 0)) : 0, [rows]);
-  const volumeTicks = getTicks(0, volumeMax, 5);
-  const countTicks = getTicks(0, countMax, 2);
-  const padPct = 0.04;
-  const volumeDomain = [0, Math.ceil(volumeMax * (1 + padPct))];
-  const countDomain = [0, Math.ceil(countMax * (1 + padPct))];
 
   // Expanded modal chart (only count chart)
   const ExpandedChartContent = () => {
