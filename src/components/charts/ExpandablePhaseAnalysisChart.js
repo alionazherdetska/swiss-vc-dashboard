@@ -10,11 +10,11 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import ChartModal from '../../common/ChartModal';
-import ExportButton from '../../common/ExportButton';
-import ChartLegend from '../sectorAnalysisChart/components/ChartLegend';
-import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
-import { sanitizeKey, getChartDims } from '../../../lib/utils';
+import ChartModal from '../common/ChartModal';
+import ExportButton from '../common/ExportButton';
+import ChartLegend from './components/ChartLegend';
+import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../lib/constants';
+import { sanitizeKey, getChartDims } from '../../lib/utils';
 
 const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
     const [expandedChart, setExpandedChart] = useState(null); // 'volume' | 'count' | null

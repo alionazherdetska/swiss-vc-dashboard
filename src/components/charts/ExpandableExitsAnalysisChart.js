@@ -1,15 +1,15 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import * as d3 from 'd3';
 import { Maximize2 } from 'lucide-react';
-import ChartModal from '../../common/ChartModal';
-import ExportButton from '../../common/ExportButton';
+import ChartModal from '../common/ChartModal';
+import ExportButton from '../common/ExportButton';
 import {
   CHART_MARGIN,
   EXPANDED_CHART_MARGIN,
   AXIS_STROKE,
   GRID_STROKE,
-} from '../../../lib/constants';
-import { getChartDims } from '../../../lib/utils';
+} from '../../lib/constants';
+import { getChartDims } from '../../lib/utils';
 
 const EXIT_COLOR = '#E53E3E';
 const HOVER_COLOR = '#C53030';

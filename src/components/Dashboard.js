@@ -6,11 +6,11 @@ import { TimelineChart } from './charts/TimelineChart.js';
 
 import { processCompanies, processDeals, generateChartData } from '../lib/utils';
 import { SAMPLE_DATA } from '../lib/constants.js';
-import ExpandableQuarterlyAnalysisChart from './charts/sectorAnalysisChart/ExpandableQuarterlyAnalysisChart.js';
-import ExpandablePhaseAnalysisChart from './charts/phaseAnalysisChart/ExpandablePhaseAnalysisChart.js';
-import ExpandableCantonAnalysisChart from './charts/sectorAnalysisChart/ExpandableCantonAnalysisChart.js';
-import ExpandableGenderAnalysisChart from './charts/sectorAnalysisChart/ExpandableGenderAnalysisChart.js';
-import ExpandableExitsAnalysisChart from './charts/sectorAnalysisChart/ExpandableExitsAnalysisChart.js';
+import ExpandableQuarterlyAnalysisChart from './charts/ExpandableQuarterlyAnalysisChart.js';
+import ExpandablePhaseAnalysisChart from './charts/ExpandablePhaseAnalysisChart.js';
+import ExpandableCantonAnalysisChart from './charts/ExpandableCantonAnalysisChart.js';
+import ExpandableGenderAnalysisChart from './charts/ExpandableGenderAnalysisChart.js';
+import ExpandableExitsAnalysisChart from './charts/ExpandableExitsAnalysisChart.js';
 
 const Dashboard = () => {
 	// Companies only for mapping; UI is deals-only

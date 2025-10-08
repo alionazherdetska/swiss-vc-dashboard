@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import BaseExpandableChart from '../shared/BaseExpandableChart';
-import { DualChartLayout } from '../shared/ChartLayouts';
-import D3MultiSeriesChart from '../shared/D3MultiSeriesChart';
+import BaseExpandableChart from './shared/BaseExpandableChart';
+import { DualChartLayout } from './shared/ChartLayouts';
+import D3MultiSeriesChart from './shared/D3MultiSeriesChart';
 import ChartLegend from './components/ChartLegend';
-import { calculateYearlyData, extractCategories, getChartConfig } from '../shared/chartDataUtils';
-import { getChartDims, normalizeCanton, makeDistributedColorFn } from '../../../lib/utils';
-import { CHART_MARGIN, EXPANDED_CHART_MARGIN, ENHANCED_COLOR_PALETTE } from '../../../lib/constants';
+import { calculateYearlyData, extractCategories, getChartConfig } from './shared/chartDataUtils';
+import { getChartDims, normalizeCanton, makeDistributedColorFn } from '../../lib/utils';
+import { CHART_MARGIN, EXPANDED_CHART_MARGIN, ENHANCED_COLOR_PALETTE } from '../../lib/constants';
 
 /**
  * Refactored ExpandableCantonAnalysisChart using new shared architecture
