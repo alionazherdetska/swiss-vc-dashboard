@@ -68,7 +68,7 @@ const D3CantonChart = ({
       }
     }
 
-    const yScale = d3.scaleLinear().domain([0, maxValue * 1.05]).range([chartHeight, 0]);
+    const yScale = d3.scaleLinear().domain([0, maxValue * 1.2]).range([chartHeight, 0]);
 
     // Grid
     g.selectAll('.grid-line')
@@ -95,7 +95,7 @@ const D3CantonChart = ({
 
     // Y axis
     g.append('g')
-      .call(d3.axisLeft(yScale).ticks(10))
+      .call(d3.axisLeft(yScale).ticks(5))
       .selectAll('text')
       .style('font-size', isExpanded ? '14px' : '12px')
       .style('fill', AXIS_STROKE);
@@ -288,7 +288,7 @@ const D3CantonChart = ({
   }, [data, cantons, isVolume, mode, width, height, margin, isExpanded, colorOf, showTotal]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="relative">
       <svg ref={svgRef} width={width} height={height}></svg>
       <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 z-50"></div>
     </div>
@@ -344,7 +344,7 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
   }, [deals]);
 
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 640, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 650, EXPANDED_CHART_MARGIN);
 
   return (
     <div className="space-y-6">
