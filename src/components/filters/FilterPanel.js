@@ -1,74 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Filter, ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Filter } from "lucide-react";
 import { OFFICIAL_CANTONS } from "../../lib/constants";
 
-/* ---------- Collapsible Section ---------- */
-const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
-  const STORAGE_KEY = `filters.section.${id}.open`;
-  const prefersReduced =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-  const [open, setOpen] = useState(() => {
-    const saved =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem(STORAGE_KEY)
-        : null;
-    return saved != null ? saved === "1" : defaultOpen;
-  });
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0");
-    } catch {}
-  }, [open, STORAGE_KEY]);
-
-  const contentRef = useRef(null);
-  const [maxH, setMaxH] = useState("0px");
-
-  useEffect(() => {
-    if (!contentRef.current) return;
-    const h = open ? `${contentRef.current.scrollHeight}px` : "0px";
-    setMaxH(h);
-  }, [open, children]);
-
-  return (
-    <div className="mb-2 border border-gray-200 rounded-md overflow-hidden bg-white">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-2 py-1.5 text-left"
-        aria-expanded={open}
-        aria-controls={`${id}-content`}
-      >
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-gray-800">{title}</span>
-          {countBadge != null && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
-              {countBadge}
-            </span>
-          )}
-        </div>
-        <ChevronDown
-          className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
-      </button>
-
-      <div
-        id={`${id}-content`}
-        ref={contentRef}
-        style={{
-          maxHeight: maxH,
-          transition: prefersReduced ? "none" : "max-height 180ms ease",
-        }}
-        className="overflow-hidden border-t border-gray-100 bg-white"
-      >
-        <div className="p-2">{children}</div>
-      </div>
-    </div>
-  );
-};
+const Section = ({ title, children }) => (
+  <div className="mr-6 mb-4 min-w-[180px]">
+    <div className="font-medium text-gray-800 mb-2 text-sm">{title}</div>
+    {children}
+  </div>
+);
 
 /* ---------- Main FilterPanel ---------- */
 const FilterPanel = ({
@@ -92,6 +31,7 @@ const FilterPanel = ({
 
   const sectionIds = useMemo(() => {
     const base = ["year", "cantons", "ceo", "industries"]; // Always include CEO gender
+  const selectAllLabel = () => "All";
     if (dealsTab) base.push("dealtypes", "phases");
     return base;
   }, [dealsTab]);

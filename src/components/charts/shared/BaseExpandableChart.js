@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ChartModal from "../../common/ChartModal";
 import ChartControls from "./ChartControls";
-import ChartHeader from "./ChartHeader";
+// ...existing code...
 
 /**
  * Base expandable chart component that provides common functionality

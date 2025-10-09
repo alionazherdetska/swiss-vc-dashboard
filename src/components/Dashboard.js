@@ -193,21 +193,9 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
-        {/* Filters Panel */}
-        <div className="lg:col-span-1">
-          <FilterPanel
-            filters={filters}
-            filterOptions={filterOptions}
-            activeTab="deals"
-            updateFilter={updateFilter}
-            toggleArrayFilter={toggleArrayFilter}
-            resetFilters={resetFilters}
-          />
-        </div>
-
+      <div className="grid grid-cols-1 gap-2">
         {/* Charts Panel with tab-like chart selector */}
-        <div className="lg:col-span-4">
+        <div>
           <div className="flex flex-col gap-2 rounded-lg shadow-sm p-6 border bg-white border-gray-200">
             {/* Tab bar */}
             <div className="flex space-x-2 p-1 rounded-lg bg-gray-100">
@@ -282,6 +270,17 @@ const Dashboard = () => {
               )}
             </div>
           </div>
+        </div>
+        {/* Filters Panel at the bottom */}
+        <div>
+          <FilterPanel
+            filters={filters}
+            filterOptions={filterOptions}
+            activeTab="deals"
+            updateFilter={updateFilter}
+            toggleArrayFilter={toggleArrayFilter}
+            resetFilters={resetFilters}
+          />
         </div>
       </div>
     </div>
