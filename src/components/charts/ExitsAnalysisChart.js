@@ -276,7 +276,7 @@ const D3Chart = ({ data, isVolume, mode, width, height, margin, isExpanded }) =>
   );
 };
 
-const ExpandableExitsAnalysisChart = ({ exits }) => {
+const ExitsAnalysisChart = ({ exits }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [chartMode, setChartMode] = useState('line');
   const [rightMode, setRightMode] = useState('line'); // Keep for backward compatibility
@@ -284,14 +284,14 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
   // Filter exits with valid year
   const filteredExits = useMemo(() => {
     const filtered = exits.filter(e => e.Year);
-    console.log('ExpandableExitsAnalysisChart - Filtered exits:', filtered); // Debug log
-    console.log('ExpandableExitsAnalysisChart - Total exits received:', exits.length); // Debug log
+    console.log('ExitsAnalysisChart - Filtered exits:', filtered); // Debug log
+    console.log('ExitsAnalysisChart - Total exits received:', exits.length); // Debug log
     return filtered;
   }, [exits]);
 
   const years = useMemo(() => {
     const yearArray = Array.from(new Set(filteredExits.map(e => Number(e.Year)))).sort((a, b) => a - b);
-    console.log('ExpandableExitsAnalysisChart - Available years:', yearArray); // Debug log
+    console.log('ExitsAnalysisChart - Available years:', yearArray); // Debug log
     return yearArray;
   }, [filteredExits]);
   
@@ -311,7 +311,7 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
       const items = filteredExits.filter(e => Number(e.Year) === year);
       const count = items.length;
       const volume = items.reduce((sum, e) => sum + (e.VolumeMChf || 0), 0);
-      console.log(`ExpandableExitsAnalysisChart - Year ${year}: count=${count}, volume=${volume}, items:`, items); // Debug log
+      console.log(`ExitsAnalysisChart - Year ${year}: count=${count}, volume=${volume}, items:`, items); // Debug log
       return {
         year,
         exits__count: count,
@@ -322,8 +322,8 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
         __grandTotalVolume: Math.round(volume * 10) / 10,
       };
     });
-    console.log('ExpandableExitsAnalysisChart - Chart rows:', result); // Debug log
-    console.log('ExpandableExitsAnalysisChart - Total exits for all years:', result.reduce((sum, r) => sum + r.exits__count, 0)); // Debug log
+    console.log('ExitsAnalysisChart - Chart rows:', result); // Debug log
+    console.log('ExitsAnalysisChart - Total exits for all years:', result.reduce((sum, r) => sum + r.exits__count, 0)); // Debug log
     return result;
   }, [visibleYears, filteredExits]);
 
@@ -420,4 +420,4 @@ const ExpandableExitsAnalysisChart = ({ exits }) => {
   );
 };
 
-export default ExpandableExitsAnalysisChart;
+export default ExitsAnalysisChart;

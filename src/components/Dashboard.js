@@ -6,11 +6,11 @@ import { TimelineChart } from './charts/TimelineChart.js';
 
 import { processCompanies, processDeals, generateChartData } from '../lib/utils';
 import { SAMPLE_DATA } from '../lib/constants.js';
-import ExpandableQuarterlyAnalysisChart from './charts/ExpandableQuarterlyAnalysisChart.js';
-import ExpandablePhaseAnalysisChart from './charts/ExpandablePhaseAnalysisChart.js';
-import ExpandableCantonAnalysisChart from './charts/ExpandableCantonAnalysisChart.js';
-import ExpandableGenderAnalysisChart from './charts/ExpandableGenderAnalysisChart.js';
-import ExpandableExitsAnalysisChart from './charts/ExpandableExitsAnalysisChart.js';
+import QuarterlyAnalysisChart from './charts/QuarterlyAnalysisChart.js';
+import PhaseAnalysisChart from './charts/PhaseAnalysisChart.js';
+import CantonAnalysisChart from './charts/CantonAnalysisChart.js';
+import GenderAnalysisChart from './charts/GenderAnalysisChart.js';
+import ExitsAnalysisChart from './charts/ExitsAnalysisChart.js';
 
 const Dashboard = () => {
 	// Companies only for mapping; UI is deals-only
@@ -239,35 +239,35 @@ const Dashboard = () => {
 									</div>
 								)}
 								{activeChart === 'quarterly' && (
-									<ExpandableQuarterlyAnalysisChart
+									<QuarterlyAnalysisChart
 										deals={filteredDeals}
 										selectedIndustryCount={filters.industries.length}
 										totalIndustryCount={filterOptions.industries.length}
 									/>
 								)}
 								{activeChart === 'phase' && (
-										<ExpandablePhaseAnalysisChart
+										<PhaseAnalysisChart
 											deals={filteredDeals}
 											selectedPhaseCount={filters.phases.length}
 											totalPhaseCount={filterOptions.phases.length}
 										/>
 								)}
 								{activeChart === 'canton' && (
-										<ExpandableCantonAnalysisChart
+										<CantonAnalysisChart
 											deals={filteredDeals}
 											selectedCantonCount={filters.cantons.length}
 											totalCantonCount={filterOptions.industries.length}
 										/>
 								)}
 								{activeChart === 'ceoGender' && (
-										<ExpandableGenderAnalysisChart
+										<GenderAnalysisChart
 											deals={filteredDeals}
 											selectedGenderCount={filters.ceoGenders.length}
 											totalGenderCount={filterOptions.ceoGenders.length}
 										/>
 								)}
 								{activeChart === 'exits' && (
-										<ExpandableExitsAnalysisChart
+										<ExitsAnalysisChart
 											exits={exits}
 											selectedYearCount={exitsTimeline.length}
 											totalYearCount={exitsTimeline.length}

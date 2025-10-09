@@ -51,7 +51,7 @@ const CantonLegend = ({ cantons, colorOf }) => (
   <ChartLegend items={cantons} colorOf={colorOf} title="Cantons" />
 );
 
-const ExpandableCantonAnalysisChart = ({ deals }) => {
+const CantonAnalysisChart = ({ deals }) => {
   // Process data
   const { chartData, cantons, colorOf } = useMemo(() => {
     if (!deals?.length) return { chartData: [], cantons: [], colorOf: () => '#000' };
@@ -178,4 +178,4 @@ const ExpandableCantonAnalysisChart = ({ deals }) => {
   );
 };
 
-export default ExpandableCantonAnalysisChart;
+export default CantonAnalysisChart;

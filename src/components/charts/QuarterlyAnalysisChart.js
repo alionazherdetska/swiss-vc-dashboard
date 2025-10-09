@@ -4,25 +4,18 @@ import { DualChartLayout } from './shared/ChartLayouts';
 import D3MultiSeriesChart from './shared/D3MultiSeriesChart';
 import ChartLegend from './components/ChartLegend';
 import { calculateYearlyData, extractCategories, getChartConfig } from './shared/chartDataUtils';
-import { getChartDims } from '../../lib/utils';
-import { CHART_MARGIN, EXPANDED_CHART_MARGIN } from '../../lib/constants';
+import { getChartDims, makeDistributedColorFn } from '../../lib/utils';
+import { CHART_MARGIN, EXPANDED_CHART_MARGIN, INDUSTRY_COLOR_MAP, ENHANCED_COLOR_PALETTE } from '../../lib/constants';
 
 /**
- * Refactored ExpandableGenderAnalysisChart using new shared architecture
- * Reduces code by ~70% by leveraging shared components and utilities
+ * Refactored ExpandableQuarterlyAnalysisChart using new shared architecture
+ * Reduces code by ~75% by leveraging shared components and utilities
  */
 
-// Gender color map
-const GENDER_COLOR_MAP = {
-  Male: '#3182CE',
-  Female: '#E53E3E',
-  Other: '#38A169',
-};
-
-// Chart component wrapper for gender data
-const GenderChart = ({ 
+// Chart component wrapper for quarterly/industry data
+const QuarterlyChart = ({ 
   data, 
-  genders, 
+  industries, 
   isVolume, 
   mode, 
   width, 
@@ -30,15 +23,19 @@ const GenderChart = ({
   margin, 
   isExpanded = false, 
   colorOf,
-  showTotal = false 
+  showTotal = false,
+  selectedIndustries = []
 }) => {
   const metricSuffix = isVolume ? '__volume' : '__count';
   const yAxisLabel = isVolume ? 'Investment Volume CHF (M)' : 'Number of Deals';
 
+  // Filter industries if selectedIndustries is provided
+  const displayIndustries = selectedIndustries.length > 0 ? selectedIndustries : industries;
+
   return (
     <D3MultiSeriesChart
       data={data}
-      categories={genders}
+      categories={displayIndustries}
       isVolume={isVolume}
       mode={mode}
       width={width}
@@ -54,49 +51,48 @@ const GenderChart = ({
 };
 
 // Legend component
-const GenderLegend = ({ genders, colorOf }) => (
-  <ChartLegend items={genders} colorOf={colorOf} title="Gender" />
+const IndustryLegend = ({ industries, colorOf }) => (
+  <ChartLegend items={industries} colorOf={colorOf} title="Industries" />
 );
 
-const ExpandableGenderAnalysisChart = ({ deals }) => {
+const QuarterlyAnalysisChart = ({ 
+  deals, 
+  selectedIndustries = [], 
+  selectedIndustryCount,
+  totalIndustryCount 
+}) => {
   // Process data
-  const { chartData, genders, colorOf } = useMemo(() => {
-    if (!deals?.length) return { chartData: [], genders: [], colorOf: () => '#000' };
+  const { chartData, industries, colorOf } = useMemo(() => {
+    if (!deals?.length) return { chartData: [], industries: [], colorOf: () => '#000' };
 
-    // Filter out deals with unknown gender
-    const filteredDeals = deals.filter(d => {
-      const gender = d['Gender CEO'];
-      return gender && gender.trim() && gender !== 'Unknown';
-    });
-
-    // Extract unique genders
-    const extractedGenders = extractCategories(
-      filteredDeals, 
-      item => item['Gender CEO']
+    // Extract unique industries
+    const extractedIndustries = extractCategories(
+      deals, 
+      item => item.Industry
     ).sort();
 
     // Calculate yearly data
-    const config = getChartConfig('gender');
-    const yearlyData = calculateYearlyData(filteredDeals, {
+    const config = getChartConfig('quarterly');
+    const yearlyData = calculateYearlyData(deals, {
       ...config,
-      categories: extractedGenders,
-      getCategoryValue: item => item['Gender CEO'],
+      categories: extractedIndustries,
+      getCategoryValue: item => item.Industry,
       includeTotal: true
     });
 
-    // Color function using gender color map
-    const colorFn = (gender) => GENDER_COLOR_MAP[gender] || '#666666';
+    // Color function using industry color map with fallback to enhanced palette
+    const colorFn = makeDistributedColorFn(INDUSTRY_COLOR_MAP, ENHANCED_COLOR_PALETTE);
 
     return {
       chartData: yearlyData,
-      genders: extractedGenders,
+      industries: extractedIndustries,
       colorOf: colorFn
     };
   }, [deals]);
 
   // Chart dimensions
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 660, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
 
   // Main chart components
   const VolumeChart = ({ data, mode, isExpanded = false }) => {
@@ -106,9 +102,9 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
     };
     
     return (
-      <GenderChart
+      <QuarterlyChart
         data={data}
-        genders={genders}
+        industries={industries}
         isVolume={true}
         mode={mode}
         width={currentDims.width}
@@ -117,6 +113,7 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
         isExpanded={isExpanded}
         colorOf={colorOf}
         showTotal={false}
+        selectedIndustries={selectedIndustries}
       />
     );
   };
@@ -128,9 +125,9 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
     };
     
     return (
-      <GenderChart
+      <QuarterlyChart
         data={data}
-        genders={genders}
+        industries={industries}
         isVolume={false}
         mode={mode}
         width={currentDims.width}
@@ -139,30 +136,55 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
         isExpanded={isExpanded}
         colorOf={colorOf}
         showTotal={false}
+        selectedIndustries={selectedIndustries}
       />
     );
   };
 
   // Expanded chart component
-  const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
+  const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal }) => {
     const isVolumeChart = expandedChart === 'volume';
     
     return isVolumeChart ? (
-      <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
+      <QuarterlyChart 
+        data={data} 
+        industries={industries}
+        mode={mode} 
+        isExpanded={isExpanded}
+        isVolume={true}
+        width={expandedDims.width}
+        height={expandedDims.height}
+        margin={expandedDims.margin}
+        colorOf={colorOf}
+        showTotal={showTotal}
+        selectedIndustries={selectedIndustries}
+      />
     ) : (
-      <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+      <QuarterlyChart 
+        data={data} 
+        industries={industries}
+        mode={mode} 
+        isExpanded={isExpanded}
+        isVolume={false}
+        width={expandedDims.width}
+        height={expandedDims.height}
+        margin={expandedDims.margin}
+        colorOf={colorOf}
+        showTotal={showTotal}
+        selectedIndustries={selectedIndustries}
+      />
     );
   };
 
   // Handle export
   const handleExport = () => {
-    console.log('Export gender chart');
+    console.log('Export quarterly chart');
     // TODO: Implement export functionality
   };
 
   return (
     <BaseExpandableChart
-      title="Gender Analysis"
+      title="Quarterly Analysis"
       data={chartData}
       ChartComponent={({ data, leftMode, rightMode, showTotal, onExpand }) => (
         <DualChartLayout
@@ -179,7 +201,7 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
         />
       )}
       ExpandedChartComponent={ExpandedChart}
-      LegendComponent={() => <GenderLegend genders={genders} colorOf={colorOf} />}
+      LegendComponent={() => <IndustryLegend industries={industries} colorOf={colorOf} />}
       isDualChart={true}
       supportsSingleMode={false}
       supportsTotal={true}
@@ -191,4 +213,4 @@ const ExpandableGenderAnalysisChart = ({ deals }) => {
   );
 };
 
-export default ExpandableGenderAnalysisChart;
+export default QuarterlyAnalysisChart;

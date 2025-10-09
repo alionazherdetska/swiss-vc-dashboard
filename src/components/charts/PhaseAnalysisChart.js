@@ -8,7 +8,7 @@ import ChartLegend from './components/ChartLegend';
 import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from '../../lib/constants';
 import { sanitizeKey, getChartDims } from '../../lib/utils';
 
-const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
+const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
     const [expandedChart, setExpandedChart] = useState(null); // 'volume' | 'count' | null
     const [leftMode, setLeftMode] = useState('line');
     const [rightMode, setRightMode] = useState('line');
@@ -177,4 +177,4 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
     );
 };
 
-export default ExpandablePhaseAnalysisChart;
+export default PhaseAnalysisChart;
