@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { Filter } from "lucide-react";
+import { useMemo } from "react";
 import { OFFICIAL_CANTONS } from "../../lib/constants";
 
 const Section = ({ title, children, minHeight }) => (
@@ -11,7 +10,6 @@ const Section = ({ title, children, minHeight }) => (
   </div>
 );
 
-/* ---------- Main FilterPanel ---------- */
 const FilterPanel = ({
   filters,
   filterOptions,
@@ -63,7 +61,7 @@ const FilterPanel = ({
   }, [ceoTotal, industriesTotal, dealTypesTotal, phasesTotal, dealsTab]);
 
   return (
-    <div className="rounded-lg shadow-sm px-6 py-5 border bg-white border-gray-200">
+    <div className="px-6 py-5lex space-x-2 p-1 rounded-lg bg-gray-100">
       {/* Header with Year Range and Reset */}
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
         <div className="flex items-center gap-6">

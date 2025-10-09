@@ -193,12 +193,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1">
         {/* Charts Panel with tab-like chart selector */}
         <div>
-          <div className="flex flex-col gap-2 rounded-lg shadow-sm p-6 border bg-white border-gray-200">
+          <div className="flex flex-col rounded-lg shadow-sm p-6 border bg-white border-gray-200">
             {/* Tab bar */}
-            <div className="flex space-x-2 p-1 rounded-lg bg-gray-100">
+            <div className="flex space-x-2 p-1">
               {chartTabs.map((tab) => (
                 <button
                   key={tab.key}
@@ -268,11 +268,6 @@ const Dashboard = () => {
                   totalYearCount={exitsTimeline.length}
                 />
               )}
-            </div>
-          </div>
-        </div>
-        {/* Filters Panel at the bottom */}
-        <div>
           <FilterPanel
             filters={filters}
             filterOptions={filterOptions}
@@ -281,6 +276,11 @@ const Dashboard = () => {
             toggleArrayFilter={toggleArrayFilter}
             resetFilters={resetFilters}
           />
+            </div>
+          </div>
+        </div>
+        {/* Filters Panel at the bottom */}
+        <div>
         </div>
       </div>
     </div>
