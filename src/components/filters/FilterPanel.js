@@ -102,8 +102,8 @@ const FilterPanel = ({
       sectionIds.forEach((id) =>
         window.localStorage.setItem(
           `filters.section.${id}.open`,
-          open ? "1" : "0"
-        )
+          open ? "1" : "0",
+        ),
       );
       setRemountKey((k) => k + 1);
     } catch {}
@@ -143,11 +143,7 @@ const FilterPanel = ({
       </div>
 
       {/* Year Range */}
-      <Section
-        id="year"
-        title="Year Range"
-        defaultOpen
-      >
+      <Section id="year" title="Year Range" defaultOpen>
         <div className="flex items-center gap-1 ">
           <input
             type="number"
@@ -156,7 +152,10 @@ const FilterPanel = ({
             value={filters.yearRange[0]}
             onChange={(e) =>
               updateFilter("yearRange", [
-                Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
+                Math.min(
+                  parseInt(e.target.value || "0"),
+                  filters.yearRange[1] - 1,
+                ),
                 filters.yearRange[1],
               ])
             }
@@ -171,12 +170,14 @@ const FilterPanel = ({
             onChange={(e) =>
               updateFilter("yearRange", [
                 filters.yearRange[0],
-                Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
+                Math.max(
+                  parseInt(e.target.value || "0"),
+                  filters.yearRange[0] + 1,
+                ),
               ])
             }
             className="w-16 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
           />
-
         </div>
       </Section>
 
@@ -192,7 +193,7 @@ const FilterPanel = ({
                   "cantons",
                   filters.cantons.length === OFFICIAL_CANTONS.length
                     ? []
-                    : OFFICIAL_CANTONS.map((c) => c.name)
+                    : OFFICIAL_CANTONS.map((c) => c.name),
                 )
               }
               className="w-3.5 h-3.5 text-red-600"
@@ -202,7 +203,10 @@ const FilterPanel = ({
             </span>
           </label>
           {OFFICIAL_CANTONS.map((canton) => (
-            <label key={canton.code} className="flex items-center gap-1 px-1.5 py-1.5 cursor-pointer">
+            <label
+              key={canton.code}
+              className="flex items-center gap-1 px-1.5 py-1.5 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={filters.cantons.includes(canton.name)}
@@ -229,7 +233,7 @@ const FilterPanel = ({
                   "ceoGenders",
                   (filters.ceoGenders?.length || 0) === ceoTotal
                     ? []
-                    : filterOptions.ceoGenders
+                    : filterOptions.ceoGenders,
                 )
               }
               className="w-3.5 h-3.5 text-red-600"
@@ -239,7 +243,10 @@ const FilterPanel = ({
             </span>
           </label>
           {filterOptions.ceoGenders?.map((gender) => (
-            <label key={gender} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+            <label
+              key={gender}
+              className="flex items-center gap-1 px-1 py-1 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={filters.ceoGenders?.includes(gender) || false}
@@ -264,7 +271,7 @@ const FilterPanel = ({
                   "industries",
                   filters.industries.length === industriesTotal
                     ? []
-                    : filterOptions.industries
+                    : filterOptions.industries,
                 )
               }
               className="w-3.5 h-3.5 text-red-600"
@@ -274,7 +281,10 @@ const FilterPanel = ({
             </span>
           </label>
           {filterOptions.industries?.map((industry) => (
-            <label key={industry} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+            <label
+              key={industry}
+              className="flex items-center gap-1 px-1 py-1 cursor-pointer"
+            >
               <input
                 type="checkbox"
                 checked={filters.industries.includes(industry)}
@@ -300,7 +310,7 @@ const FilterPanel = ({
                     "dealTypes",
                     filters.dealTypes.length === dealTypesTotal
                       ? []
-                      : filterOptions.dealTypes
+                      : filterOptions.dealTypes,
                   )
                 }
                 className="w-3.5 h-3.5 text-red-600"
@@ -310,7 +320,10 @@ const FilterPanel = ({
               </span>
             </label>
             {filterOptions.dealTypes?.map((type) => (
-              <label key={type} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+              <label
+                key={type}
+                className="flex items-center gap-1 px-1 py-1 cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={filters.dealTypes.includes(type)}
@@ -337,7 +350,7 @@ const FilterPanel = ({
                     "phases",
                     filters.phases.length === phasesTotal
                       ? []
-                      : filterOptions.phases
+                      : filterOptions.phases,
                   )
                 }
                 className="w-3.5 h-3.5 text-red-600"
@@ -347,7 +360,10 @@ const FilterPanel = ({
               </span>
             </label>
             {filterOptions.phases?.map((phase) => (
-              <label key={phase} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+              <label
+                key={phase}
+                className="flex items-center gap-1 px-1 py-1 cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   checked={filters.phases.includes(phase)}

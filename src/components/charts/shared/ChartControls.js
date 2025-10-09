@@ -1,6 +1,6 @@
-import React from 'react';
-import { Maximize2 } from 'lucide-react';
-import ExportButton from '../../common/ExportButton';
+import React from "react";
+import { Maximize2 } from "lucide-react";
+import ExportButton from "../../common/ExportButton";
 
 /**
  * Reusable chart controls component
@@ -15,30 +15,30 @@ const ChartControls = ({
   onLeftModeChange,
   onRightModeChange,
   onSingleModeChange,
-  
+
   // Layout type
   isDualChart = false,
-  
+
   // Show total checkbox
   showTotalControl = false,
   showTotal,
   onShowTotalChange,
-  
+
   // Export functionality
   showExportButton = true,
   onExport,
-  
+
   // Expand functionality
   showExpandButton = true,
   onExpand,
-  expandButtonColor = 'bg-blue-600',
-  expandTitle = 'Expand chart',
-  
+  expandButtonColor = "bg-blue-600",
+  expandTitle = "Expand chart",
+
   // Custom controls
   children,
-  
+
   // Styling
-  className = 'flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50'
+  className = "flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50",
 }) => {
   return (
     <div className={className}>
@@ -70,7 +70,7 @@ const ChartControls = ({
             </div>
           </>
         )}
-        
+
         {/* Mode controls for single charts */}
         {showModeControls && !isDualChart && (
           <div className="flex items-center gap-2">
@@ -85,7 +85,7 @@ const ChartControls = ({
             </select>
           </div>
         )}
-        
+
         {/* Show Total checkbox */}
         {showTotalControl && (
           <label className="flex items-center gap-2">
@@ -97,17 +97,15 @@ const ChartControls = ({
             <span className="text-gray-700">Show total</span>
           </label>
         )}
-        
+
         {/* Custom controls */}
         {children}
       </div>
-      
+
       {/* Action buttons */}
       <div className="flex items-center gap-2">
-        {showExportButton && (
-          <ExportButton onClick={onExport} />
-        )}
-        
+        {showExportButton && <ExportButton onClick={onExport} />}
+
         {showExpandButton && (
           <button
             onClick={onExpand}

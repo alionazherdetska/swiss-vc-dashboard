@@ -3,18 +3,18 @@
  * Handles data aggregation, grouping, and transformation patterns
  */
 
-import { sanitizeKey } from '../../../lib/utils';
+import { sanitizeKey } from "../../../lib/utils";
 
 /**
  * Group data by year for chart processing
  */
-export const groupDataByYear = (data, groupByField = 'Year') => {
+export const groupDataByYear = (data, groupByField = "Year") => {
   if (!data || !Array.isArray(data)) return {};
-  
+
   return data.reduce((acc, item) => {
     const year = item[groupByField];
     if (!year) return acc;
-    
+
     if (!acc[year]) {
       acc[year] = [];
     }
@@ -28,15 +28,15 @@ export const groupDataByYear = (data, groupByField = 'Year') => {
  */
 export const calculateYearlyData = (data, config) => {
   const {
-    groupByField = 'Year',
+    groupByField = "Year",
     categories = [],
     getCategoryValue = (item) => item.Industry,
     getVolumeValue = (item) => item.VolumeMChf || 0,
-    includeTotal = false
+    includeTotal = false,
   } = config;
 
   const groupedByYear = groupDataByYear(data, groupByField);
-  
+
   return Object.entries(groupedByYear)
     .map(([year, items]) => {
       const yearData = { year: parseInt(year) };
@@ -44,14 +44,15 @@ export const calculateYearlyData = (data, config) => {
       let totalVolume = 0;
 
       // Process each category
-      categories.forEach(category => {
-        const categoryItems = items.filter(item => 
-          getCategoryValue(item) === category
+      categories.forEach((category) => {
+        const categoryItems = items.filter(
+          (item) => getCategoryValue(item) === category,
         );
-        
+
         const count = categoryItems.length;
-        const volume = categoryItems.reduce((sum, item) => 
-          sum + getVolumeValue(item), 0
+        const volume = categoryItems.reduce(
+          (sum, item) => sum + getVolumeValue(item),
+          0,
         );
 
         const sanitizedKey = sanitizeKey(category);
@@ -80,25 +81,25 @@ export const calculateYearlyData = (data, config) => {
  */
 export const calculateSimpleYearlyData = (data, config = {}) => {
   const {
-    groupByField = 'Year',
+    groupByField = "Year",
     getVolumeValue = (item) => item.VolumeMChf || 0,
-    countField = 'count',
-    volumeField = 'volume'
+    countField = "count",
+    volumeField = "volume",
   } = config;
 
   const groupedByYear = groupDataByYear(data, groupByField);
-  
+
   return Object.entries(groupedByYear)
     .map(([year, items]) => {
       const count = items.length;
       const volume = items.reduce((sum, item) => sum + getVolumeValue(item), 0);
-      
+
       return {
         year: parseInt(year),
         [countField]: count,
         [volumeField]: Math.round(volume * 10) / 10,
         totalCount: count,
-        totalVolume: Math.round(volume * 10) / 10
+        totalVolume: Math.round(volume * 10) / 10,
       };
     })
     .sort((a, b) => a.year - b.year);
@@ -109,23 +110,23 @@ export const calculateSimpleYearlyData = (data, config = {}) => {
  */
 export const extractCategories = (data, getCategoryValue, sortFn = null) => {
   if (!data || !Array.isArray(data)) return [];
-  
-  const categories = [...new Set(
-    data
-      .map(getCategoryValue)
-      .filter(Boolean)
-  )];
-  
+
+  const categories = [...new Set(data.map(getCategoryValue).filter(Boolean))];
+
   return sortFn ? categories.sort(sortFn) : categories;
 };
 
 /**
  * Filter data by selected categories
  */
-export const filterDataByCategories = (data, selectedCategories, getCategoryValue) => {
+export const filterDataByCategories = (
+  data,
+  selectedCategories,
+  getCategoryValue,
+) => {
   if (!selectedCategories || selectedCategories.length === 0) return data;
-  
-  return data.filter(item => {
+
+  return data.filter((item) => {
     const category = getCategoryValue(item);
     return selectedCategories.includes(category);
   });
@@ -134,16 +135,20 @@ export const filterDataByCategories = (data, selectedCategories, getCategoryValu
 /**
  * Prepare chart series data for D3 charts
  */
-export const prepareChartSeries = (data, categories, metricSuffix = '__volume') => {
-  return data.map(yearData => {
+export const prepareChartSeries = (
+  data,
+  categories,
+  metricSuffix = "__volume",
+) => {
+  return data.map((yearData) => {
     const series = { ...yearData };
-    
-    categories.forEach(category => {
+
+    categories.forEach((category) => {
       const sanitizedKey = sanitizeKey(category);
       const value = yearData[`${sanitizedKey}${metricSuffix}`] || 0;
       series[sanitizedKey] = value;
     });
-    
+
     return series;
   });
 };
@@ -156,29 +161,29 @@ export const getChartConfig = (chartType) => {
     quarterly: {
       getCategoryValue: (item) => item.Industry,
       getVolumeValue: (item) => item.VolumeMChf || 0,
-      includeTotal: true
+      includeTotal: true,
     },
     canton: {
       getCategoryValue: (item) => item.Canton,
       getVolumeValue: (item) => item.VolumeMChf || 0,
-      includeTotal: true
+      includeTotal: true,
     },
     gender: {
       getCategoryValue: (item) => item.Gender,
       getVolumeValue: (item) => item.VolumeMChf || 0,
-      includeTotal: true
+      includeTotal: true,
     },
     phase: {
       getCategoryValue: (item) => item.Phase,
       getVolumeValue: (item) => item.VolumeMChf || 0,
-      includeTotal: true
+      includeTotal: true,
     },
     exits: {
       getVolumeValue: (item) => item.VolumeMChf || 0,
-      countField: 'exits__count',
-      volumeField: 'exits__volume'
-    }
+      countField: "exits__count",
+      volumeField: "exits__volume",
+    },
   };
-  
+
   return configs[chartType] || configs.quarterly;
 };

@@ -1,5 +1,10 @@
 // utils.js
-import { OFFICIAL_CANTONS, CANTON_MAP, CHART_MARGIN, EXPANDED_CHART_MARGIN } from "./constants";
+import {
+  OFFICIAL_CANTONS,
+  CANTON_MAP,
+  CHART_MARGIN,
+  EXPANDED_CHART_MARGIN,
+} from "./constants";
 
 /* =========================
    Generic helpers for charts
@@ -7,7 +12,9 @@ import { OFFICIAL_CANTONS, CANTON_MAP, CHART_MARGIN, EXPANDED_CHART_MARGIN } fro
 
 // D3-safe key sanitization
 export const sanitizeKey = (s) =>
-  String(s || "Unknown").replace(/\s+/g, "_").replace(/[^\w]/g, "_");
+  String(s || "Unknown")
+    .replace(/\s+/g, "_")
+    .replace(/[^\w]/g, "_");
 
 // Compute chart dimensions; optional margins override
 export const getChartDims = (isExpandedView, forcedHeight, margins) => ({
@@ -127,7 +134,9 @@ export const processDeals = (dealsData, companiesData = []) => {
   }
 
   const processedDeals = dealsData
-    .filter((deal) => deal.Confidential !== "TRUE" && deal.Confidential !== true)
+    .filter(
+      (deal) => deal.Confidential !== "TRUE" && deal.Confidential !== true,
+    )
     .map((deal) => {
       let year = null;
       let quarter = null;
@@ -160,7 +169,11 @@ export const processDeals = (dealsData, companiesData = []) => {
           matchedCompany = companyLookup.get(withoutSuffix);
         }
 
-        if (matchedCompany && matchedCompany.Industry && matchedCompany.Industry.trim()) {
+        if (
+          matchedCompany &&
+          matchedCompany.Industry &&
+          matchedCompany.Industry.trim()
+        ) {
           industry = matchedCompany.Industry.trim();
           mappingSource = "company_lookup";
         }
@@ -195,14 +208,14 @@ export const processDeals = (dealsData, companiesData = []) => {
           ? parseFloat(parsedAmountM) < 1
             ? "<1M"
             : parseFloat(parsedAmountM) < 5
-            ? "1-5M"
-            : parseFloat(parsedAmountM) < 10
-            ? "5-10M"
-            : parseFloat(parsedAmountM) < 25
-            ? "10-25M"
-            : parseFloat(parsedAmountM) < 50
-            ? "25-50M"
-            : "50M+"
+              ? "1-5M"
+              : parseFloat(parsedAmountM) < 10
+                ? "5-10M"
+                : parseFloat(parsedAmountM) < 25
+                  ? "10-25M"
+                  : parseFloat(parsedAmountM) < 50
+                    ? "25-50M"
+                    : "50M+"
           : "Unknown",
       };
     });
@@ -210,11 +223,19 @@ export const processDeals = (dealsData, companiesData = []) => {
   return processedDeals;
 };
 
-export const generateChartData = (activeTab, filteredCompanies, filteredDeals) => {
-  const currentData = activeTab === "companies" ? filteredCompanies : filteredDeals;
+export const generateChartData = (
+  activeTab,
+  filteredCompanies,
+  filteredDeals,
+) => {
+  const currentData =
+    activeTab === "companies" ? filteredCompanies : filteredDeals;
 
   if (activeTab === "companies") {
-    const byYear = {}, byIndustry = {}, byCanton = {}, byFunded = {};
+    const byYear = {},
+      byIndustry = {},
+      byCanton = {},
+      byFunded = {};
 
     currentData.forEach((item) => {
       if (item.Year) byYear[item.Year] = (byYear[item.Year] || 0) + 1;
@@ -236,13 +257,13 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
       .map(([name]) => name);
 
     const allYears = Array.from(
-      new Set(currentData.map((d) => d.Year).filter(Boolean))
+      new Set(currentData.map((d) => d.Year).filter(Boolean)),
     ).sort((a, b) => a - b);
 
     const industryTrends = realIndustries.map((industry) => {
       const industryData = allYears.map((year) => {
         const count = currentData.filter(
-          (d) => d.Industry === industry && d.Year === year
+          (d) => d.Industry === industry && d.Year === year,
         ).length;
         return { year, value: count, count, volume: 0, quarter: null };
       });
@@ -252,7 +273,12 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
 
     return {
       timeline: Object.entries(byYear)
-        .map(([year, count]) => ({ year: parseInt(year), count, volume: 0, label: year }))
+        .map(([year, count]) => ({
+          year: parseInt(year),
+          count,
+          volume: 0,
+          label: year,
+        }))
         .sort((a, b) => a.year - b.year),
       industries: Object.entries(byIndustry)
         .filter(([name]) => name && name !== "Unknown")
@@ -262,7 +288,10 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 15),
-      funded: Object.entries(byFunded).map(([name, value]) => ({ name, value })),
+      funded: Object.entries(byFunded).map(([name, value]) => ({
+        name,
+        value,
+      })),
       industryTrends,
     };
   }
@@ -279,11 +308,13 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
   currentData.forEach((item) => {
     if (item.Year) {
       byYear[item.Year] = (byYear[item.Year] || 0) + 1;
-      byYearVolume[item.Year] = (byYearVolume[item.Year] || 0) + (item.Amount || 0);
+      byYearVolume[item.Year] =
+        (byYearVolume[item.Year] || 0) + (item.Amount || 0);
     }
     if (item.Type) byType[item.Type] = (byType[item.Type] || 0) + 1;
     if (item.Phase) byPhase[item.Phase] = (byPhase[item.Phase] || 0) + 1;
-    if (item.AmountRange) byAmount[item.AmountRange] = (byAmount[item.AmountRange] || 0) + 1;
+    if (item.AmountRange)
+      byAmount[item.AmountRange] = (byAmount[item.AmountRange] || 0) + 1;
     if (item.Canton) byCanton[item.Canton] = (byCanton[item.Canton] || 0) + 1;
 
     // Only deals with REAL industry + time granularity
@@ -306,7 +337,12 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
       data: Object.entries(yearQuarterData)
         .map(([yq, d]) => {
           const [year, qStr] = yq.split("-Q");
-          return { year: parseInt(year), quarter: parseInt(qStr), count: d.count, volume: d.volume };
+          return {
+            year: parseInt(year),
+            quarter: parseInt(qStr),
+            count: d.count,
+            volume: d.volume,
+          };
         })
         .filter((d) => d.year && d.quarter)
         .sort((a, b) => a.year - b.year || a.quarter - b.quarter),

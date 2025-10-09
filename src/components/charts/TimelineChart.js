@@ -1,15 +1,10 @@
 import React from "react";
-import D3AreaChart from './shared/D3AreaChart';
-import ResponsiveD3Container from './shared/ResponsiveD3Container';
-import ExportButton from '../common/ExportButton';
+import D3AreaChart from "./shared/D3AreaChart";
+import ResponsiveD3Container from "./shared/ResponsiveD3Container";
+import ExportButton from "../common/ExportButton";
 
 /** Timeline (deals) */
-export const TimelineChart = ({
-  data,
-  showVolume = false,
-  title,
-  yLabel,
-}) => {
+export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
   const chartKey = showVolume ? "volume" : "count";
   const defaultY = showVolume ? "Volume (CHF M)" : "Count";
   const chartLabel = yLabel || defaultY;
@@ -18,9 +13,7 @@ export const TimelineChart = ({
     <div className="space-y-2">
       <div className="flex items-center mb-2">
         {title && (
-          <h3 className="text-md font-semibold text-gray-800 mr-2">
-            {title}
-          </h3>
+          <h3 className="text-md font-semibold text-gray-800 mr-2">{title}</h3>
         )}
         <ExportButton />
       </div>

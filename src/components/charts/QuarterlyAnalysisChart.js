@@ -1,11 +1,20 @@
-import React, { useMemo } from 'react';
-import BaseExpandableChart from './shared/BaseExpandableChart';
-import { DualChartLayout } from './shared/ChartLayouts';
-import D3MultiSeriesChart from './shared/D3MultiSeriesChart';
-import ChartLegend from './components/ChartLegend';
-import { calculateYearlyData, extractCategories, getChartConfig } from './shared/chartDataUtils';
-import { getChartDims, makeDistributedColorFn } from '../../lib/utils';
-import { CHART_MARGIN, EXPANDED_CHART_MARGIN, INDUSTRY_COLOR_MAP, ENHANCED_COLOR_PALETTE } from '../../lib/constants';
+import React, { useMemo } from "react";
+import BaseExpandableChart from "./shared/BaseExpandableChart";
+import { DualChartLayout } from "./shared/ChartLayouts";
+import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
+import ChartLegend from "./components/ChartLegend";
+import {
+  calculateYearlyData,
+  extractCategories,
+  getChartConfig,
+} from "./shared/chartDataUtils";
+import { getChartDims, makeDistributedColorFn } from "../../lib/utils";
+import {
+  CHART_MARGIN,
+  EXPANDED_CHART_MARGIN,
+  INDUSTRY_COLOR_MAP,
+  ENHANCED_COLOR_PALETTE,
+} from "../../lib/constants";
 
 /**
  * Refactored ExpandableQuarterlyAnalysisChart using new shared architecture
@@ -13,24 +22,25 @@ import { CHART_MARGIN, EXPANDED_CHART_MARGIN, INDUSTRY_COLOR_MAP, ENHANCED_COLOR
  */
 
 // Chart component wrapper for quarterly/industry data
-const QuarterlyChart = ({ 
-  data, 
-  industries, 
-  isVolume, 
-  mode, 
-  width, 
-  height, 
-  margin, 
-  isExpanded = false, 
+const QuarterlyChart = ({
+  data,
+  industries,
+  isVolume,
+  mode,
+  width,
+  height,
+  margin,
+  isExpanded = false,
   colorOf,
   showTotal = false,
-  selectedIndustries = []
+  selectedIndustries = [],
 }) => {
-  const metricSuffix = isVolume ? '__volume' : '__count';
-  const yAxisLabel = isVolume ? 'Investment Volume CHF (M)' : 'Number of Deals';
+  const metricSuffix = isVolume ? "__volume" : "__count";
+  const yAxisLabel = isVolume ? "Investment Volume CHF (M)" : "Number of Deals";
 
   // Filter industries if selectedIndustries is provided
-  const displayIndustries = selectedIndustries.length > 0 ? selectedIndustries : industries;
+  const displayIndustries =
+    selectedIndustries.length > 0 ? selectedIndustries : industries;
 
   return (
     <D3MultiSeriesChart
@@ -55,38 +65,42 @@ const IndustryLegend = ({ industries, colorOf }) => (
   <ChartLegend items={industries} colorOf={colorOf} title="Industries" />
 );
 
-const QuarterlyAnalysisChart = ({ 
-  deals, 
-  selectedIndustries = [], 
+const QuarterlyAnalysisChart = ({
+  deals,
+  selectedIndustries = [],
   selectedIndustryCount,
-  totalIndustryCount 
+  totalIndustryCount,
 }) => {
   // Process data
   const { chartData, industries, colorOf } = useMemo(() => {
-    if (!deals?.length) return { chartData: [], industries: [], colorOf: () => '#000' };
+    if (!deals?.length)
+      return { chartData: [], industries: [], colorOf: () => "#000" };
 
     // Extract unique industries
     const extractedIndustries = extractCategories(
-      deals, 
-      item => item.Industry
+      deals,
+      (item) => item.Industry,
     ).sort();
 
     // Calculate yearly data
-    const config = getChartConfig('quarterly');
+    const config = getChartConfig("quarterly");
     const yearlyData = calculateYearlyData(deals, {
       ...config,
       categories: extractedIndustries,
-      getCategoryValue: item => item.Industry,
-      includeTotal: true
+      getCategoryValue: (item) => item.Industry,
+      includeTotal: true,
     });
 
     // Color function using industry color map with fallback to enhanced palette
-    const colorFn = makeDistributedColorFn(INDUSTRY_COLOR_MAP, ENHANCED_COLOR_PALETTE);
+    const colorFn = makeDistributedColorFn(
+      INDUSTRY_COLOR_MAP,
+      ENHANCED_COLOR_PALETTE,
+    );
 
     return {
       chartData: yearlyData,
       industries: extractedIndustries,
-      colorOf: colorFn
+      colorOf: colorFn,
     };
   }, [deals]);
 
@@ -96,11 +110,13 @@ const QuarterlyAnalysisChart = ({
 
   // Main chart components
   const VolumeChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded ? expandedDims : { 
-      ...dims, 
-      width: dims.width / 2 
-    };
-    
+    const currentDims = isExpanded
+      ? expandedDims
+      : {
+          ...dims,
+          width: dims.width / 2,
+        };
+
     return (
       <QuarterlyChart
         data={data}
@@ -119,11 +135,13 @@ const QuarterlyAnalysisChart = ({
   };
 
   const CountChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded ? expandedDims : { 
-      ...dims, 
-      width: dims.width / 2 
-    };
-    
+    const currentDims = isExpanded
+      ? expandedDims
+      : {
+          ...dims,
+          width: dims.width / 2,
+        };
+
     return (
       <QuarterlyChart
         data={data}
@@ -142,14 +160,20 @@ const QuarterlyAnalysisChart = ({
   };
 
   // Expanded chart component
-  const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal }) => {
-    const isVolumeChart = expandedChart === 'volume';
-    
+  const ExpandedChart = ({
+    data,
+    mode,
+    expandedChart,
+    isExpanded,
+    showTotal,
+  }) => {
+    const isVolumeChart = expandedChart === "volume";
+
     return isVolumeChart ? (
-      <QuarterlyChart 
-        data={data} 
+      <QuarterlyChart
+        data={data}
         industries={industries}
-        mode={mode} 
+        mode={mode}
         isExpanded={isExpanded}
         isVolume={true}
         width={expandedDims.width}
@@ -160,10 +184,10 @@ const QuarterlyAnalysisChart = ({
         selectedIndustries={selectedIndustries}
       />
     ) : (
-      <QuarterlyChart 
-        data={data} 
+      <QuarterlyChart
+        data={data}
         industries={industries}
-        mode={mode} 
+        mode={mode}
         isExpanded={isExpanded}
         isVolume={false}
         width={expandedDims.width}
@@ -178,7 +202,7 @@ const QuarterlyAnalysisChart = ({
 
   // Handle export
   const handleExport = () => {
-    console.log('Export quarterly chart');
+    console.log("Export quarterly chart");
     // TODO: Implement export functionality
   };
 
@@ -194,14 +218,16 @@ const QuarterlyAnalysisChart = ({
           CountChart={CountChart}
           volumeProps={{ mode: leftMode }}
           countProps={{ mode: rightMode }}
-          onVolumeExpand={() => onExpand('volume')}
-          onCountExpand={() => onExpand('count')}
+          onVolumeExpand={() => onExpand("volume")}
+          onCountExpand={() => onExpand("count")}
           onVolumeExport={handleExport}
           onCountExport={handleExport}
         />
       )}
       ExpandedChartComponent={ExpandedChart}
-      LegendComponent={() => <IndustryLegend industries={industries} colorOf={colorOf} />}
+      LegendComponent={() => (
+        <IndustryLegend industries={industries} colorOf={colorOf} />
+      )}
       isDualChart={true}
       supportsSingleMode={false}
       supportsTotal={true}

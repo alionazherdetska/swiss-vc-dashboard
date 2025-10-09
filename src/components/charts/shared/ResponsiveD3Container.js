@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 
-const ResponsiveD3Container = ({ 
-  children, 
-  width = "100%", 
+const ResponsiveD3Container = ({
+  children,
+  width = "100%",
   height = 400,
-  debounceTime = 100 
+  debounceTime = 100,
 }) => {
   const containerRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 800, height });
@@ -12,10 +12,11 @@ const ResponsiveD3Container = ({
   useEffect(() => {
     const updateDimensions = () => {
       if (containerRef.current) {
-        const { width: containerWidth } = containerRef.current.getBoundingClientRect();
+        const { width: containerWidth } =
+          containerRef.current.getBoundingClientRect();
         setDimensions({
           width: containerWidth || 800,
-          height: typeof height === 'number' ? height : 400
+          height: typeof height === "number" ? height : 400,
         });
       }
     };
@@ -30,8 +31,8 @@ const ResponsiveD3Container = ({
       timeoutId = setTimeout(updateDimensions, debounceTime);
     };
 
-    window.addEventListener('resize', handleResize);
-    
+    window.addEventListener("resize", handleResize);
+
     // ResizeObserver for more accurate container size changes
     let resizeObserver;
     if (window.ResizeObserver && containerRef.current) {
@@ -41,7 +42,7 @@ const ResponsiveD3Container = ({
 
     return () => {
       clearTimeout(timeoutId);
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
       if (resizeObserver) {
         resizeObserver.disconnect();
       }
@@ -49,23 +50,23 @@ const ResponsiveD3Container = ({
   }, [debounceTime, height]);
 
   return (
-      <div
-        ref={containerRef}
-        className="d3-chart-container"
-        style={{
-          width: typeof width === 'string' ? width : `${width}px`,
-          height: typeof height === 'string' ? height : `${height}px`,
-          minHeight: typeof height === 'number' ? `${height}px` : height
-        }}
-      >
-      {React.Children.map(children, child =>
+    <div
+      ref={containerRef}
+      className="d3-chart-container"
+      style={{
+        width: typeof width === "string" ? width : `${width}px`,
+        height: typeof height === "string" ? height : `${height}px`,
+        minHeight: typeof height === "number" ? `${height}px` : height,
+      }}
+    >
+      {React.Children.map(children, (child) =>
         React.isValidElement(child)
           ? React.cloneElement(child, {
               width: dimensions.width,
               height: dimensions.height,
-              ...child.props
+              ...child.props,
             })
-          : child
+          : child,
       )}
     </div>
   );

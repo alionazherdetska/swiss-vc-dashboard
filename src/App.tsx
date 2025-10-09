@@ -1,41 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import './styles.css';
-import Dashboard from './components/Dashboard.js';
+import React, { useState, useEffect } from "react";
+import "./styles.css";
+import Dashboard from "./components/Dashboard.js";
 
 export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [loadingProgress, setLoadingProgress] = useState('Initializing...');
+  const [loadingProgress, setLoadingProgress] = useState("Initializing...");
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        setLoadingProgress('Fetching data file...');
+        setLoadingProgress("Fetching data file...");
 
-        const response = await fetch('/startup-data.json');
+        const response = await fetch("/startup-data.json");
         if (!response.ok) {
           throw new Error(
-            `Failed to load data file (${response.status}: ${response.statusText})`
+            `Failed to load data file (${response.status}: ${response.statusText})`,
           );
         }
 
-        setLoadingProgress('Parsing JSON data...');
+        setLoadingProgress("Parsing JSON data...");
         const jsonData = await response.json();
 
         if (!jsonData.Companies && !jsonData.Deals) {
           if (Array.isArray(jsonData)) {
             window.startupData = { Companies: [], Deals: jsonData };
           } else {
-            throw new Error("Data file must contain 'Companies' and/or 'Deals' arrays");
+            throw new Error(
+              "Data file must contain 'Companies' and/or 'Deals' arrays",
+            );
           }
         } else {
           window.startupData = jsonData;
         }
 
-        setLoadingProgress('Processing data...');
+        setLoadingProgress("Processing data...");
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        setLoadingProgress('Finalizing dashboard...');
+        setLoadingProgress("Finalizing dashboard...");
         setLoading(false);
       } catch (error) {
         setError(error.message);
@@ -49,7 +51,10 @@ export function App() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto' }}>
+        <div
+          className="text-center max-w-md"
+          style={{ maxWidth: "1020px", width: "100%", margin: "0 auto" }}
+        >
           <img
             src="/logo.png"
             alt="Swiss Startup Ecosystem Logo"
@@ -63,7 +68,7 @@ export function App() {
           <div className="bg-gray-200 rounded-full h-2 mb-4">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: '75%' }}
+              style={{ width: "75%" }}
             ></div>
           </div>
           <p className="text-sm text-gray-500">
@@ -77,7 +82,10 @@ export function App() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center p-6" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto' }}>
+        <div
+          className="text-center p-6"
+          style={{ maxWidth: "1020px", width: "100%", margin: "0 auto" }}
+        >
           <div className="text-red-600 text-6xl mb-4">🏢</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Data Loading Error
@@ -94,16 +102,17 @@ export function App() {
             <p className="font-semibold mb-2">Troubleshooting:</p>
             <ul className="text-left space-y-1">
               <li>
-                • Ensure <code>startup-data.json</code> is in the{' '}
+                • Ensure <code>startup-data.json</code> is in the{" "}
                 <code>public</code> folder
               </li>
               <li>
-                • Check that the JSON file contains Companies and/or Deals arrays
+                • Check that the JSON file contains Companies and/or Deals
+                arrays
               </li>
               <li>
-                • Verify JSON structure:{' '}
+                • Verify JSON structure:{" "}
                 <code>
-                  {'{'}"Companies": [...], "Deals": [...]{'}'}
+                  {"{"}"Companies": [...], "Deals": [...]{"}"}
                 </code>
               </li>
               <li>• Refresh the page to retry</li>
@@ -124,7 +133,7 @@ export function App() {
 
   return (
     <div className="app app-container">
-      <Dashboard/>
+      <Dashboard />
     </div>
   );
 }

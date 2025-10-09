@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import ChartModal from '../../common/ChartModal';
-import ChartControls from './ChartControls';
-import ChartHeader from './ChartHeader';
+import React, { useState } from "react";
+import ChartModal from "../../common/ChartModal";
+import ChartControls from "./ChartControls";
+import ChartHeader from "./ChartHeader";
 
 /**
  * Base expandable chart component that provides common functionality
@@ -10,37 +10,37 @@ import ChartHeader from './ChartHeader';
 const BaseExpandableChart = ({
   // Chart identification
   title,
-  
+
   // Data
   data,
-  
+
   // Chart components
   ChartComponent,
   ExpandedChartComponent,
   LegendComponent,
-  
+
   // Configuration
   isDualChart = false,
   supportsSingleMode = true,
   supportsTotal = false,
-  
+
   // Initial state
-  initialLeftMode = 'line',
-  initialRightMode = 'line',
-  initialSingleMode = 'line',
+  initialLeftMode = "line",
+  initialRightMode = "line",
+  initialSingleMode = "line",
   initialShowTotal = false,
-  
+
   // Custom handlers
   onExport,
   onDataProcess,
-  
+
   // Styling
-  className = 'space-y-6',
-  
+  className = "space-y-6",
+
   // Additional props to pass to chart components
   chartProps = {},
-  
-  children
+
+  children,
 }) => {
   // State management
   const [expandedChart, setExpandedChart] = useState(null);
@@ -48,13 +48,13 @@ const BaseExpandableChart = ({
   const [rightMode, setRightMode] = useState(initialRightMode);
   const [singleMode, setSingleMode] = useState(initialSingleMode);
   const [showTotal, setShowTotal] = useState(initialShowTotal);
-  
+
   // Modal state for expanded view
-  const [modalMode, setModalMode] = useState('line');
+  const [modalMode, setModalMode] = useState("line");
   const [modalShowTotal, setModalShowTotal] = useState(true);
 
   // Handle chart expansion
-  const handleExpand = (chartType = 'volume') => {
+  const handleExpand = (chartType = "volume") => {
     setExpandedChart(chartType);
   };
 
@@ -75,7 +75,7 @@ const BaseExpandableChart = ({
     showTotal,
     onExpand: handleExpand,
     onExport,
-    ...chartProps
+    ...chartProps,
   };
 
   // Expanded chart props
@@ -85,7 +85,7 @@ const BaseExpandableChart = ({
     showTotal: modalShowTotal,
     isExpanded: true,
     expandedChart,
-    ...chartProps
+    ...chartProps,
   };
 
   return (
@@ -110,7 +110,9 @@ const BaseExpandableChart = ({
       <ChartComponent {...baseChartProps} />
 
       {/* Legend component */}
-      {LegendComponent && <LegendComponent data={processedData} {...chartProps} />}
+      {LegendComponent && (
+        <LegendComponent data={processedData} {...chartProps} />
+      )}
 
       {/* Custom content */}
       {children}
@@ -120,9 +122,11 @@ const BaseExpandableChart = ({
         isOpen={expandedChart !== null}
         onClose={handleModalClose}
         title={`Expanded ${
-          expandedChart === 'volume' ? 'Investment Volume' : 
-          expandedChart === 'count' ? 'Deal Count' : 
-          expandedChart || 'Chart'
+          expandedChart === "volume"
+            ? "Investment Volume"
+            : expandedChart === "count"
+              ? "Deal Count"
+              : expandedChart || "Chart"
         }`}
       >
         {expandedChart && (
