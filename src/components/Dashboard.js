@@ -5,7 +5,6 @@ import FilterPanel from './filters/FilterPanel.js';
 import { TimelineChart } from './charts/TimelineChart.js';
 
 import { processCompanies, processDeals, generateChartData } from '../lib/utils';
-import { SAMPLE_DATA } from '../lib/constants.js';
 import QuarterlyAnalysisChart from './charts/QuarterlyAnalysisChart.js';
 import PhaseAnalysisChart from './charts/PhaseAnalysisChart.js';
 import CantonAnalysisChart from './charts/CantonAnalysisChart.js';
@@ -43,7 +42,7 @@ const Dashboard = () => {
 	useEffect(() => {
 		const loadData = async () => {
 			try {
-				const jsonData = window.startupData || SAMPLE_DATA;
+				const jsonData = window.startupData;
 
 				let processedCompanies = [];
 				let processedDeals = [];

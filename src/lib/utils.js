@@ -16,22 +16,6 @@ export const getChartDims = (isExpandedView, forcedHeight, margins) => ({
   margin: margins ?? (isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN),
 });
 
-// Keep Y labels within plot area
-export const clampY = (y, { height, margin }, pad = 8) => {
-  const innerTop = (margin?.top ?? 0) + pad;
-  const innerBottom = height - (margin?.bottom ?? 0) - pad;
-  return Math.max(innerTop, Math.min(y, innerBottom));
-};
-
-// Tick helpers
-const ceilToStep = (max, step) => Math.ceil(max / step) * step;
-export const getTicks = (min, max, step) => {
-  const end = ceilToStep(max, step);
-  const out = [];
-  for (let v = min; v <= end; v += step) out.push(v);
-  return out;
-};
-
 // Deterministic color distributor using a map + palette
 export const makeDistributedColorFn = (map, palette) => {
   const cache = new Map();

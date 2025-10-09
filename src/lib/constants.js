@@ -92,20 +92,6 @@ export const CANTON_MAP = {
   Abroad: null,
 };
 
-// Swiss VC Report color scheme (generic palette you already used)
-export const COLORS = [
-  "#E53E3E", // Red
-  "#3182CE", // Blue
-  "#38A169", // Green
-  "#D69E2E", // Yellow/Orange
-  "#805AD5", // Purple
-  "#DD6B20", // Orange
-  "#319795", // Teal
-  "#E53E3E", // Red variant
-  "#4A5568", // Gray
-  "#ED64A6", // Pink
-];
-
 // Chart type options (cleaned up)
 export const getChartOptions = (activeTab) =>
   [
@@ -125,45 +111,8 @@ export const getChartOptions = (activeTab) =>
     { key: "geographic-distribution", name: "Geographic Distribution", icon: MapPin },
   ].filter(Boolean);
 
-// Sample data fallback
-export const SAMPLE_DATA = {
-  Companies: [
-    {
-      Code: "CHE-384.775.108",
-      Title: "Noury AG",
-      Industry: "Other",
-      Vertical: "",
-      Canton: "Bern",
-      City: "Bern",
-      Year: "2021",
-      Funded: "FALSE",
-    },
-  ],
-  Deals: [
-    {
-      Id: "S4126",
-      Investors: "Elastic",
-      URL: "https://www.elastic.co/de/about/press/elastic-and-optimyze-join-forces",
-      "Date of the funding round": "10/14/21",
-      Type: "EXIT",
-      Phase: "Exit",
-      Canton: "Zürich",
-      Company: "optimyze.cloud AG",
-      Amount: "50",
-      Industry: "Technology",
-    },
-  ],
-};
-
 // Volume display options
 export const VOLUME_OPTIONS = [
   { key: "count", name: "Count", unit: "" },
   { key: "volume", name: "Volume", unit: "CHF M" },
-];
-
-// Time interval options for quarterly analysis
-export const TIME_INTERVALS = [
-  { key: "quarter", name: "Quarterly" },
-  { key: "half", name: "Half-Yearly" },
-  { key: "year", name: "Yearly" },
 ];
