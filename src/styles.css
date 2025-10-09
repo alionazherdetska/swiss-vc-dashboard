@@ -1,3 +1,9 @@
+.dashboard-container {
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 0 0 0;
+}
 /* src/styles.css */
 @import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
 
@@ -36,6 +42,15 @@ body {
 /* D3 Chart styles */
 .d3-chart-container {
   font-family: inherit;
+}
+
+.app-container {
+  max-width: 1020px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 0 0 0;
+  border-radius: 20px;
+  background-color: #4A4A4A;
 }
 
 .d3-chart-container .axis text {

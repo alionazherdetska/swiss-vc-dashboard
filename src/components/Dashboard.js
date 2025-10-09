@@ -171,7 +171,7 @@ const Dashboard = () => {
 
 	if (loading) {
 		return (
-			<div className='min-h-screen flex items-center justify-center bg-gray-50'>
+			<div className='min-h-screen flex items-center justify-center'>
 				<div className='text-center'>
 					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4' />
 					<p className='text-gray-600'>
@@ -183,8 +183,7 @@ const Dashboard = () => {
 	}
 
 	return (
-		<div className='min-h-screen bg-gray-50'>
-
+		<div className='min-h-screen'>
 				<div className='grid grid-cols-1 lg:grid-cols-5 gap-2'>
 					{/* Filters Panel */}
 					<div className='lg:col-span-1'>

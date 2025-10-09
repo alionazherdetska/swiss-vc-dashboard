@@ -48,7 +48,7 @@ export function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto' }}>
           <img
             src="/logo.png"
@@ -76,7 +76,7 @@ export function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center p-6" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto' }}>
           <div className="text-red-600 text-6xl mb-4">🏢</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
@@ -123,7 +123,7 @@ export function App() {
   }
 
   return (
-    <div className="App" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto', padding: '40px 0 0 0'}}>
+    <div className="app app-container">
       <Dashboard/>
     </div>
   );

@@ -49,14 +49,15 @@ const ResponsiveD3Container = ({
   }, [debounceTime, height]);
 
   return (
-    <div 
-      ref={containerRef} 
-      style={{ 
-        width: typeof width === 'string' ? width : `${width}px`, 
-        height: typeof height === 'string' ? height : `${height}px`,
-        minHeight: typeof height === 'number' ? `${height}px` : height
-      }}
-    >
+      <div
+        ref={containerRef}
+        className="d3-chart-container"
+        style={{
+          width: typeof width === 'string' ? width : `${width}px`,
+          height: typeof height === 'string' ? height : `${height}px`,
+          minHeight: typeof height === 'number' ? `${height}px` : height
+        }}
+      >
       {React.Children.map(children, child =>
         React.isValidElement(child)
           ? React.cloneElement(child, {
