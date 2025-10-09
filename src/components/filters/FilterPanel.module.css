@@ -1,23 +1,12 @@
-/* Styles ported from Tailwind-presentational utilities used in FilterPanel.js */
 .panelRoot {
-  gap: 0.5rem; /* space-x-2 fallback for horizontal spacing when used */
-}
-
-.panelCard {
-  background: #ffffff;
-  border: 1px solid #e6e6e6;
-  border-radius: 10px;
-  padding: 16px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  gap: 0.5rem;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e5e7eb; /* gray-200 */
+  margin-bottom: 1rem;
 }
 
 .headerLeft {
@@ -54,7 +43,7 @@
   border-radius: 0.375rem;
   border: 1px solid #d1d5db;
   background: #ffffff;
-  color: #374151; /* gray-700 */
+  color: #374151;
 }
 
 .filtersRow {
@@ -65,13 +54,12 @@
 }
 
 .sectionRoot {
-  /* allow section to expand inside grid columns */
   min-width: 0;
 }
 
 .sectionTitle {
   font-weight: 600;
-  color: #111827; /* gray-900 */
+  color: #111827;
   margin-bottom: 0.75rem;
   font-size: 0.875rem;
 }
@@ -79,9 +67,9 @@
 .listScroll {
   display: block;
   gap: 0.375rem;
-  max-height: 15rem; /* ~240px */
+  max-height: 15rem;
   overflow-y: auto;
-  padding-right: 6px; /* give space for scrollbar */
+  padding-right: 6px;
 }
 
 .filterCardWrap {
@@ -91,13 +79,11 @@
   border: 1px solid #e6e6e6;
 }
 
-/* slightly darker scroll thumb for filter lists */
 .listScroll::-webkit-scrollbar-thumb {
   background: #c7c7c7;
   border-radius: 8px;
 }
 
-/* vertical divider look for scroll columns (thin subtle line) */
 .listScroll::after {
   content: "";
 }
@@ -112,28 +98,28 @@
 }
 
 .itemLabelHover:hover {
-  background: #f9fafb; /* gray-50 */
+  background: #f9fafb
 }
 
 .checkbox {
   width: 1rem;
   height: 1rem;
   border-radius: 0.125rem;
-  border: 1px solid #d1d5db; /* gray-300 */
+  border: 1px solid #d1d5db;
 }
 
 .checkboxPrimary {
-  accent-color: #e53935; /* red-600-like */
+  accent-color: #e53935;
 }
 
 .labelText {
   font-size: 0.875rem;
-  color: #374151; /* gray-700 */
+  color: #374151;
 }
 
 .labelTextMuted {
   font-size: 0.875rem;
-  color: #9ca3af; /* gray-400 */
+  color: #9ca3af;
 }
 
 .labelTextBold {

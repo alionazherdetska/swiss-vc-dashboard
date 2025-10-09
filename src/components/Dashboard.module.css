@@ -1,5 +1,6 @@
 .innerContainer {
   border-radius: 20px;
+  background-color: #FEFEFE;
 }
 
 .dashboardCharts {
@@ -44,9 +45,8 @@
 }
 
 .tabButton.active {
-  background: #fff;
+  background: #FEFEFE;
   color: #e53935;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
   z-index: 20;
   border-radius: 20px 20px 0 0;
 }
@@ -82,6 +82,20 @@
   padding: 12px;
 }
 
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.cardControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .filtersWrap {
   display: flex;
   gap: 12px;
@@ -92,7 +106,6 @@
   background: #fbfbfb;
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid #e6e6e6;
 }
 
 .loadingContainer {
@@ -127,7 +140,7 @@
 }
 
 .textMuted {
-  color: #6b7280; /* tailwind's gray-600 */
+  color: #6b7280;
 }
 
 .chartsArea {
