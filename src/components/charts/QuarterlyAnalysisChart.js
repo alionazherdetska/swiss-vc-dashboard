@@ -6,7 +6,7 @@ import {
   calculateYearlyData,
   extractCategories,
   getChartConfig,
-} from "./shared/chartDataUtils";
+} from "./shared/ChartDataUtils";
 import { getChartDims, makeDistributedColorFn } from "../../lib/utils";
 import {
   CHART_MARGIN,
