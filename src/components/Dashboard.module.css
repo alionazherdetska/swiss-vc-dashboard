@@ -1,0 +1,46 @@
+.dashboardContainer {
+  border-radius: 20px;
+  background-color: #fff;
+}
+
+.dashboardCharts {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.tabPanel {
+  border: 24px;
+}
+.tabBar {
+  display: flex;
+  background: #4A4A4A;
+  height: 55px;
+}
+
+.tabButton {
+  flex: 1;
+  height: 55px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  outline: none;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.tabButton.active {
+  background: #fff;
+  color: #e53935;
+}
+
+.tabButton.inactive {
+  background: #4A4A4A;
+  color: #fff;
+}
+
+.tabButton.inactive:hover {
+  color: #e0e0e0;
+}

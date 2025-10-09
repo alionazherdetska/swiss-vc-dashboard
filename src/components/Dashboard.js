@@ -11,6 +11,7 @@ import PhaseAnalysisChart from "./charts/PhaseAnalysisChart.js";
 import CantonAnalysisChart from "./charts/CantonAnalysisChart.js";
 import GenderAnalysisChart from "./charts/GenderAnalysisChart.js";
 import ExitsAnalysisChart from "./charts/ExitsAnalysisChart.js";
+import styles from "./Dashboard.module.css";
 
 const Dashboard = () => {
   // Companies only for mapping; UI is deals-only
@@ -192,28 +193,26 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="grid grid-cols-1">
+  <div className={`grid grid-cols-1 ${styles.dashboardContainer}`}> 
         {/* Charts Panel with tab-like chart selector */}
         <div>
-          <div className="flex flex-col rounded-lg shadow-sm border bg-white border-gray-200">
+          <div className={styles.tabPanel}>
             {/* Tab bar */}
-            <div className="flex bg-[#4A4A4A]">
+            <div className={styles.tabBar}>
               {chartTabs.map((tab, idx) => {
-                // Only first tab gets rounded-tl, last tab gets rounded-tr
                 const isFirst = idx === 0;
                 const isLast = idx === chartTabs.length - 1;
-                const rounded = `${isFirst ? "rounded-tl-lg" : ""} ${isLast ? "rounded-tr-lg" : ""}`;
                 const isActive = activeChart === tab.key;
+                let btnClass = styles.tabButton;
+                if (isFirst) btnClass += ' ' + styles.leftBorder + ' ' + styles.roundedLeft;
+                if (isLast) btnClass += ' ' + styles.rightBorder + ' ' + styles.roundedRight;
+                if (!isFirst && !isLast) btnClass += ' ' + styles.leftBorder + ' ' + styles.rightBorder;
+                btnClass += ' ' + (isActive ? styles.active : styles.inactive);
                 return (
                   <button
                     key={tab.key}
                     onClick={() => setActiveChart(tab.key)}
-                    className={`flex-1 py-2 px-4 text-sm font-medium transition-all border-none focus:outline-none ${rounded} ${
-                      isActive
-                        ? "bg-[#4A4A4A] text-white hover:text-gray-200"
-						: "bg-white text-red-600 shadow-sm border"
-                    }`}
+                    className={btnClass}
                     title={tab.label}
                   >
                     {tab.label}
@@ -223,9 +222,10 @@ const Dashboard = () => {
             </div>
 
             {/* Active chart rendered by tab selection */}
-            <div className="p-4">
+            <div className={`${styles.dashboardContainer}`}>
               {activeChart === "timeline" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.dashboardContainer}`}>
+					
                   <TimelineChart
                     data={chartData.timeline}
                     showVolume={true}
@@ -290,7 +290,6 @@ const Dashboard = () => {
         <div>
         </div>
       </div>
-    </div>
   );
 };
 
