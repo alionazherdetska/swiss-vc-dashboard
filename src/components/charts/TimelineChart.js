@@ -1,4 +1,3 @@
-import React from "react";
 import D3AreaChart from "./shared/D3AreaChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ExportButton from "../common/ExportButton";

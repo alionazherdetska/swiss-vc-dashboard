@@ -1,9 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
-
-// Panels / components you still use
+import { useState, useEffect, useMemo } from "react";
 import FilterPanel from "./filters/FilterPanel.js";
 import { TimelineChart } from "./charts/TimelineChart.js";
-
 import {
   processCompanies,
   processDeals,

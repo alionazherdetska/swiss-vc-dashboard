@@ -1,4 +1,3 @@
-// utils.js
 import {
   OFFICIAL_CANTONS,
   CANTON_MAP,

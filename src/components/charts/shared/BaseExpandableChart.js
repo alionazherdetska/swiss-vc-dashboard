@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import ChartModal from "../../common/ChartModal";
 import ChartControls from "./ChartControls";
 import ChartHeader from "./ChartHeader";

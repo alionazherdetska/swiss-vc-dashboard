@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Maximize2 } from "lucide-react";
 import D3ComposedChart from "./shared/D3ComposedChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";

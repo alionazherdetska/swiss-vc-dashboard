@@ -1,5 +1,3 @@
-import React from "react";
-
 const ExportButton = ({
   title = "Export chart (print or save as PDF)",
   onClick = () => window.print(),

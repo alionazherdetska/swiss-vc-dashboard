@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Filter, ChevronDown } from "lucide-react";
 import { OFFICIAL_CANTONS } from "../../lib/constants";
 

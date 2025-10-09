@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import * as d3 from "d3";
 import { Maximize2 } from "lucide-react";
 import ChartModal from "../common/ChartModal";
