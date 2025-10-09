@@ -1,9 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-/**
- * Responsive container that adjusts chart dimensions based on parent container size
- * Replacement for Recharts ResponsiveContainer
- */
 const ResponsiveD3Container = ({ 
   children, 
   width = "100%", 

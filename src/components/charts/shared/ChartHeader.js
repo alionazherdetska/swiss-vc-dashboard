@@ -1,6 +1,6 @@
 import React from 'react';
 import { Maximize2 } from 'lucide-react';
-import ExportButton from './ExportButton';
+import ExportButton from '../../common/ExportButton';
 
 /**
  * Reusable chart header component
