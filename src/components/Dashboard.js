@@ -71,7 +71,6 @@ const Dashboard = () => {
                 0,
             ),
           }));
-          console.log("Processed exits:", processedExits); // Debug log
           setExits(processedExits);
         }
       } catch {
@@ -181,10 +180,10 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4" />
-          <p className="text-gray-600">
+      <div className={styles.loadingContainer}>
+        <div className={styles.textCenter}>
+          <div className={styles.spinner} />
+          <p className={styles.textMuted}>
             Loading Swiss startup ecosystem data...
           </p>
         </div>
@@ -193,21 +192,16 @@ const Dashboard = () => {
   }
 
   return (
-  <div className={`grid grid-cols-1 ${styles.dashboardContainer}`}> 
+    <div className={`grid grid-cols-1 ${styles.dashboardContainer}`}>
+      <div className="inner-panel">
         {/* Charts Panel with tab-like chart selector */}
-        <div>
-          <div className={styles.tabPanel}>
-            {/* Tab bar */}
+        <section className={styles.tabPanel + " " + styles.innerContainer}>
+          {/* Tab bar */}
+          <div className={styles.tabBarWrap}>
             <div className={styles.tabBar}>
-              {chartTabs.map((tab, idx) => {
-                const isFirst = idx === 0;
-                const isLast = idx === chartTabs.length - 1;
+              {chartTabs.map((tab) => {
                 const isActive = activeChart === tab.key;
-                let btnClass = styles.tabButton;
-                if (isFirst) btnClass += ' ' + styles.leftBorder + ' ' + styles.roundedLeft;
-                if (isLast) btnClass += ' ' + styles.rightBorder + ' ' + styles.roundedRight;
-                if (!isFirst && !isLast) btnClass += ' ' + styles.leftBorder + ' ' + styles.rightBorder;
-                btnClass += ' ' + (isActive ? styles.active : styles.inactive);
+                const btnClass = `${styles.tabButton} ${isActive ? styles.active : styles.inactive}`;
                 return (
                   <button
                     key={tab.key}
@@ -220,18 +214,23 @@ const Dashboard = () => {
                 );
               })}
             </div>
+          </div>
 
-            {/* Active chart rendered by tab selection */}
-            <div className={`${styles.dashboardContainer}`}>
-              {activeChart === "timeline" && (
-                <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.dashboardContainer}`}>
-					
+          {/* Active chart rendered by tab selection */}
+          <div className={styles.chartsArea}>
+            {activeChart === "timeline" && (
+              <div
+                className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.timelineGrid || ""}`}
+              >
+                <div className={styles.card}>
                   <TimelineChart
                     data={chartData.timeline}
                     showVolume={true}
                     title="Invested Capital by Year"
                     yLabel="Invested Capital CHF (M)"
                   />
+                </div>
+                <div className={styles.card}>
                   <TimelineChart
                     data={chartData.timeline}
                     showVolume={false}
@@ -239,57 +238,65 @@ const Dashboard = () => {
                     yLabel="Number of Deals"
                   />
                 </div>
-              )}
-              {activeChart === "quarterly" && (
-                <QuarterlyAnalysisChart
-                  deals={filteredDeals}
-                  selectedIndustryCount={filters.industries.length}
-                  totalIndustryCount={filterOptions.industries.length}
+              </div>
+            )}
+
+            {activeChart === "quarterly" && (
+              <QuarterlyAnalysisChart
+                deals={filteredDeals}
+                selectedIndustryCount={filters.industries.length}
+                totalIndustryCount={filterOptions.industries.length}
+              />
+            )}
+
+            {activeChart === "phase" && (
+              <PhaseAnalysisChart
+                deals={filteredDeals}
+                selectedPhaseCount={filters.phases.length}
+                totalPhaseCount={filterOptions.phases.length}
+              />
+            )}
+
+            {activeChart === "canton" && (
+              <CantonAnalysisChart
+                deals={filteredDeals}
+                selectedCantonCount={filters.cantons.length}
+                totalCantonCount={filterOptions.industries.length}
+              />
+            )}
+
+            {activeChart === "ceoGender" && (
+              <GenderAnalysisChart
+                deals={filteredDeals}
+                selectedGenderCount={filters.ceoGenders.length}
+                totalGenderCount={filterOptions.ceoGenders.length}
+              />
+            )}
+
+            {activeChart === "exits" && (
+              <ExitsAnalysisChart
+                exits={exits}
+                selectedYearCount={exitsTimeline.length}
+                totalYearCount={exitsTimeline.length}
+              />
+            )}
+
+            <div className={styles.filtersWrap}>
+              <div className={styles.filterCard}>
+                <FilterPanel
+                  filters={filters}
+                  filterOptions={filterOptions}
+                  activeTab="deals"
+                  updateFilter={updateFilter}
+                  toggleArrayFilter={toggleArrayFilter}
+                  resetFilters={resetFilters}
                 />
-              )}
-              {activeChart === "phase" && (
-                <PhaseAnalysisChart
-                  deals={filteredDeals}
-                  selectedPhaseCount={filters.phases.length}
-                  totalPhaseCount={filterOptions.phases.length}
-                />
-              )}
-              {activeChart === "canton" && (
-                <CantonAnalysisChart
-                  deals={filteredDeals}
-                  selectedCantonCount={filters.cantons.length}
-                  totalCantonCount={filterOptions.industries.length}
-                />
-              )}
-              {activeChart === "ceoGender" && (
-                <GenderAnalysisChart
-                  deals={filteredDeals}
-                  selectedGenderCount={filters.ceoGenders.length}
-                  totalGenderCount={filterOptions.ceoGenders.length}
-                />
-              )}
-              {activeChart === "exits" && (
-                <ExitsAnalysisChart
-                  exits={exits}
-                  selectedYearCount={exitsTimeline.length}
-                  totalYearCount={exitsTimeline.length}
-                />
-              )}
-          <FilterPanel
-            filters={filters}
-            filterOptions={filterOptions}
-            activeTab="deals"
-            updateFilter={updateFilter}
-            toggleArrayFilter={toggleArrayFilter}
-            resetFilters={resetFilters}
-          />
+              </div>
             </div>
           </div>
-        </div>
-        {/* Filters Panel at the bottom */}
-        <div>
-        </div>
+        </section>
       </div>
+    </div>
   );
 };
 

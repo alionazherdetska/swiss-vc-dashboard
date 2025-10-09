@@ -189,7 +189,7 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
           onModeChange={setRightMode}
         />
       </div>
-      
+
       <ChartModal
         isOpen={expandedChart !== null}
         onClose={() => setExpandedChart(null)}
