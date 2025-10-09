@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
-import ChartLegend from "./components/ChartLegend";
 import {
   calculateYearlyData,
   extractCategories,
@@ -57,11 +56,6 @@ const CantonChart = ({
     />
   );
 };
-
-// Legend component
-const CantonLegend = ({ cantons, colorOf }) => (
-  <ChartLegend items={cantons} colorOf={colorOf} title="Cantons" />
-);
 
 const CantonAnalysisChart = ({ deals }) => {
   // Process data
@@ -185,9 +179,6 @@ const CantonAnalysisChart = ({ deals }) => {
         />
       )}
       ExpandedChartComponent={ExpandedChart}
-      LegendComponent={() => (
-        <CantonLegend cantons={cantons} colorOf={colorOf} />
-      )}
       isDualChart={true}
       supportsSingleMode={false}
       supportsTotal={true}

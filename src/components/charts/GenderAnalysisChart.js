@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
-import ChartLegend from "./components/ChartLegend";
 import {
   calculateYearlyData,
   extractCategories,
@@ -56,11 +55,6 @@ const GenderChart = ({
     />
   );
 };
-
-// Legend component
-const GenderLegend = ({ genders, colorOf }) => (
-  <ChartLegend items={genders} colorOf={colorOf} title="Gender" />
-);
 
 const GenderAnalysisChart = ({ deals }) => {
   // Process data
@@ -188,9 +182,6 @@ const GenderAnalysisChart = ({ deals }) => {
         />
       )}
       ExpandedChartComponent={ExpandedChart}
-      LegendComponent={() => (
-        <GenderLegend genders={genders} colorOf={colorOf} />
-      )}
       isDualChart={true}
       supportsSingleMode={false}
       supportsTotal={true}

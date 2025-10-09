@@ -4,7 +4,6 @@ import D3ComposedChart from "./shared/D3ComposedChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ChartModal from "../common/ChartModal";
 import ExportButton from "../common/ExportButton";
-import ChartLegend from "./components/ChartLegend";
 import {
   AXIS_STROKE,
   GRID_STROKE,
@@ -190,9 +189,7 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
           onModeChange={setRightMode}
         />
       </div>
-
-      <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
-
+      
       <ChartModal
         isOpen={expandedChart !== null}
         onClose={() => setExpandedChart(null)}

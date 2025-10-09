@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
-import ChartLegend from "./components/ChartLegend";
 import {
   calculateYearlyData,
   extractCategories,
@@ -59,11 +58,6 @@ const QuarterlyChart = ({
     />
   );
 };
-
-// Legend component
-const IndustryLegend = ({ industries, colorOf }) => (
-  <ChartLegend items={industries} colorOf={colorOf} title="Industries" />
-);
 
 const QuarterlyAnalysisChart = ({
   deals,
@@ -225,9 +219,6 @@ const QuarterlyAnalysisChart = ({
         />
       )}
       ExpandedChartComponent={ExpandedChart}
-      LegendComponent={() => (
-        <IndustryLegend industries={industries} colorOf={colorOf} />
-      )}
       isDualChart={true}
       supportsSingleMode={false}
       supportsTotal={true}

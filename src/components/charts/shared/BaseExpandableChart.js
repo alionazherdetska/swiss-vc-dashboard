@@ -17,7 +17,6 @@ const BaseExpandableChart = ({
   // Chart components
   ChartComponent,
   ExpandedChartComponent,
-  LegendComponent,
 
   // Configuration
   isDualChart = false,
@@ -108,11 +107,6 @@ const BaseExpandableChart = ({
 
       {/* Main chart content */}
       <ChartComponent {...baseChartProps} />
-
-      {/* Legend component */}
-      {LegendComponent && (
-        <LegendComponent data={processedData} {...chartProps} />
-      )}
 
       {/* Custom content */}
       {children}
