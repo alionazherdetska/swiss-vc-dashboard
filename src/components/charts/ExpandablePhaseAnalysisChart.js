@@ -1,15 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Maximize2 } from 'lucide-react';
-import {
-    CartesianGrid,
-    ComposedChart,
-    Line,
-    Bar,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
+import D3ComposedChart from './shared/D3ComposedChart';
+import ResponsiveD3Container from './shared/ResponsiveD3Container';
 import ChartModal from '../common/ChartModal';
 import ExportButton from '../common/ExportButton';
 import ChartLegend from './components/ChartLegend';
@@ -86,38 +78,21 @@ const ExpandablePhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCou
                         </>
                     )}
                 </div>
-                <ResponsiveContainer width='100%' height={dimsToUse.height}>
-                    <ComposedChart data={rows} margin={dimsToUse.margin}>
-                        <CartesianGrid strokeDasharray='3 3' stroke={GRID_STROKE} />
-                        <XAxis dataKey='year' stroke={AXIS_STROKE} fontSize={12} />
-                        <YAxis stroke={AXIS_STROKE} fontSize={12} label={{ 
-                            value: yLabel, 
-                            angle: -90, 
-                            position: 'insideLeft', 
-                            fill: AXIS_STROKE, 
-                            fontSize: 13,
-                            style: { textAnchor: 'middle' },
-                        }} />
-                        <Tooltip formatter={tooltipFormatter} />
-                        {phases.map(phase => {
-                            const dataKey = `${sanitizeKey(phase)}${dataKeySuffix}`;
-                            const color = colorOf(phase);
-                            return modeState === 'column' ? (
-                                <Bar key={dataKey} dataKey={dataKey} fill={color} name={phase} stackId="phase-stack" />
-                            ) : (
-                                <Line 
-                                    key={dataKey} 
-                                    type="monotone" 
-                                    dataKey={dataKey} 
-                                    stroke={color} 
-                                    strokeWidth={2} 
-                                    dot={false} 
-                                    name={phase} 
-                                />
-                            );
-                        })}
-                    </ComposedChart>
-                </ResponsiveContainer>
+                <ResponsiveD3Container width='100%' height={dimsToUse.height}>
+                    <D3ComposedChart 
+                        data={rows} 
+                        categories={phases}
+                        mode={modeState}
+                        margin={dimsToUse.margin}
+                        strokeWidth={2}
+                        gridColor={GRID_STROKE}
+                        axisColor={AXIS_STROKE}
+                        yAxisLabel={yLabel}
+                        colorOf={colorOf}
+                        dataKeySuffix={dataKeySuffix}
+                        tooltipFormatter={tooltipFormatter}
+                    />
+                </ResponsiveD3Container>
             </div>
         );
     };

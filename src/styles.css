@@ -17,18 +17,41 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Chart containers */
-.recharts-cartesian-grid-horizontal line,
-.recharts-cartesian-grid-vertical line {
-  stroke: #E5E7EB !important;
+/* Additional custom styles if needed */
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-.recharts-text {
-  fill: #374151 !important;
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: #1F2937;
+  background-color: #F9FAFB;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.recharts-legend-item-text {
-  color: #374151 !important;
+/* D3 Chart styles */
+.d3-chart-container {
+  font-family: inherit;
+}
+
+.d3-chart-container .axis text {
+  fill: #374151;
+  font-size: 12px;
+}
+
+.d3-chart-container .axis line,
+.d3-chart-container .axis path {
+  stroke: #374151;
+}
+
+.d3-chart-container .grid-line {
+  stroke: #E5E7EB;
+  stroke-dasharray: 3,3;
+  opacity: 0.7;
 }
 
 /* Scrollbar styles */

@@ -132,7 +132,7 @@ export const filterDataByCategories = (data, selectedCategories, getCategoryValu
 };
 
 /**
- * Prepare chart series data for D3/Recharts
+ * Prepare chart series data for D3 charts
  */
 export const prepareChartSeries = (data, categories, metricSuffix = '__volume') => {
   return data.map(yearData => {

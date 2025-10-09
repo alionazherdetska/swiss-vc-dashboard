@@ -5,7 +5,7 @@ import { OFFICIAL_CANTONS, CANTON_MAP, CHART_MARGIN, EXPANDED_CHART_MARGIN } fro
    Generic helpers for charts
    ========================= */
 
-// Recharts-safe key
+// D3-safe key sanitization
 export const sanitizeKey = (s) =>
   String(s || "Unknown").replace(/\s+/g, "_").replace(/[^\w]/g, "_");
 

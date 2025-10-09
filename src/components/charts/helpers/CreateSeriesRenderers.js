@@ -1,5 +1,6 @@
-import { Bar, Line, LabelList } from 'recharts';
-import { sanitizeKey, clampY } from '../../../../lib/utils';
+// Note: This file was originally for Recharts Bar/Line components
+// It appears to be unused and can be safely removed or refactored for D3 if needed
+import { sanitizeKey, clampY } from '../../../lib/utils';
 import {
 	SMALLSET_LABEL_BASE_LIFT,
 	SMALLSET_LABEL_DY,
