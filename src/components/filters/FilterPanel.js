@@ -61,7 +61,7 @@ const FilterPanel = ({
   }, [ceoTotal, industriesTotal, dealTypesTotal, phasesTotal, dealsTab]);
 
   return (
-    <div className="px-6 py-5lex space-x-2 p-1 rounded-lg bg-gray-100">
+    <div className="space-x-2">
       {/* Header with Year Range and Reset */}
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
         <div className="flex items-center gap-6">

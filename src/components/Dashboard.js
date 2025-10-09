@@ -196,27 +196,34 @@ const Dashboard = () => {
       <div className="grid grid-cols-1">
         {/* Charts Panel with tab-like chart selector */}
         <div>
-          <div className="flex flex-col rounded-lg shadow-sm p-6 border bg-white border-gray-200">
+          <div className="flex flex-col rounded-lg shadow-sm border bg-white border-gray-200">
             {/* Tab bar */}
-            <div className="flex space-x-2 p-1">
-              {chartTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveChart(tab.key)}
-                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-                    activeChart === tab.key
-                      ? "bg-white text-red-600 shadow-sm border border-red-200"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
-                  title={tab.label}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="flex bg-[#4A4A4A]">
+              {chartTabs.map((tab, idx) => {
+                // Only first tab gets rounded-tl, last tab gets rounded-tr
+                const isFirst = idx === 0;
+                const isLast = idx === chartTabs.length - 1;
+                const rounded = `${isFirst ? "rounded-tl-lg" : ""} ${isLast ? "rounded-tr-lg" : ""}`;
+                const isActive = activeChart === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveChart(tab.key)}
+                    className={`flex-1 py-2 px-4 text-sm font-medium transition-all border-none focus:outline-none ${rounded} ${
+                      isActive
+                        ? "bg-[#4A4A4A] text-white hover:text-gray-200"
+						: "bg-white text-red-600 shadow-sm border"
+                    }`}
+                    title={tab.label}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Active chart rendered by tab selection */}
-            <div className="border rounded-lg p-4 border-gray-200 bg-gray-50">
+            <div className="p-4">
               {activeChart === "timeline" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <TimelineChart
