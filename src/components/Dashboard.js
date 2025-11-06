@@ -25,7 +25,6 @@ const Dashboard = () => {
     ceoGenders: [], // Now used for deals filtering
     cantons: [],
     yearRange: [2012, 2025],
-    dealTypes: [],
     phases: [],
   });
 
@@ -87,15 +86,24 @@ const Dashboard = () => {
   const filterOptions = useMemo(() => {
     if (!deals.length) {
       return {
-        dealTypes: [],
         phases: [],
         dealYears: [],
         industries: [],
         ceoGenders: [],
       };
     }
+    // Exclude some unwanted deal type labels from appearing in the UI filters
+    const EXCLUDED_DEAL_TYPES = [
+      "Convertible Loan",
+      "EXIT",
+      "Foreign",
+      "Grant",
+      "IPO",
+      "M&A",
+      "Micro",
+    ].map((s) => s.toLowerCase());
+
     return {
-      dealTypes: [...new Set(deals.map((d) => d.Type).filter(Boolean))].sort(),
       phases: [...new Set(deals.map((d) => d.Phase).filter(Boolean))].sort(),
       dealYears: [...new Set(deals.map((d) => d.Year).filter(Boolean))].sort(),
       industries: [
@@ -132,8 +140,7 @@ const Dashboard = () => {
         !filters.industries.includes(item.Industry)
       )
         return false;
-      if (filters.dealTypes.length && !filters.dealTypes.includes(item.Type))
-        return false;
+      // dealTypes filter removed
       if (filters.phases.length && !filters.phases.includes(item.Phase))
         return false;
       if (filters.cantons.length && !filters.cantons.includes(item.Canton))
@@ -174,7 +181,6 @@ const Dashboard = () => {
       ceoGenders: [],
       searchQuery: "",
       yearRange: [2012, 2025],
-      dealTypes: [],
       phases: [],
     });
 

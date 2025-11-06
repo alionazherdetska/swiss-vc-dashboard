@@ -24,7 +24,6 @@ const FilterPanel = ({
 
   const ceoTotal = filterOptions.ceoGenders?.length || 0;
   const industriesTotal = filterOptions.industries?.length || 0;
-  const dealTypesTotal = filterOptions.dealTypes?.length || 0;
   const phasesTotal = filterOptions.phases?.length || 0;
 
   const selectAllLabel = (selected, total) =>
@@ -50,10 +49,6 @@ const FilterPanel = ({
     heights.push(industriesHeight);
 
     if (dealsTab) {
-      // Deal Types: header + items (capped at max-h-60 = 240px)
-      const dealTypesHeight = Math.min(40 + (dealTypesTotal + 1) * 28, 280);
-      heights.push(dealTypesHeight);
-
       // Phases: header + items (capped at max-h-60 = 240px)
       const phasesHeight = Math.min(40 + (phasesTotal + 1) * 28, 280);
       heights.push(phasesHeight);
@@ -62,7 +57,7 @@ const FilterPanel = ({
     // Sort and get second longest
     const sorted = [...heights].sort((a, b) => b - a);
     return sorted[1] || sorted[0] || 100;
-  }, [ceoTotal, industriesTotal, dealTypesTotal, phasesTotal, dealsTab]);
+  }, [ceoTotal, industriesTotal, phasesTotal, dealsTab]);
 
   return (
     <div className={styles.panelRoot}>
@@ -287,47 +282,7 @@ const FilterPanel = ({
             </div>
           </Section>
 
-          {/* Deal Types */}
-          {dealsTab && (
-            <Section title="Deal types" minHeight={filterHeights}>
-              <div className={styles.listScroll}>
-                <label
-                  className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.dealTypes.length === dealTypesTotal}
-                    onChange={() =>
-                      updateFilter(
-                        "dealTypes",
-                        filters.dealTypes.length === dealTypesTotal
-                          ? []
-                          : filterOptions.dealTypes,
-                      )
-                    }
-                    className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                  />
-                  <span className={styles.labelTextBold}>
-                    {selectAllLabel(filters.dealTypes.length, dealTypesTotal)}
-                  </span>
-                </label>
-                {filterOptions.dealTypes?.map((type) => (
-                  <label
-                    key={type}
-                    className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.dealTypes.includes(type)}
-                      onChange={() => toggleArrayFilter("dealTypes", type)}
-                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                    />
-                    <span className={styles.labelText}>{type}</span>
-                  </label>
-                ))}
-              </div>
-            </Section>
-          )}
+          {/* Deal types filter removed intentionally */}
         </div>
       </div>
     </div>
