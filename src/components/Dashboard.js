@@ -57,7 +57,7 @@ const Dashboard = () => {
       } catch {
         setLoading(false);
       } finally {
-        setLoading(false); // always clear loading, success or error
+        setLoading(false);
       }
     };
 

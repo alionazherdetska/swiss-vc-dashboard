@@ -2,7 +2,6 @@ import D3AreaChart from "./shared/D3AreaChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ExportButton from "../common/ExportButton";
 
-/** Timeline (deals) */
 export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
   const chartKey = showVolume ? "volume" : "count";
   const defaultY = showVolume ? "Volume (CHF M)" : "Count";

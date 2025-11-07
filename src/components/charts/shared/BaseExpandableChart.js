@@ -17,7 +17,6 @@ const BaseExpandableChart = ({
 
   // Configuration
   isDualChart = false,
-  supportsSingleMode = true,
   supportsTotal = false,
 
   // Initial state

@@ -63,11 +63,6 @@ export const SMALLSET_LABEL_DY = {
   expanded: [-10, 1, 10],
 };
 
-/* =========================
-   Your existing constants
-   ========================= */
-
-// Official Swiss cantons in correct order with codes
 export const OFFICIAL_CANTONS = [
   { name: "Zürich", code: "ZH" },
   { name: "Bern", code: "BE" },
@@ -142,7 +137,6 @@ export const getChartOptions = (activeTab) =>
     },
   ].filter(Boolean);
 
-// Volume display options
 export const VOLUME_OPTIONS = [
   { key: "count", name: "Count", unit: "" },
   { key: "volume", name: "Volume", unit: "CHF M" },
