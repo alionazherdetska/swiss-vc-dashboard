@@ -17,7 +17,7 @@ export const sanitizeKey = (s) =>
 
 // Compute chart dimensions; optional margins override
 export const getChartDims = (isExpandedView, forcedHeight, margins) => ({
-  width: isExpandedView ? 800 : 800,
+  width: 800,
   height: forcedHeight ?? (isExpandedView ? 600 : 420),
   margin: margins ?? (isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN),
 });
@@ -53,7 +53,7 @@ const parseAmountToMillions = (v) => {
   s = s
     .replace(/chf/g, "")
     .replace(/\s/g, "")
-    .replace(/[',']/g, "") // thousands separators (comma/apostrophe)
+    .replace(/[,']/g, "") // thousands separators (comma/apostrophe)
     .replace(/million(s)?/g, "m");
 
   // Already in millions? e.g., "5.2m"

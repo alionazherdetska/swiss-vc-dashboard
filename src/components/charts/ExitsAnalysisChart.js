@@ -41,7 +41,6 @@ const D3Chart = ({
   useEffect(() => {
     if (!data || data.length === 0) return;
 
-    console.log("D3Chart re-rendering with data:", data); // Debug log
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
@@ -323,8 +322,6 @@ const ExitsAnalysisChart = ({ exits }) => {
   // Filter exits with valid year
   const filteredExits = useMemo(() => {
     const filtered = exits.filter((e) => e.Year);
-    console.log("ExitsAnalysisChart - Filtered exits:", filtered); // Debug log
-    console.log("ExitsAnalysisChart - Total exits received:", exits.length); // Debug log
     return filtered;
   }, [exits]);
 
@@ -332,7 +329,6 @@ const ExitsAnalysisChart = ({ exits }) => {
     const yearArray = Array.from(
       new Set(filteredExits.map((e) => Number(e.Year))),
     ).sort((a, b) => a - b);
-    console.log("ExitsAnalysisChart - Available years:", yearArray); // Debug log
     return yearArray;
   }, [filteredExits]);
 
@@ -355,10 +351,7 @@ const ExitsAnalysisChart = ({ exits }) => {
       const items = filteredExits.filter((e) => Number(e.Year) === year);
       const count = items.length;
       const volume = items.reduce((sum, e) => sum + (e.VolumeMChf || 0), 0);
-      console.log(
-        `ExitsAnalysisChart - Year ${year}: count=${count}, volume=${volume}, items:`,
-        items,
-      ); // Debug log
+        // Year row prepared
       return {
         year,
         exits__count: count,
@@ -369,11 +362,6 @@ const ExitsAnalysisChart = ({ exits }) => {
         __grandTotalVolume: Math.round(volume * 10) / 10,
       };
     });
-    console.log("ExitsAnalysisChart - Chart rows:", result); // Debug log
-    console.log(
-      "ExitsAnalysisChart - Total exits for all years:",
-      result.reduce((sum, r) => sum + r.exits__count, 0),
-    ); // Debug log
     return result;
   }, [visibleYears, filteredExits]);
 

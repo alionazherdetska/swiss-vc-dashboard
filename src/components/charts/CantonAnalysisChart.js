@@ -156,7 +156,6 @@ const CantonAnalysisChart = ({ deals }) => {
 
   // Handle export
   const handleExport = () => {
-    console.log("Export canton chart");
     // TODO: Implement export functionality
   };
 

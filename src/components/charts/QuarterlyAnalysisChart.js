@@ -196,7 +196,6 @@ const QuarterlyAnalysisChart = ({
 
   // Handle export
   const handleExport = () => {
-    console.log("Export quarterly chart");
     // TODO: Implement export functionality
   };
 

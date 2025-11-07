@@ -159,7 +159,6 @@ const GenderAnalysisChart = ({ deals }) => {
 
   // Handle export
   const handleExport = () => {
-    console.log("Export gender chart");
     // TODO: Implement export functionality
   };
 

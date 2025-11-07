@@ -1,15 +1,12 @@
 import { useState } from "react";
 import ChartModal from "../../common/ChartModal";
 import ChartControls from "./ChartControls";
-// ...existing code...
 
 /**
  * Base expandable chart component that provides common functionality
  * Handles state management, modal behavior, and consistent UI structure
  */
 const BaseExpandableChart = ({
-  // Chart identification
-  title,
 
   // Data
   data,
