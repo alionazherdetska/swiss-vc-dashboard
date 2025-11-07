@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 
 const ChartModal = ({ isOpen, onClose, title, children }) => {
-  // Close on ESC
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -39,8 +38,8 @@ const ChartModal = ({ isOpen, onClose, title, children }) => {
       <div
         className="bg-white rounded-lg shadow-xl w-full h-full flex flex-col"
         style={{
-          maxWidth: "95vw",
-          maxHeight: "95vh",
+          maxWidth: "60vw",
+          maxHeight: "85vh",
           minHeight: "60vh",
         }}
         onClick={stop}

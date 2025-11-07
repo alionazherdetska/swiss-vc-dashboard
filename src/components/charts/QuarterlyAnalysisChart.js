@@ -15,11 +15,6 @@ import {
   ENHANCED_COLOR_PALETTE,
 } from "../../lib/constants";
 
-/**
- * Refactored ExpandableQuarterlyAnalysisChart using new shared architecture
- * Reduces code by ~75% by leveraging shared components and utilities
- */
-
 // Chart component wrapper for quarterly/industry data
 const QuarterlyChart = ({
   data,

@@ -6,7 +6,6 @@ import ExportButton from "../../common/ExportButton";
  * Provides consistent UI for chart mode selection, export, and expand functionality
  */
 const ChartControls = ({
-  // Mode controls
   showModeControls = true,
   leftMode,
   rightMode,
