@@ -18,8 +18,6 @@ const D3ComposedChart = ({
   yAxisLabel = "",
   colorOf,
   dataKeySuffix = "__volume",
-  onTooltipShow,
-  onTooltipHide,
   tooltipFormatter,
 }) => {
   const svgRef = useRef();

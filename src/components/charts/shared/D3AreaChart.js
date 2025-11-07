@@ -231,6 +231,8 @@ const D3AreaChart = ({
     axisColor,
     yAxisLabel,
     showVolume,
+    onTooltipShow,
+    onTooltipHide,
   ]);
 
   return (

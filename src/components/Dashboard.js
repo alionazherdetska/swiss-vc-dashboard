@@ -92,17 +92,6 @@ const Dashboard = () => {
         ceoGenders: [],
       };
     }
-    // Exclude some unwanted deal type labels from appearing in the UI filters
-    const EXCLUDED_DEAL_TYPES = [
-      "Convertible Loan",
-      "EXIT",
-      "Foreign",
-      "Grant",
-      "IPO",
-      "M&A",
-      "Micro",
-    ].map((s) => s.toLowerCase());
-
     return {
       phases: [...new Set(deals.map((d) => d.Phase).filter(Boolean))].sort(),
       dealYears: [...new Set(deals.map((d) => d.Year).filter(Boolean))].sort(),

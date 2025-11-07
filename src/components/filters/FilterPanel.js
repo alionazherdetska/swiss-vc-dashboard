@@ -2,9 +2,20 @@ import { useMemo } from "react";
 import { OFFICIAL_CANTONS } from "../../lib/constants";
 import styles from "./FilterPanel.module.css";
 
-const Section = ({ title, children, minHeight }) => (
+const Section = ({ title, children, minHeight, onReset }) => (
   <div className={styles.sectionRoot}>
-    <div className={styles.sectionTitle}>{title}</div>
+    <div className={styles.sectionHeader}>
+      <div className={styles.sectionTitle}>{title}</div>
+      {onReset ? (
+        <button
+          type="button"
+          className={styles.sectionReset}
+          onClick={onReset}
+        >
+          Reset
+        </button>
+      ) : null}
+    </div>
     <div style={{ minHeight: minHeight ? `${minHeight}px` : "auto" }}>
       {children}
     </div>
@@ -62,9 +73,16 @@ const FilterPanel = ({
   return (
     <div className={styles.panelRoot}>
       <div className={styles.panelCard}>
-        {/* Header with Year Range and Reset */}
-        <div className={styles.header}>
-          <div className={styles.headerLeft}>
+        <div className={styles.filtersRow}>
+          {/* Years */}
+          <Section
+            title="Years"
+            minHeight={filterHeights}
+            onReset={() =>
+              // Reset years to full range; assumption: default range is 2012-2025
+              updateFilter("yearRange", [2012, 2025])
+            }
+          >
             <div className={styles.inputGroup}>
               <input
                 type="number"
@@ -100,15 +118,14 @@ const FilterPanel = ({
                 className={styles.inputSmall}
               />
             </div>
-          </div>
-          <button onClick={resetFilters} className={styles.btnReset}>
-            Reset
-          </button>
-        </div>
+          </Section>
 
-        <div className={styles.filtersRow}>
           {/* Industries */}
-          <Section title="Industries" minHeight={filterHeights}>
+          <Section
+            title="Industries"
+            minHeight={filterHeights}
+            onReset={() => updateFilter("industries", [])}
+          >
             <div className={`${styles.listScroll}`}>
               <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                 <input
@@ -145,102 +162,113 @@ const FilterPanel = ({
             </div>
           </Section>
 
-          {/* Deal Types or Stages */}
-          {dealsTab ? (
-            <Section title="Stages" minHeight={filterHeights}>
-              <div className={styles.listScroll}>
-                <label
-                  className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                >
+          {/* Stack: Stages + CEO gender in one column */}
+          <div className={styles.stackColumn}>
+            {dealsTab ? (
+              <Section
+                title="Stages"
+                onReset={() => updateFilter("phases", [])}
+              >
+                <div className={styles.listScroll}>
+                  <label
+                    className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={filters.phases.length === phasesTotal}
+                      onChange={() =>
+                        updateFilter(
+                          "phases",
+                          filters.phases.length === phasesTotal
+                            ? []
+                            : filterOptions.phases,
+                        )
+                      }
+                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                    />
+                    <span className={styles.labelTextBold}>
+                      {selectAllLabel(filters.phases.length, phasesTotal)}
+                    </span>
+                  </label>
+                  {filterOptions.phases?.map((phase) => (
+                    <label
+                      key={phase}
+                      className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={filters.phases.includes(phase)}
+                        onChange={() => toggleArrayFilter("phases", phase)}
+                        className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                      />
+                      <span className={styles.labelText}>{phase}</span>
+                    </label>
+                  ))}
+                </div>
+              </Section>
+            ) : (
+              <Section title="Stages" minHeight={filterHeights} onReset={() => updateFilter("phases", [])}>
+                <div className="space-y-1.5">
+                  <label className={`${styles.itemLabel}`}>
+                    <input
+                      type="checkbox"
+                      checked={true}
+                      disabled
+                      className={`${styles.checkbox}`}
+                    />
+                    <span className={styles.labelTextMuted}>All</span>
+                  </label>
+                </div>
+              </Section>
+            )}
+
+            <Section
+              title="CEO gender"
+              onReset={() => updateFilter("ceoGenders", [])}
+            >
+              <div>
+                <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                   <input
                     type="checkbox"
-                    checked={filters.phases.length === phasesTotal}
+                    checked={(filters.ceoGenders?.length || 0) === ceoTotal}
                     onChange={() =>
                       updateFilter(
-                        "phases",
-                        filters.phases.length === phasesTotal
+                        "ceoGenders",
+                        (filters.ceoGenders?.length || 0) === ceoTotal
                           ? []
-                          : filterOptions.phases,
+                          : filterOptions.ceoGenders,
                       )
                     }
                     className={`${styles.checkbox} ${styles.checkboxPrimary}`}
                   />
                   <span className={styles.labelTextBold}>
-                    {selectAllLabel(filters.phases.length, phasesTotal)}
+                    {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
                   </span>
                 </label>
-                {filterOptions.phases?.map((phase) => (
+                {filterOptions.ceoGenders?.map((gender) => (
                   <label
-                    key={phase}
+                    key={gender}
                     className={`${styles.itemLabel} ${styles.itemLabelHover}`}
                   >
                     <input
                       type="checkbox"
-                      checked={filters.phases.includes(phase)}
-                      onChange={() => toggleArrayFilter("phases", phase)}
+                      checked={filters.ceoGenders?.includes(gender) || false}
+                      onChange={() => toggleArrayFilter("ceoGenders", gender)}
                       className={`${styles.checkbox} ${styles.checkboxPrimary}`}
                     />
-                    <span className={styles.labelText}>{phase}</span>
+                    <span className={styles.labelText}>{gender}</span>
                   </label>
                 ))}
               </div>
             </Section>
-          ) : (
-            <Section title="Stages" minHeight={filterHeights}>
-              <div className="space-y-1.5">
-                <label className={`${styles.itemLabel}`}>
-                  <input
-                    type="checkbox"
-                    checked={true}
-                    disabled
-                    className={`${styles.checkbox}`}
-                  />
-                  <span className={styles.labelTextMuted}>All</span>
-                </label>
-              </div>
-            </Section>
-          )}
-
-          {/* CEO Gender */}
-          <Section title="CEO gender" minHeight={filterHeights}>
-            <div>
-              <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
-                <input
-                  type="checkbox"
-                  checked={(filters.ceoGenders?.length || 0) === ceoTotal}
-                  onChange={() =>
-                    updateFilter(
-                      "ceoGenders",
-                      (filters.ceoGenders?.length || 0) === ceoTotal
-                        ? []
-                        : filterOptions.ceoGenders,
-                    )
-                  }
-                  className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                />
-                <span className={styles.labelTextBold}>
-                  {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
-                </span>
-              </label>
-              {filterOptions.ceoGenders?.map((gender) => (
-                <label
-                  key={gender}
-                  className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.ceoGenders?.includes(gender) || false}
-                    onChange={() => toggleArrayFilter("ceoGenders", gender)}
-                    className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                  />
-                  <span className={styles.labelText}>{gender}</span>
-                </label>
-              ))}
-            </div>
-          </Section>
+          </div>
 
           {/* Cantons */}
-          <Section title="Cantons" minHeight={filterHeights}>
+          <Section
+            title="Cantons"
+            minHeight={filterHeights}
+            onReset={() => updateFilter("cantons", [])}
+          >
             <div className={styles.listScroll}>
               <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                 <input

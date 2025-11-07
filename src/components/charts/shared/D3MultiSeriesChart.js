@@ -256,6 +256,8 @@ const D3MultiSeriesChart = ({
     colorOf,
     showTotal,
     metricSuffix,
+    getSeriesValue,
+    yAxisLabel,
   ]);
 
   return (

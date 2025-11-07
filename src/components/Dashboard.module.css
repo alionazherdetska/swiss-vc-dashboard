@@ -60,20 +60,6 @@
   color: #e0e0e0;
 }
 
-.topTitleBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
-  border-radius: 10px 10px 0 0;
-}
-
-.cardsRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-bottom: 18px;
-}
 
 .card {
   background: linear-gradient(180deg, #fff 0%, #fbfbfb 100%);
@@ -82,18 +68,21 @@
   padding: 12px;
 }
 
-.cardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
+
+.active {
+  background: #FEFEFE;
+  color: #e53935;
+  z-index: 20;
+  border-radius: 20px 20px 0 0;
 }
 
-.cardControls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.inactive {
+  background: #4a4a4a;
+  color: #fff;
+}
+
+.inactive:hover {
+  color: #e0e0e0;
 }
 
 .filtersWrap {
