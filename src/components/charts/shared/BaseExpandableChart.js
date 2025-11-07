@@ -40,24 +40,8 @@ const BaseExpandableChart = ({
     updateChartState({ expanded: null });
   }, [updateChartState]);
 
-  const handleLeftModeChange = useCallback((mode) => {
-    updateChartState({ leftMode: mode });
-  }, [updateChartState]);
-
-  const handleRightModeChange = useCallback((mode) => {
-    updateChartState({ rightMode: mode });
-  }, [updateChartState]);
-
-  const handleSingleModeChange = useCallback((mode) => {
-    updateChartState({ singleMode: mode });
-  }, [updateChartState]);
-
   const handleModalModeChange = useCallback((mode) => {
     updateChartState({ modalMode: mode });
-  }, [updateChartState]);
-
-  const handleShowTotalChange = useCallback((show) => {
-    updateChartState({ showTotal: show });
   }, [updateChartState]);
 
   const handleModalShowTotalChange = useCallback((show) => {
