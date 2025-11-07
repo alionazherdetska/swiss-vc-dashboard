@@ -1,139 +1,156 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import ChartModal from "../../common/ChartModal";
 import ChartControls from "./ChartControls";
 
-/**
- * Base expandable chart component that provides common functionality
- * Handles state management, modal behavior, and consistent UI structure
- */
 const BaseExpandableChart = ({
-
-  // Data
   data,
-
-  // Chart components
   ChartComponent,
   ExpandedChartComponent,
-
-  // Configuration
   isDualChart = false,
   supportsTotal = false,
-
-  // Initial state
   initialLeftMode = "line",
   initialRightMode = "line",
   initialSingleMode = "line",
   initialShowTotal = false,
-
-  // Custom handlers
   onExport,
   onDataProcess,
-
-  // Styling
   className = "space-y-6",
-
-  // Additional props to pass to chart components
   chartProps = {},
-
   children,
 }) => {
-  // State management
-  const [expandedChart, setExpandedChart] = useState(null);
-  const [leftMode, setLeftMode] = useState(initialLeftMode);
-  const [rightMode, setRightMode] = useState(initialRightMode);
-  const [singleMode, setSingleMode] = useState(initialSingleMode);
-  const [showTotal, setShowTotal] = useState(initialShowTotal);
+  const [chartState, setChartState] = useState({
+    expanded: null,
+    leftMode: initialLeftMode,
+    rightMode: initialRightMode,
+    singleMode: initialSingleMode,
+    showTotal: initialShowTotal,
+    modalMode: "line",
+    modalShowTotal: true,
+  });
 
-  // Modal state for expanded view
-  const [modalMode, setModalMode] = useState("line");
-  const [modalShowTotal, setModalShowTotal] = useState(true);
+  const updateChartState = useCallback((updates) => {
+    setChartState((prev) => ({ ...prev, ...updates }));
+  }, []);
 
-  // Handle chart expansion
-  const handleExpand = (chartType = "volume") => {
-    setExpandedChart(chartType);
-  };
+  const handleExpand = useCallback((chartType = "volume") => {
+    updateChartState({ expanded: chartType });
+  }, [updateChartState]);
 
-  // Handle modal close
-  const handleModalClose = () => {
-    setExpandedChart(null);
-  };
+  const handleModalClose = useCallback(() => {
+    updateChartState({ expanded: null });
+  }, [updateChartState]);
 
-  // Process data if handler provided
-  const processedData = onDataProcess ? onDataProcess(data) : data;
+  const handleLeftModeChange = useCallback((mode) => {
+    updateChartState({ leftMode: mode });
+  }, [updateChartState]);
 
-  // Common chart props
-  const baseChartProps = {
-    data: processedData,
-    leftMode,
-    rightMode,
-    singleMode,
-    showTotal,
-    onExpand: handleExpand,
-    onExport,
-    ...chartProps,
-  };
+  const handleRightModeChange = useCallback((mode) => {
+    updateChartState({ rightMode: mode });
+  }, [updateChartState]);
 
-  // Expanded chart props
-  const expandedChartProps = {
-    data: processedData,
-    mode: modalMode,
-    showTotal: modalShowTotal,
-    isExpanded: true,
-    expandedChart,
-    ...chartProps,
-  };
+  const handleSingleModeChange = useCallback((mode) => {
+    updateChartState({ singleMode: mode });
+  }, [updateChartState]);
+
+  const handleModalModeChange = useCallback((mode) => {
+    updateChartState({ modalMode: mode });
+  }, [updateChartState]);
+
+  const handleShowTotalChange = useCallback((show) => {
+    updateChartState({ showTotal: show });
+  }, [updateChartState]);
+
+  const handleModalShowTotalChange = useCallback((show) => {
+    updateChartState({ modalShowTotal: show });
+  }, [updateChartState]);
+
+  const processedData = useMemo(
+    () => (onDataProcess ? onDataProcess(data) : data),
+    [data, onDataProcess]
+  );
+
+  const baseChartProps = useMemo(
+    () => ({
+      data: processedData,
+      leftMode: chartState.leftMode,
+      rightMode: chartState.rightMode,
+      singleMode: chartState.singleMode,
+      showTotal: chartState.showTotal,
+      onExpand: handleExpand,
+      onExport,
+      ...chartProps,
+    }),
+    [
+      processedData,
+      chartState.leftMode,
+      chartState.rightMode,
+      chartState.singleMode,
+      chartState.showTotal,
+      handleExpand,
+      onExport,
+      chartProps,
+    ]
+  );
+
+  const expandedChartProps = useMemo(
+    () => ({
+      data: processedData,
+      mode: chartState.modalMode,
+      showTotal: chartState.modalShowTotal,
+      isExpanded: true,
+      expandedChart: chartState.expanded,
+      ...chartProps,
+    }),
+    [processedData, chartState, chartProps]
+  );
+
+  const modalTitle = useMemo(() => {
+    const typeLabels = {
+      volume: "Investment Volume",
+      count: "Deal Count",
+    };
+    return `Expanded ${typeLabels[chartState.expanded] || "Chart"}`;
+  }, [chartState.expanded]);
 
   return (
     <div className={className}>
-      {/* Chart controls */}
       <ChartControls
         isDualChart={isDualChart}
-        leftMode={leftMode}
-        rightMode={rightMode}
-        singleMode={singleMode}
-        onLeftModeChange={setLeftMode}
-        onRightModeChange={setRightMode}
-        onSingleModeChange={setSingleMode}
+        leftMode={chartState.leftMode}
+        rightMode={chartState.rightMode}
+        singleMode={chartState.singleMode}
+        onLeftModeChange={handleLeftModeChange}
+        onRightModeChange={handleRightModeChange}
+        onSingleModeChange={handleSingleModeChange}
         showTotalControl={supportsTotal}
-        showTotal={showTotal}
-        onShowTotalChange={setShowTotal}
+        showTotal={chartState.showTotal}
+        onShowTotalChange={handleShowTotalChange}
         onExport={onExport}
-        showExpandButton={false} // Individual charts have their own expand buttons
+        showExpandButton={false}
       />
 
-      {/* Main chart content */}
       <ChartComponent {...baseChartProps} />
 
-      {/* Custom content */}
       {children}
 
-      {/* Expanded modal */}
       <ChartModal
-        isOpen={expandedChart !== null}
+        isOpen={chartState.expanded !== null}
         onClose={handleModalClose}
-        title={`Expanded ${
-          expandedChart === "volume"
-            ? "Investment Volume"
-            : expandedChart === "count"
-              ? "Deal Count"
-              : expandedChart || "Chart"
-        }`}
+        title={modalTitle}
       >
-        {expandedChart && (
+        {chartState.expanded && (
           <div className="space-y-4">
-            {/* Modal controls */}
             <ChartControls
               isDualChart={false}
-              singleMode={modalMode}
-              onSingleModeChange={setModalMode}
+              singleMode={chartState.modalMode}
+              onSingleModeChange={handleModalModeChange}
               showTotalControl={supportsTotal}
-              showTotal={modalShowTotal}
-              onShowTotalChange={setModalShowTotal}
+              showTotal={chartState.modalShowTotal}
+              onShowTotalChange={handleModalShowTotalChange}
               showExpandButton={false}
               onExport={onExport}
             />
 
-            {/* Expanded chart */}
             {ExpandedChartComponent ? (
               <ExpandedChartComponent {...expandedChartProps} />
             ) : (
@@ -145,5 +162,7 @@ const BaseExpandableChart = ({
     </div>
   );
 };
+
+BaseExpandableChart.displayName = "BaseExpandableChart";
 
 export default BaseExpandableChart;

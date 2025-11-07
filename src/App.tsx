@@ -9,41 +9,54 @@ export function App() {
 
   useEffect(() => {
     const loadData = async () => {
-      try {
-        setLoadingProgress("Fetching data file...");
+  try {
+    setLoadingProgress("Fetching data file...");
 
-        const response = await fetch("/startup-data.json");
-        if (!response.ok) {
-          throw new Error(
-            `Failed to load data file (${response.status}: ${response.statusText})`,
-          );
-        }
+    const response = await fetch("/startup-data.json");
+    
+    if (!response.ok) {
+      throw new Error(
+        `Failed to load data (${response.status}): ${response.statusText}`
+      );
+    }
 
-        setLoadingProgress("Parsing JSON data...");
-        const jsonData = await response.json();
+    const contentType = response.headers.get('content-type');
+    if (!contentType?.includes('application/json')) {
+      throw new Error('Invalid response type. Expected JSON.');
+    }
 
-        if (!jsonData.Companies && !jsonData.Deals) {
-          if (Array.isArray(jsonData)) {
-            window.startupData = { Companies: [], Deals: jsonData };
-          } else {
-            throw new Error(
-              "Data file must contain 'Companies' and/or 'Deals' arrays",
-            );
-          }
-        } else {
-          window.startupData = jsonData;
-        }
+    setLoadingProgress("Parsing JSON data...");
+    const jsonData = await response.json();
 
-        setLoadingProgress("Processing data...");
-        await new Promise((resolve) => setTimeout(resolve, 500));
+    // Validate data structure
+    if (!jsonData || typeof jsonData !== 'object') {
+      throw new Error('Invalid data structure: must be object or array');
+    }
 
-        setLoadingProgress("Finalizing dashboard...");
-        setLoading(false);
-      } catch (error) {
-        setError(error.message);
-        setLoading(false);
+    if (Array.isArray(jsonData)) {
+      if (jsonData.length === 0) {
+        throw new Error('Data array is empty');
       }
-    };
+      window.startupData = { Companies: [], Deals: jsonData };
+    } else if (!jsonData.Companies && !jsonData.Deals) {
+      throw new Error('Data must contain Companies and/or Deals arrays');
+    } else {
+      window.startupData = jsonData;
+    }
+
+    setLoadingProgress("Processing data...");
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    setLoadingProgress("Finalizing dashboard...");
+    setLoading(false);
+  } catch (error) {
+    const message = error instanceof Error 
+      ? error.message 
+      : 'Unknown error occurred';
+    setError(message);
+    setLoading(false);
+  }
+};
 
     loadData();
   }, []);
