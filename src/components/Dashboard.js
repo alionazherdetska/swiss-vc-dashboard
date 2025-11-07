@@ -54,7 +54,6 @@ const Dashboard = () => {
           setDeals(processedDeals);
         }
 
-        // Exits data removed from dashboard - no processing required
       } catch {
         setLoading(false);
       } finally {

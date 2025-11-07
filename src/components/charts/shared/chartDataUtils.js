@@ -77,7 +77,7 @@ export const calculateYearlyData = (data, config) => {
 };
 
 /**
- * Calculate simple yearly totals (for single category data like exits)
+ * Calculate simple yearly totals (for single category data)
  */
 export const calculateSimpleYearlyData = (data, config = {}) => {
   const {
@@ -177,11 +177,6 @@ export const getChartConfig = (chartType) => {
       getCategoryValue: (item) => item.Phase,
       getVolumeValue: (item) => item.VolumeMChf || 0,
       includeTotal: true,
-    },
-    exits: {
-      getVolumeValue: (item) => item.VolumeMChf || 0,
-      countField: "exits__count",
-      volumeField: "exits__volume",
     },
   };
 
