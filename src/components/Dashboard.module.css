@@ -3,11 +3,6 @@
   background-color: #FEFEFE;
 }
 
-.dashboardCharts {
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-}
-
 .tabPanel {
   border: 0;
   position: relative;
@@ -62,27 +57,11 @@
 
 
 .card {
-  background: linear-gradient(180deg, #fff 0%, #fbfbfb 100%);
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 12px;
-}
-
-
-.active {
-  background: #FEFEFE;
-  color: #e53935;
-  z-index: 20;
-  border-radius: 20px 20px 0 0;
-}
-
-.inactive {
-  background: #4a4a4a;
-  color: #fff;
-}
-
-.inactive:hover {
-  color: #e0e0e0;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .filtersWrap {

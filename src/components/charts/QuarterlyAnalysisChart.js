@@ -208,8 +208,6 @@ const QuarterlyAnalysisChart = ({
           countProps={{ mode: rightMode }}
           onVolumeExpand={() => onExpand("volume")}
           onCountExpand={() => onExpand("count")}
-          onVolumeExport={handleExport}
-          onCountExport={handleExport}
         />
       )}
       ExpandedChartComponent={ExpandedChart}

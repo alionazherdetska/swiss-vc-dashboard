@@ -63,6 +63,35 @@ export const SMALLSET_LABEL_DY = {
   expanded: [-10, 1, 10],
 };
 
+export const CANTON_COLOR_MAP = {
+  "Zürich": "#4169E1",
+  "Bern": "#8B4513",
+  "Luzern": "#FFD700",
+  "Uri": "#FF4500",
+  "Schwyz": "#8A2BE2",
+  "Obwalden": "#00CED1",
+  "Nidwalden": "#FF1493",
+  "Glarus": "#32CD32",
+  "Zug": "#A0522D",
+  "Fribourg": "#1ABC9C",
+  "Solothurn": "#E84A5F",
+  "Basel-Stadt": "#F7931E",
+  "Basel-Landschaft": "#9B5DE5",
+  "Schaffhausen": "#2ECC71",
+  "Appenzell Ausserrhoden": "#3498DB",
+  "Appenzell Innerrhoden": "#E84A5F",
+  "St. Gallen": "#2ECC71",
+  "Graubünden": "#3498DB",
+  "Aargau": "#A0522D",
+  "Thurgau": "#F7931E",
+  "Ticino": "#9B5DE5",
+  "Vaud": "#1ABC9C",
+  "Valais": "#FFD700",
+  "Neuchâtel": "#FF1493",
+  "Genève": "#32CD32",
+  "Jura": "#4169E1",
+};
+
 export const OFFICIAL_CANTONS = [
   { name: "Zürich", code: "ZH" },
   { name: "Bern", code: "BE" },

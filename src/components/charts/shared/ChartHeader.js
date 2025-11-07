@@ -1,5 +1,4 @@
 import { Maximize2 } from "lucide-react";
-import ExportButton from "../../common/ExportButton";
 
 /**
  * Reusable chart header component
@@ -8,11 +7,7 @@ import ExportButton from "../../common/ExportButton";
 const ChartHeader = ({
   title,
   showExpandButton = false,
-  showExportButton = false,
   onExpand,
-  onExport,
-  expandButtonColor = "bg-blue-600",
-  expandHoverColor = "hover:bg-blue-700",
   expandTitle = "Expand chart",
   isVolumeChart = false,
 
@@ -23,33 +18,22 @@ const ChartHeader = ({
   className = "flex items-center gap-2 mb-2",
   titleClassName = "text-md font-semibold text-gray-800",
 }) => {
-  // Determine expand button color based on chart type if not explicitly set
-  const buttonColor =
-    expandButtonColor === "bg-blue-600" && !isVolumeChart
-      ? "bg-green-600"
-      : expandButtonColor;
-
-  const hoverColor =
-    expandHoverColor === "hover:bg-blue-700" && !isVolumeChart
-      ? "hover:bg-green-700"
-      : expandHoverColor;
-
   return (
     <div className={className}>
       <h3 className={titleClassName}>{title}</h3>
 
       {/* Action buttons */}
-      {(showExpandButton || showExportButton || children) && (
+      {(showExpandButton || children) && (
         <div className="flex gap-2 ml-auto">
-          {showExportButton && <ExportButton onClick={onExport} />}
-
           {showExpandButton && (
             <button
               onClick={onExpand}
-              className={`p-2 rounded-md ${buttonColor} text-white shadow-md ${hoverColor} transition-colors`}
+              className="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-sm font-medium"
               title={expandTitle}
+              style={{ fontSize: '0.875rem' }}
             >
-              <Maximize2 className="h-5 w-5" />
+              <span>expand</span>
+              <Maximize2 className="h-4 w-4" />
             </button>
           )}
 

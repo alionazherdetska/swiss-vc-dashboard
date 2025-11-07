@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { OFFICIAL_CANTONS } from "../../lib/constants";
+import { OFFICIAL_CANTONS, CANTON_COLOR_MAP, INDUSTRY_COLOR_MAP } from "../../lib/constants";
 import styles from "./FilterPanel.module.css";
 
 const Section = ({ title, children, minHeight, onReset }) => (
@@ -26,12 +26,21 @@ const FilterPanel = ({
   filters,
   filterOptions,
   activeTab,
+  activeChart,
   updateFilter,
   toggleArrayFilter,
   resetFilters,
 }) => {
   const companiesTab = activeTab === "companies";
   const dealsTab = !companiesTab;
+  
+  // Determine which filter should be primary (checkboxes with colors)
+  // On Overview tab (timeline), all filters should show as checkboxes with "All" labels
+  const isOverviewTab = activeChart === "timeline";
+  const isCantonPrimary = activeChart === "canton";
+  const isIndustryPrimary = activeChart === "quarterly";
+  const isPhasePrimary = activeChart === "phase";
+  const isGenderPrimary = activeChart === "ceoGender";
 
   const ceoTotal = filterOptions.ceoGenders?.length || 0;
   const industriesTotal = filterOptions.industries?.length || 0;
@@ -73,7 +82,121 @@ const FilterPanel = ({
   return (
     <div className={styles.panelRoot}>
       <div className={styles.panelCard}>
-        <div className={styles.filtersRow}>
+        {isOverviewTab ? (
+          // Overview layout: Years + All checkboxes in one column + Message
+          <div className={styles.filtersRowOverview}>
+            {/* Column 1: Years */}
+            <Section
+              title="Years"
+              onReset={() => updateFilter("yearRange", [2012, 2025])}
+            >
+              <div className={styles.inputGroup}>
+                <input
+                  type="number"
+                  min="2012"
+                  max={filters.yearRange[1] - 1}
+                  value={filters.yearRange[0]}
+                  onChange={(e) =>
+                    updateFilter("yearRange", [
+                      Math.min(
+                        parseInt(e.target.value || "0"),
+                        filters.yearRange[1] - 1,
+                      ),
+                      filters.yearRange[1],
+                    ])
+                  }
+                  className={styles.inputSmall}
+                />
+                <span className={styles.textMuted}>to</span>
+                <input
+                  type="number"
+                  min={filters.yearRange[0] + 1}
+                  max="2025"
+                  value={filters.yearRange[1]}
+                  onChange={(e) =>
+                    updateFilter("yearRange", [
+                      filters.yearRange[0],
+                      Math.max(
+                        parseInt(e.target.value || "0"),
+                        filters.yearRange[0] + 1,
+                      ),
+                    ])
+                  }
+                  className={styles.inputSmall}
+                />
+              </div>
+            </Section>
+
+            {/* Column 2: All filters as checkboxes */}
+            <Section title="Industries">
+              <div className={styles.overviewCheckboxes}>
+                <label className={`${styles.itemLabel}`}>
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled
+                    className={`${styles.checkbox}`}
+                  />
+                  <span className={styles.labelText}>All Industries</span>
+                </label>
+                
+                <label className={`${styles.itemLabel}`}>
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled
+                    className={`${styles.checkbox}`}
+                  />
+                  <span className={styles.labelText}>All Cantons</span>
+                </label>
+                
+                <label className={`${styles.itemLabel}`}>
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled
+                    className={`${styles.checkbox}`}
+                  />
+                  <span className={styles.labelText}>All Stages</span>
+                </label>
+                
+                <label className={`${styles.itemLabel}`}>
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled
+                    className={`${styles.checkbox}`}
+                  />
+                  <span className={styles.labelText}>All CEO genders</span>
+                </label>
+              </div>
+            </Section>
+
+            {/* Column 3: reset button placeholder (empty for layout) */}
+            <div className={styles.overviewResetColumn}>
+              <button
+                type="button"
+                className={styles.sectionReset}
+                onClick={resetFilters}
+              >
+                reset
+              </button>
+            </div>
+
+            {/* Column 4: Message */}
+            <div className={styles.overviewMessage}>
+              <h3 className={styles.overviewMessageTitle}>How to use the Filters</h3>
+              <p className={styles.overviewMessageText}>
+                In the Overview tab (Total investments/deals), the "All" filter is preselected 
+                because the total of all investments is displayed. Reducing the display using 
+                additional filters is only possible in the other tabs, as individual filters in 
+                the overview would only change the total display.
+              </p>
+            </div>
+          </div>
+        ) : (
+          // Regular layout for other tabs
+          <div className={styles.filtersRow}>
           {/* Years */}
           <Section
             title="Years"
@@ -127,38 +250,93 @@ const FilterPanel = ({
             onReset={() => updateFilter("industries", [])}
           >
             <div className={`${styles.listScroll}`}>
-              <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
-                <input
-                  type="checkbox"
-                  checked={filters.industries.length === industriesTotal}
-                  onChange={() =>
-                    updateFilter(
-                      "industries",
-                      filters.industries.length === industriesTotal
-                        ? []
-                        : filterOptions.industries,
-                    )
-                  }
-                  className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                />
-                <span className={styles.labelTextBold}>
-                  {selectAllLabel(filters.industries.length, industriesTotal)}
-                </span>
-              </label>
-              {filterOptions.industries?.map((industry) => (
-                <label
-                  key={industry}
-                  className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                >
+              {isOverviewTab ? (
+                // Overview tab: single checkbox "All Industries"
+                <label className={`${styles.itemLabel}`}>
                   <input
                     type="checkbox"
-                    checked={filters.industries.includes(industry)}
-                    onChange={() => toggleArrayFilter("industries", industry)}
-                    className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                    checked={true}
+                    disabled
+                    className={`${styles.checkbox}`}
                   />
-                  <span className={styles.labelText}>{industry}</span>
+                  <span className={styles.labelText}>All Industries</span>
                 </label>
-              ))}
+              ) : isIndustryPrimary ? (
+                // Checkboxes with colors for primary mode
+                <>
+                  <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                    <input
+                      type="checkbox"
+                      checked={filters.industries.length === industriesTotal}
+                      onChange={() =>
+                        updateFilter(
+                          "industries",
+                          filters.industries.length === industriesTotal
+                            ? []
+                            : filterOptions.industries,
+                        )
+                      }
+                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                    />
+                    <span className={styles.labelTextBold}>
+                      {selectAllLabel(filters.industries.length, industriesTotal)}
+                    </span>
+                  </label>
+                  {filterOptions.industries?.map((industry) => {
+                    const color = INDUSTRY_COLOR_MAP[industry] || "#999";
+                    return (
+                      <label
+                        key={industry}
+                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters.industries.includes(industry)}
+                          onChange={() => toggleArrayFilter("industries", industry)}
+                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                        />
+                        <span 
+                          className={styles.colorIndicator}
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className={styles.labelText}>{industry}</span>
+                      </label>
+                    );
+                  })}
+                </>
+              ) : (
+                // Radio buttons for secondary mode
+                <>
+                  <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                    <input
+                      type="radio"
+                      name="industry-radio"
+                      checked={filters.industries.length === 0}
+                      onChange={() => updateFilter("industries", [])}
+                      className={styles.radio}
+                    />
+                    <span className={styles.labelTextBold}>All</span>
+                  </label>
+                  {filterOptions.industries?.map((industry) => (
+                    <label
+                      key={industry}
+                      className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                    >
+                      <input
+                        type="radio"
+                        name="industry-radio"
+                        checked={
+                          filters.industries.length === 1 &&
+                          filters.industries[0] === industry
+                        }
+                        onChange={() => updateFilter("industries", [industry])}
+                        className={styles.radio}
+                      />
+                      <span className={styles.labelText}>{industry}</span>
+                    </label>
+                  ))}
+                </>
+              )}
             </div>
           </Section>
 
@@ -170,40 +348,90 @@ const FilterPanel = ({
                 onReset={() => updateFilter("phases", [])}
               >
                 <div className={styles.listScroll}>
-                  <label
-                    className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={filters.phases.length === phasesTotal}
-                      onChange={() =>
-                        updateFilter(
-                          "phases",
-                          filters.phases.length === phasesTotal
-                            ? []
-                            : filterOptions.phases,
-                        )
-                      }
-                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                    />
-                    <span className={styles.labelTextBold}>
-                      {selectAllLabel(filters.phases.length, phasesTotal)}
-                    </span>
-                  </label>
-                  {filterOptions.phases?.map((phase) => (
-                    <label
-                      key={phase}
-                      className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                    >
+                  {isOverviewTab ? (
+                    // Overview tab: single checkbox "All Stages"
+                    <label className={`${styles.itemLabel}`}>
                       <input
                         type="checkbox"
-                        checked={filters.phases.includes(phase)}
-                        onChange={() => toggleArrayFilter("phases", phase)}
-                        className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                        checked={true}
+                        disabled
+                        className={`${styles.checkbox}`}
                       />
-                      <span className={styles.labelText}>{phase}</span>
+                      <span className={styles.labelText}>All Stages</span>
                     </label>
-                  ))}
+                  ) : isPhasePrimary ? (
+                    // Checkboxes for primary mode (no colors for phases)
+                    <>
+                      <label
+                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters.phases.length === phasesTotal}
+                          onChange={() =>
+                            updateFilter(
+                              "phases",
+                              filters.phases.length === phasesTotal
+                                ? []
+                                : filterOptions.phases,
+                            )
+                          }
+                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                        />
+                        <span className={styles.labelTextBold}>
+                          {selectAllLabel(filters.phases.length, phasesTotal)}
+                        </span>
+                      </label>
+                      {filterOptions.phases?.map((phase) => (
+                        <label
+                          key={phase}
+                          className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filters.phases.includes(phase)}
+                            onChange={() => toggleArrayFilter("phases", phase)}
+                            className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                          />
+                          <span className={styles.labelText}>{phase}</span>
+                        </label>
+                      ))}
+                    </>
+                  ) : (
+                    // Radio buttons for secondary mode
+                    <>
+                      <label
+                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="radio"
+                          name="phase-radio"
+                          checked={filters.phases.length === 0}
+                          onChange={() => updateFilter("phases", [])}
+                          className={styles.radio}
+                        />
+                        <span className={styles.labelTextBold}>All</span>
+                      </label>
+                      {filterOptions.phases?.map((phase) => (
+                        <label
+                          key={phase}
+                          className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="radio"
+                            name="phase-radio"
+                            checked={
+                              filters.phases.length === 1 &&
+                              filters.phases[0] === phase
+                            }
+                            onChange={() => updateFilter("phases", [phase])}
+                            className={styles.radio}
+                          />
+                          <span className={styles.labelText}>{phase}</span>
+                        </label>
+                      ))}
+                    </>
+                  )}
                 </div>
               </Section>
             ) : (
@@ -227,38 +455,86 @@ const FilterPanel = ({
               onReset={() => updateFilter("ceoGenders", [])}
             >
               <div>
-                <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
-                  <input
-                    type="checkbox"
-                    checked={(filters.ceoGenders?.length || 0) === ceoTotal}
-                    onChange={() =>
-                      updateFilter(
-                        "ceoGenders",
-                        (filters.ceoGenders?.length || 0) === ceoTotal
-                          ? []
-                          : filterOptions.ceoGenders,
-                      )
-                    }
-                    className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                  />
-                  <span className={styles.labelTextBold}>
-                    {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
-                  </span>
-                </label>
-                {filterOptions.ceoGenders?.map((gender) => (
-                  <label
-                    key={gender}
-                    className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                  >
+                {isOverviewTab ? (
+                  // Overview tab: single checkbox "All CEO genders"
+                  <label className={`${styles.itemLabel}`}>
                     <input
                       type="checkbox"
-                      checked={filters.ceoGenders?.includes(gender) || false}
-                      onChange={() => toggleArrayFilter("ceoGenders", gender)}
-                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                      checked={true}
+                      disabled
+                      className={`${styles.checkbox}`}
                     />
-                    <span className={styles.labelText}>{gender}</span>
+                    <span className={styles.labelText}>All CEO genders</span>
                   </label>
-                ))}
+                ) : isGenderPrimary ? (
+                  // Checkboxes for primary mode (no colors for gender)
+                  <>
+                    <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                      <input
+                        type="checkbox"
+                        checked={(filters.ceoGenders?.length || 0) === ceoTotal}
+                        onChange={() =>
+                          updateFilter(
+                            "ceoGenders",
+                            (filters.ceoGenders?.length || 0) === ceoTotal
+                              ? []
+                              : filterOptions.ceoGenders,
+                          )
+                        }
+                        className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                      />
+                      <span className={styles.labelTextBold}>
+                        {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
+                      </span>
+                    </label>
+                    {filterOptions.ceoGenders?.map((gender) => (
+                      <label
+                        key={gender}
+                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters.ceoGenders?.includes(gender) || false}
+                          onChange={() => toggleArrayFilter("ceoGenders", gender)}
+                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                        />
+                        <span className={styles.labelText}>{gender}</span>
+                      </label>
+                    ))}
+                  </>
+                ) : (
+                  // Radio buttons for secondary mode
+                  <>
+                    <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                      <input
+                        type="radio"
+                        name="gender-radio"
+                        checked={(filters.ceoGenders?.length || 0) === 0}
+                        onChange={() => updateFilter("ceoGenders", [])}
+                        className={styles.radio}
+                      />
+                      <span className={styles.labelTextBold}>All</span>
+                    </label>
+                    {filterOptions.ceoGenders?.map((gender) => (
+                      <label
+                        key={gender}
+                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="radio"
+                          name="gender-radio"
+                          checked={
+                            (filters.ceoGenders?.length || 0) === 1 &&
+                            filters.ceoGenders?.[0] === gender
+                          }
+                          onChange={() => updateFilter("ceoGenders", [gender])}
+                          className={styles.radio}
+                        />
+                        <span className={styles.labelText}>{gender}</span>
+                      </label>
+                    ))}
+                  </>
+                )}
               </div>
             </Section>
           </div>
@@ -270,48 +546,106 @@ const FilterPanel = ({
             onReset={() => updateFilter("cantons", [])}
           >
             <div className={styles.listScroll}>
-              <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
-                <input
-                  type="checkbox"
-                  checked={filters.cantons.length === OFFICIAL_CANTONS.length}
-                  onChange={() =>
-                    updateFilter(
-                      "cantons",
-                      filters.cantons.length === OFFICIAL_CANTONS.length
-                        ? []
-                        : OFFICIAL_CANTONS.map((c) => c.name),
-                    )
-                  }
-                  className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                />
-                <span className={styles.labelTextBold}>
-                  {selectAllLabel(
-                    filters.cantons.length,
-                    OFFICIAL_CANTONS.length,
-                  )}
-                </span>
-              </label>
-              {OFFICIAL_CANTONS.map((canton) => (
-                <label
-                  key={canton.code}
-                  className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                >
+              {isOverviewTab ? (
+                // Overview tab: single checkbox "All Cantons"
+                <label className={`${styles.itemLabel}`}>
                   <input
                     type="checkbox"
-                    checked={filters.cantons.includes(canton.name)}
-                    onChange={() => toggleArrayFilter("cantons", canton.name)}
-                    className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                    checked={true}
+                    disabled
+                    className={`${styles.checkbox}`}
                   />
-                  <span className={styles.labelText}>
-                    {canton.name} ({canton.code})
-                  </span>
+                  <span className={styles.labelText}>All Cantons</span>
                 </label>
-              ))}
+              ) : isCantonPrimary ? (
+                // Checkboxes with colors for primary mode
+                <>
+                  <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                    <input
+                      type="checkbox"
+                      checked={filters.cantons.length === OFFICIAL_CANTONS.length}
+                      onChange={() =>
+                        updateFilter(
+                          "cantons",
+                          filters.cantons.length === OFFICIAL_CANTONS.length
+                            ? []
+                            : OFFICIAL_CANTONS.map((c) => c.name),
+                        )
+                      }
+                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                    />
+                    <span className={styles.labelTextBold}>
+                      {selectAllLabel(
+                        filters.cantons.length,
+                        OFFICIAL_CANTONS.length,
+                      )}
+                    </span>
+                  </label>
+                  {OFFICIAL_CANTONS.map((canton) => {
+                    const color = CANTON_COLOR_MAP[canton.name] || "#999";
+                    return (
+                      <label
+                        key={canton.code}
+                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filters.cantons.includes(canton.name)}
+                          onChange={() => toggleArrayFilter("cantons", canton.name)}
+                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                        />
+                        <span 
+                          className={styles.colorIndicator}
+                          style={{ backgroundColor: color }}
+                        />
+                        <span className={styles.labelText}>
+                          {canton.name} ({canton.code})
+                        </span>
+                      </label>
+                    );
+                  })}
+                </>
+              ) : (
+                // Radio buttons for secondary mode
+                <>
+                  <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                    <input
+                      type="radio"
+                      name="canton-radio"
+                      checked={filters.cantons.length === 0}
+                      onChange={() => updateFilter("cantons", [])}
+                      className={styles.radio}
+                    />
+                    <span className={styles.labelTextBold}>All</span>
+                  </label>
+                  {OFFICIAL_CANTONS.map((canton) => (
+                    <label
+                      key={canton.code}
+                      className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                    >
+                      <input
+                        type="radio"
+                        name="canton-radio"
+                        checked={
+                          filters.cantons.length === 1 &&
+                          filters.cantons[0] === canton.name
+                        }
+                        onChange={() => updateFilter("cantons", [canton.name])}
+                        className={styles.radio}
+                      />
+                      <span className={styles.labelText}>
+                        {canton.name} ({canton.code})
+                      </span>
+                    </label>
+                  ))}
+                </>
+              )}
             </div>
           </Section>
 
           {/* Deal types filter removed intentionally */}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

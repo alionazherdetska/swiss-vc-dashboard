@@ -114,20 +114,7 @@ const BaseExpandableChart = ({
 
   return (
     <div className={className}>
-      <ChartControls
-        isDualChart={isDualChart}
-        leftMode={chartState.leftMode}
-        rightMode={chartState.rightMode}
-        singleMode={chartState.singleMode}
-        onLeftModeChange={handleLeftModeChange}
-        onRightModeChange={handleRightModeChange}
-        onSingleModeChange={handleSingleModeChange}
-        showTotalControl={supportsTotal}
-        showTotal={chartState.showTotal}
-        onShowTotalChange={handleShowTotalChange}
-        onExport={onExport}
-        showExpandButton={false}
-      />
+      {/* Removed ChartControls from preview - controls only in modal */}
 
       <ChartComponent {...baseChartProps} />
 

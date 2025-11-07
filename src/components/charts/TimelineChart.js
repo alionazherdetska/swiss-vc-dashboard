@@ -1,6 +1,5 @@
 import D3AreaChart from "./shared/D3AreaChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
-import ExportButton from "../common/ExportButton";
 
 export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
   const chartKey = showVolume ? "volume" : "count";
@@ -13,7 +12,6 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
         {title && (
           <h3 className="text-md font-semibold text-gray-800 mr-2">{title}</h3>
         )}
-        <ExportButton />
       </div>
       <ResponsiveD3Container width="100%" height={400}>
         <D3AreaChart

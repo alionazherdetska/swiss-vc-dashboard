@@ -24,8 +24,6 @@ const DualChartLayout = ({
   // Action handlers
   onVolumeExpand,
   onCountExpand,
-  onVolumeExport,
-  onCountExport,
 
   // Layout configuration
   gridClassName = "grid grid-cols-1 md:grid-cols-2 gap-4",
@@ -43,9 +41,7 @@ const DualChartLayout = ({
             <ChartHeader
               title={volumeTitle}
               showExpandButton={!!onVolumeExpand}
-              showExportButton={!!onVolumeExport}
               onExpand={onVolumeExpand}
-              onExport={onVolumeExport}
               isVolumeChart={true}
               expandTitle="Expand Volume Chart"
             />
@@ -60,9 +56,7 @@ const DualChartLayout = ({
             <ChartHeader
               title={countTitle}
               showExpandButton={!!onCountExpand}
-              showExportButton={!!onCountExport}
               onExpand={onCountExpand}
-              onExport={onCountExport}
               isVolumeChart={false}
               expandTitle="Expand Count Chart"
             />
@@ -94,7 +88,6 @@ const SingleChartLayout = ({
 
   // Action handlers
   onExpand,
-  onExport,
 
   // Configuration
   isVolumeChart = false,
@@ -113,9 +106,7 @@ const SingleChartLayout = ({
           <ChartHeader
             title={title}
             showExpandButton={!!onExpand}
-            showExportButton={!!onExport}
             onExpand={onExpand}
-            onExport={onExport}
             isVolumeChart={isVolumeChart}
             expandTitle={`Expand ${isVolumeChart ? "Volume" : "Count"} Chart`}
           />

@@ -254,6 +254,7 @@ const Dashboard = () => {
                   filters={filters}
                   filterOptions={filterOptions}
                   activeTab="deals"
+                  activeChart={activeChart}
                   updateFilter={updateFilter}
                   toggleArrayFilter={toggleArrayFilter}
                   resetFilters={resetFilters}

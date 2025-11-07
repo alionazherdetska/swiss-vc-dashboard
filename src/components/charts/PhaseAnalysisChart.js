@@ -3,7 +3,6 @@ import { Maximize2 } from "lucide-react";
 import D3ComposedChart from "./shared/D3ComposedChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ChartModal from "../common/ChartModal";
-import ExportButton from "../common/ExportButton";
 import {
   AXIS_STROKE,
   GRID_STROKE,
@@ -77,10 +76,6 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
       chartType === "volume" ? "Investment Volume CHF (M)" : "Number of Deals";
     const dataKeySuffix = chartType === "volume" ? "__volume" : "__count";
     const dimsToUse = isExpandedView ? expandedDims : dims;
-    const expandColor =
-      chartType === "volume"
-        ? "bg-blue-600 text-white"
-        : "bg-green-600 text-white";
 
     // Custom tooltip formatter to round values
     const tooltipFormatter = (value, name) => [
@@ -93,16 +88,15 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
         <div className="flex items-center mb-2">
           <h3 className="text-md font-semibold text-gray-800 mr-2">{label}</h3>
           {!isExpandedView && (
-            <>
-              <button
-                className={`p-2 rounded-md bg-blue-600 text-white shadow-md ${expandColor} hover:opacity-90 border-none shadow-none transition-colors`}
-                title="Expand chart"
-                onClick={() => setExpandedChart(chartType)}
-              >
-                <Maximize2 className="w-5 h-5" />
-              </button>
-              <ExportButton />
-            </>
+            <button
+              className="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-sm font-medium"
+              title="Expand chart"
+              onClick={() => setExpandedChart(chartType)}
+              style={{ fontSize: '0.875rem' }}
+            >
+              <span>expand</span>
+              <Maximize2 className="h-4 w-4" />
+            </button>
           )}
         </div>
         <ResponsiveD3Container width="100%" height={dimsToUse.height}>
@@ -140,7 +134,6 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
               <option value="column">Column</option>
             </select>
           </div>
-          <ExportButton />
         </div>
         <ChartContent
           chartType={chartType}
@@ -154,30 +147,9 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50">
-        <div className="flex flex-wrap items-center gap-4">
-          <span className="text-gray-700">Left (Volume):</span>
-          <select
-            value={leftMode}
-            onChange={(e) => setLeftMode(e.target.value)}
-            className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
-          >
-            <option value="line">Line</option>
-            <option value="column">Column</option>
-          </select>
-          <span className="text-gray-700">Right (Count):</span>
-          <select
-            value={rightMode}
-            onChange={(e) => setRightMode(e.target.value)}
-            className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
-          >
-            <option value="line">Line</option>
-            <option value="column">Column</option>
-          </select>
-        </div>
-      </div>
+      {/* Removed controls from preview - controls only in modal */}
 
-      <div className="grid grid-cols-1 md:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartContent
           chartType="volume"
           modeState={leftMode}
