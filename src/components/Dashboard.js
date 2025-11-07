@@ -10,14 +10,12 @@ import QuarterlyAnalysisChart from "./charts/QuarterlyAnalysisChart.js";
 import PhaseAnalysisChart from "./charts/PhaseAnalysisChart.js";
 import CantonAnalysisChart from "./charts/CantonAnalysisChart.js";
 import GenderAnalysisChart from "./charts/GenderAnalysisChart.js";
-import ExitsAnalysisChart from "./charts/ExitsAnalysisChart.js";
 import styles from "./Dashboard.module.css";
 
 const Dashboard = () => {
   // Companies only for mapping; UI is deals-only
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [exits, setExits] = useState([]);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -35,7 +33,7 @@ const Dashboard = () => {
     { key: "phase", label: "Stages" },
     { key: "canton", label: "Canton" },
     { key: "ceoGender", label: "Gender" },
-    { key: "exits", label: "Exits" },
+    
   ];
 
   // Load & process data (companies only for mapping)
@@ -56,22 +54,7 @@ const Dashboard = () => {
           setDeals(processedDeals);
         }
 
-        if (jsonData.Exits) {
-          const processedExits = jsonData.Exits.map((e) => ({
-            ...e, // Pass through all fields
-            Year: Number(e.Year) || null,
-            VolumeMChf: Number(
-              e["Amount for publication (CHF m)"] ??
-                e[
-                  "amount (CHF m) public and confidential - nur zur Gesamtauswertung (nicht f\u00fcr Publikation)"
-                ] ??
-                e.ProceedsMChf ??
-                e.ExitValueMChf ??
-                0,
-            ),
-          }));
-          setExits(processedExits);
-        }
+        // Exits data removed from dashboard - no processing required
       } catch {
         setLoading(false);
       } finally {
@@ -104,22 +87,7 @@ const Dashboard = () => {
     };
   }, [deals]);
 
-  //exits timeline (group by year)
-  const exitsTimeline = useMemo(() => {
-    if (!exits.length) return [];
-
-    const byYear = new Map();
-    for (const e of exits) {
-      if (!e.Year) continue;
-      const y = e.Year;
-      const prev = byYear.get(y) || { year: y, count: 0, volume: 0 };
-      prev.count += 1;
-      // Use your normalized numeric field for exits volume:
-      prev.volume += Number(e.VolumeMChf || 0);
-      byYear.set(y, prev);
-    }
-    return [...byYear.values()].sort((a, b) => a.year - b.year);
-  }, [exits]);
+  
 
   // Apply filters (deals only, now including CEO gender filter)
   const filteredDeals = useMemo(() => {
@@ -268,13 +236,7 @@ const Dashboard = () => {
               />
             )}
 
-            {activeChart === "exits" && (
-              <ExitsAnalysisChart
-                exits={exits}
-                selectedYearCount={exitsTimeline.length}
-                totalYearCount={exitsTimeline.length}
-              />
-            )}
+            
 
             <div className={styles.filtersWrap}>
               <div className={styles.filterCard}>
