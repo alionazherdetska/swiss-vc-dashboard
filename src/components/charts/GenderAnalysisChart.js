@@ -8,19 +8,12 @@ import {
   getChartConfig,
 } from "./shared/ChartDataUtils";
 import { getChartDims } from "../../lib/utils";
-import { CHART_MARGIN, EXPANDED_CHART_MARGIN } from "../../lib/constants";
+import { CHART_MARGIN, EXPANDED_CHART_MARGIN, CEO_GENDER_COLOR_MAP } from "../../lib/constants";
 
 /**
  * Refactored ExpandableGenderAnalysisChart using new shared architecture
  * Reduces code by ~70% by leveraging shared components and utilities
  */
-
-// Gender color map
-const GENDER_COLOR_MAP = {
-  Male: "#3182CE",
-  Female: "#E53E3E",
-  Other: "#38A169",
-};
 
 // Chart component wrapper for gender data
 const GenderChart = ({
@@ -83,8 +76,8 @@ const GenderAnalysisChart = ({ deals }) => {
       includeTotal: true,
     });
 
-    // Color function using gender color map
-    const colorFn = (gender) => GENDER_COLOR_MAP[gender] || "#666666";
+    // Color function using CEO gender color map
+    const colorFn = (gender) => CEO_GENDER_COLOR_MAP[gender] || "#666666";
 
     return {
       chartData: yearlyData,

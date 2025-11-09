@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { OFFICIAL_CANTONS, CANTON_COLOR_MAP, INDUSTRY_COLOR_MAP } from "../../lib/constants";
+import { OFFICIAL_CANTONS, CANTON_COLOR_MAP, INDUSTRY_COLOR_MAP, CEO_GENDER_COLOR_MAP, STAGE_COLOR_MAP } from "../../lib/constants";
 import styles from "./FilterPanel.module.css";
 
 const Section = ({ title, children, minHeight, onReset }) => (
@@ -293,11 +293,10 @@ const FilterPanel = ({
                           type="checkbox"
                           checked={filters.industries.includes(industry)}
                           onChange={() => toggleArrayFilter("industries", industry)}
-                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                        />
-                        <span 
-                          className={styles.colorIndicator}
-                          style={{ backgroundColor: color }}
+                          className={`${styles.checkbox} ${styles.checkboxColored}`}
+                          style={{ 
+                            '--checkbox-bg-color': color
+                          }}
                         />
                         <span className={styles.labelText}>{industry}</span>
                       </label>
@@ -360,7 +359,7 @@ const FilterPanel = ({
                       <span className={styles.labelText}>All Stages</span>
                     </label>
                   ) : isPhasePrimary ? (
-                    // Checkboxes for primary mode (no colors for phases)
+                    // Checkboxes with colors for primary mode
                     <>
                       <label
                         className={`${styles.itemLabel} ${styles.itemLabelHover}`}
@@ -382,20 +381,26 @@ const FilterPanel = ({
                           {selectAllLabel(filters.phases.length, phasesTotal)}
                         </span>
                       </label>
-                      {filterOptions.phases?.map((phase) => (
-                        <label
-                          key={phase}
-                          className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={filters.phases.includes(phase)}
-                            onChange={() => toggleArrayFilter("phases", phase)}
-                            className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                          />
-                          <span className={styles.labelText}>{phase}</span>
-                        </label>
-                      ))}
+                      {filterOptions.phases?.map((phase) => {
+                        const color = STAGE_COLOR_MAP[phase] || "#999";
+                        return (
+                          <label
+                            key={phase}
+                            className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={filters.phases.includes(phase)}
+                              onChange={() => toggleArrayFilter("phases", phase)}
+                              className={`${styles.checkbox} ${styles.checkboxColored}`}
+                              style={{ 
+                                '--checkbox-bg-color': color
+                              }}
+                            />
+                            <span className={styles.labelText}>{phase}</span>
+                          </label>
+                        );
+                      })}
                     </>
                   ) : (
                     // Radio buttons for secondary mode
@@ -467,7 +472,7 @@ const FilterPanel = ({
                     <span className={styles.labelText}>All CEO genders</span>
                   </label>
                 ) : isGenderPrimary ? (
-                  // Checkboxes for primary mode (no colors for gender)
+                  // Checkboxes with colors for primary mode
                   <>
                     <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                       <input
@@ -487,20 +492,26 @@ const FilterPanel = ({
                         {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
                       </span>
                     </label>
-                    {filterOptions.ceoGenders?.map((gender) => (
-                      <label
-                        key={gender}
-                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={filters.ceoGenders?.includes(gender) || false}
-                          onChange={() => toggleArrayFilter("ceoGenders", gender)}
-                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                        />
-                        <span className={styles.labelText}>{gender}</span>
-                      </label>
-                    ))}
+                    {filterOptions.ceoGenders?.map((gender) => {
+                      const color = CEO_GENDER_COLOR_MAP[gender] || "#999";
+                      return (
+                        <label
+                          key={gender}
+                          className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filters.ceoGenders?.includes(gender) || false}
+                            onChange={() => toggleArrayFilter("ceoGenders", gender)}
+                            className={`${styles.checkbox} ${styles.checkboxColored}`}
+                            style={{ 
+                              '--checkbox-bg-color': color
+                            }}
+                          />
+                          <span className={styles.labelText}>{gender}</span>
+                        </label>
+                      );
+                    })}
                   </>
                 ) : (
                   // Radio buttons for secondary mode
@@ -592,11 +603,10 @@ const FilterPanel = ({
                           type="checkbox"
                           checked={filters.cantons.includes(canton.name)}
                           onChange={() => toggleArrayFilter("cantons", canton.name)}
-                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
-                        />
-                        <span 
-                          className={styles.colorIndicator}
-                          style={{ backgroundColor: color }}
+                          className={`${styles.checkbox} ${styles.checkboxColored}`}
+                          style={{ 
+                            '--checkbox-bg-color': color
+                          }}
                         />
                         <span className={styles.labelText}>
                           {canton.name} ({canton.code})

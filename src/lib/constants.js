@@ -26,16 +26,15 @@ export const GRID_STROKE = "#E2E8F0";
    Sector colors / palettes
    ========================= */
 export const INDUSTRY_COLOR_MAP = {
-  Biotech: "#E84A5F",
-  Cleantech: "#2ECC71",
-  "Consumer Products": "#3498DB",
+  Biotech: "#5185B4",
+  Cleantech: "#CAC7B0",
+  "Consumer Products": "#6E5247",
   "Deep Tech": "#A0522D",
-  "Healthcare It": "#F7931E",
-  ICT: "#9B5DE5",
+  "Healthcare It": "#AFCAE2",
+  ICT: "#E28E04",
   Interdisciplinary: "#1ABC9C",
-  MedTech: "#FFD700",
-  "Micro / Nano": "#FF1493",
-  Unknown: "#32CD32",
+  MedTech: "#A6BA3C",
+  "Micro / Nano": "#2596be",
 };
 
 export const ENHANCED_COLOR_PALETTE = [
@@ -64,32 +63,44 @@ export const SMALLSET_LABEL_DY = {
 };
 
 export const CANTON_COLOR_MAP = {
-  "Zürich": "#4169E1",
-  "Bern": "#8B4513",
-  "Luzern": "#FFD700",
+  "Zürich": "#5185B4",
+  "Bern": "#A6BA3C",
+  "Luzern": "#FFC86D",
   "Uri": "#FF4500",
-  "Schwyz": "#8A2BE2",
+  "Schwyz": "#B9AFE2",
   "Obwalden": "#00CED1",
   "Nidwalden": "#FF1493",
   "Glarus": "#32CD32",
   "Zug": "#A0522D",
-  "Fribourg": "#1ABC9C",
-  "Solothurn": "#E84A5F",
-  "Basel-Stadt": "#F7931E",
-  "Basel-Landschaft": "#9B5DE5",
-  "Schaffhausen": "#2ECC71",
+  "Fribourg": "#FFAEF9",
+  "Solothurn": "#D452BF",
+  "Basel-Stadt": "#EE2E64",
+  "Basel-Landschaft": "#4BA7C9",
+  "Schaffhausen": "#B7A728",
   "Appenzell Ausserrhoden": "#3498DB",
   "Appenzell Innerrhoden": "#E84A5F",
-  "St. Gallen": "#2ECC71",
+  "St. Gallen": "#D8F443",
   "Graubünden": "#3498DB",
-  "Aargau": "#A0522D",
-  "Thurgau": "#F7931E",
-  "Ticino": "#9B5DE5",
-  "Vaud": "#1ABC9C",
-  "Valais": "#FFD700",
-  "Neuchâtel": "#FF1493",
-  "Genève": "#32CD32",
-  "Jura": "#4169E1",
+  "Aargau": "#FFFC4B",
+  "Thurgau": "#E8676C",
+  "Ticino": "#98E5FD",
+  "Vaud": "#CAC7B0",
+  "Valais": "#DFC1AB",
+  "Neuchâtel": "#77E05A",
+  "Genève": "#B0C8DE",
+  "Jura": "#B67CE5",
+};
+
+export const CEO_GENDER_COLOR_MAP = {
+  "Female": "#FFAEF9",
+  "Male": "#5185B4",
+  "Other": "#B67CE5",
+};
+
+export const STAGE_COLOR_MAP = {
+  "Seed": "#77E05A",
+  "Early Stage": "#FFC86D",
+  "Later Stage": "#98E5FD",
 };
 
 export const OFFICIAL_CANTONS = [
