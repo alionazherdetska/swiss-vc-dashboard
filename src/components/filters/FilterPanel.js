@@ -34,6 +34,14 @@ const FilterPanel = ({
   const companiesTab = activeTab === "companies";
   const dealsTab = !companiesTab;
 
+  // Allowed canton subset (no scroll, only these shown)
+  // Use canton codes to avoid accent / naming mismatches (ZH, ZG, VD, GE, BS, BE)
+  const ALLOWED_CANTON_CODES = useMemo(() => ["ZH", "ZG", "VD", "GE", "BS", "BE"], []);
+  const allowedCantons = useMemo(
+    () => OFFICIAL_CANTONS.filter((c) => ALLOWED_CANTON_CODES.includes(c.code)),
+    [ALLOWED_CANTON_CODES]
+  );
+
   // Determine which filter should be primary (checkboxes with colors)
   // On Overview tab (timeline), all filters should show as checkboxes with "All" labels
   const isOverviewTab = activeChart === "timeline";
@@ -50,8 +58,8 @@ const FilterPanel = ({
   const filterHeights = useMemo(() => {
     const heights = [];
 
-    // Cantons: header + items (capped at max-h-60 = 240px)
-    const cantonsHeight = Math.min(40 + (OFFICIAL_CANTONS.length + 1) * 28, 280);
+  // Cantons: header + items (subset, no scroll)
+  const cantonsHeight = 40 + (allowedCantons.length + 1) * 28;
     heights.push(cantonsHeight);
 
     // CEO Gender: header + items
@@ -71,7 +79,7 @@ const FilterPanel = ({
     // Sort and get second longest
     const sorted = [...heights].sort((a, b) => b - a);
     return sorted[1] || sorted[0] || 100;
-  }, [ceoTotal, industriesTotal, phasesTotal, dealsTab]);
+  }, [ceoTotal, industriesTotal, phasesTotal, dealsTab, allowedCantons.length]);
 
   return (
     <div className={styles.panelRoot}>
@@ -194,7 +202,7 @@ const FilterPanel = ({
               minHeight={filterHeights}
               onReset={() => updateFilter("industries", [])}
             >
-              <div className={`${styles.listScroll}`}>
+              <div className={`${styles.listNoScroll}`}>
                 {isOverviewTab ? (
                   // Overview tab: single checkbox "All Industries"
                   <label className={`${styles.itemLabel}`}>
@@ -386,7 +394,7 @@ const FilterPanel = ({
               )}
 
               <Section title="CEO gender" onReset={() => updateFilter("ceoGenders", [])}>
-                <div>
+                <div className={styles.listScroll}>
                   {isOverviewTab ? (
                     // Overview tab: single checkbox "All CEO genders"
                     <label className={`${styles.itemLabel}`}>
@@ -480,7 +488,7 @@ const FilterPanel = ({
               minHeight={filterHeights}
               onReset={() => updateFilter("cantons", [])}
             >
-              <div className={styles.listScroll}>
+              <div className={styles.listNoScroll}>
                 {isOverviewTab ? (
                   // Overview tab: single checkbox "All Cantons"
                   <label className={`${styles.itemLabel}`}>
@@ -498,20 +506,20 @@ const FilterPanel = ({
                     <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                       <input
                         type="checkbox"
-                        checked={filters.cantons.length === OFFICIAL_CANTONS.length}
+                        checked={filters.cantons.length === allowedCantons.length}
                         onChange={() =>
                           updateFilter(
                             "cantons",
-                            filters.cantons.length === OFFICIAL_CANTONS.length
+                            filters.cantons.length === allowedCantons.length
                               ? []
-                              : OFFICIAL_CANTONS.map((c) => c.name)
+                              : allowedCantons.map((c) => c.name)
                           )
                         }
                         className={styles.checkboxAll}
                       />
                       <span className={styles.labelTextBold}>All</span>
                     </label>
-                    {OFFICIAL_CANTONS.map((canton) => {
+                    {allowedCantons.map((canton) => {
                       const color = CANTON_COLOR_MAP[canton.name] || "#999";
                       return (
                         <label
@@ -546,7 +554,7 @@ const FilterPanel = ({
                       />
                       <span className={styles.labelTextBold}>All</span>
                     </label>
-                    {OFFICIAL_CANTONS.map((canton) => (
+                    {allowedCantons.map((canton) => (
                       <label
                         key={canton.code}
                         className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}

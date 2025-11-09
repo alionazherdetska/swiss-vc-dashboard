@@ -76,31 +76,39 @@ export const normalizeCanton = (rawCanton) => {
 };
 
 export const processCompanies = (companiesData) => {
-  return companiesData.map((company) => ({
-    ...company,
-    Company: company.Title || company.Company,
-    Year: parseInt(company.Year) || new Date().getFullYear(),
-    Industry: company.Industry
-      ? company.Industry.trim()
-          .toLowerCase()
-          .replace(/\s*\(.*?\)/g, "")
-          .replace(/\s+/g, " ")
-          .split(" ")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ")
-          .replace(/Ict/g, "ICT")
-          .replace(/Biotech/g, "Biotech")
-          .replace(/Cleantech/g, "Cleantech")
-          .replace(/Medtech/g, "MedTech")
-          .replace(/^$/, "Unknown")
-      : "Unknown",
-    Canton: normalizeCanton(company.Canton) || "Unknown",
-    Funded: company.Funded === "TRUE" || company.Funded === true,
-    OOB: company.OOB === "TRUE" || company.OOB === true,
-    HasSpinoff: !!(company["Spin-offs"] && company["Spin-offs"] !== ""),
-    SpinoffType: company["Spin-offs"] || "None",
-    City: company.City || "Unknown",
-  }));
+  return companiesData.map((company) => {
+    let normalizedIndustry = null;
+    if (company.Industry && company.Industry.trim()) {
+      const cleaned = company.Industry
+        .trim()
+        .toLowerCase()
+        .replace(/\s*\(.*?\)/g, "")
+        .replace(/\s+/g, " ");
+      const titled = cleaned
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+        .replace(/Ict/g, "ICT")
+        .replace(/Biotech/g, "Biotech")
+        .replace(/Cleantech/g, "Cleantech")
+        .replace(/Medtech/g, "MedTech");
+      if (titled && titled.toLowerCase() !== "unknown") {
+        normalizedIndustry = titled;
+      }
+    }
+    return {
+      ...company,
+      Company: company.Title || company.Company,
+      Year: parseInt(company.Year) || new Date().getFullYear(),
+      Industry: normalizedIndustry, // null instead of 'Unknown'
+      Canton: normalizeCanton(company.Canton) || "Unknown",
+      Funded: company.Funded === "TRUE" || company.Funded === true,
+      OOB: company.OOB === "TRUE" || company.OOB === true,
+      HasSpinoff: !!(company["Spin-offs"] && company["Spin-offs"] !== ""),
+      SpinoffType: company["Spin-offs"] || "None",
+      City: company.City || "Unknown",
+    };
+  });
 };
 
 export const processDeals = (dealsData, companiesData = []) => {
@@ -160,7 +168,8 @@ export const processDeals = (dealsData, companiesData = []) => {
         }
 
         if (matchedCompany && matchedCompany.Industry && matchedCompany.Industry.trim()) {
-          industry = matchedCompany.Industry.trim();
+          const ic = matchedCompany.Industry.trim();
+          industry = ic.toLowerCase() === "unknown" ? null : ic;
           mappingSource = "company_lookup";
         }
       }
@@ -222,7 +231,7 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
       if (item.Year) byYear[item.Year] = (byYear[item.Year] || 0) + 1;
 
       // Only count real industries from JSON
-      if (item.Industry && item.Industry !== "Unknown") {
+      if (item.Industry) {
         byIndustry[item.Industry] = (byIndustry[item.Industry] || 0) + 1;
       }
 
@@ -233,7 +242,7 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
     });
 
     const realIndustries = Object.entries(byIndustry)
-      .filter(([name]) => name && name !== "Unknown")
+      .filter(([name]) => name)
       .sort((a, b) => b[1] - a[1])
       .map(([name]) => name);
 
@@ -260,7 +269,7 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
         }))
         .sort((a, b) => a.year - b.year),
       industries: Object.entries(byIndustry)
-        .filter(([name]) => name && name !== "Unknown")
+        .filter(([name]) => name)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value),
       cantons: Object.entries(byCanton)
@@ -308,7 +317,7 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
   });
 
   const dealIndustryTrends = Object.entries(byIndustryDeals)
-    .filter(([name]) => name && name !== "Unknown")
+    .filter(([name]) => name)
     .map(([industry, yearQuarterData]) => ({
       name: industry,
       data: Object.entries(yearQuarterData)
