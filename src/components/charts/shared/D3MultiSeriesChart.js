@@ -13,7 +13,8 @@ const D3MultiSeriesChart = ({
   mode = "line",
   width = 400,
   height = 300,
-  margin = { top: 20, right: 30, bottom: 40, left: 60 },
+  // Increased bottom margin for rotated year labels
+  margin = { top: 20, right: 30, bottom: 60, left: 60 },
   isExpanded = false,
   colorOf,
   showTotal = false,
@@ -102,7 +103,11 @@ const D3MultiSeriesChart = ({
     xAxis
       .selectAll("text")
       .style("font-size", isExpanded ? "14px" : "12px")
-      .style("fill", AXIS_STROKE);
+      .style("fill", AXIS_STROKE)
+      .attr("transform", "rotate(-45)")
+      .style("text-anchor", "end")
+      .attr("dx", "-0.8em")
+      .attr("dy", "0.15em");
 
     // Y Axis
     const yAxis = g.append("g").call(d3.axisLeft(yScale));

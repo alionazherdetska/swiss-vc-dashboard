@@ -1,5 +1,7 @@
 /* src/styles.css */
 @import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
+/* Load Roboto so typography renders consistently across machines */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 
 /* Additional custom styles if needed */
 /* Base styles */
@@ -37,7 +39,7 @@ body {
 
 .inner-panel {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 20px;
 }
 
 .d3-chart-container .axis text {

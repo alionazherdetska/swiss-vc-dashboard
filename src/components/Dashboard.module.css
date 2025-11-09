@@ -12,10 +12,15 @@
   display: flex;
   background: #4a4a4a;
   height: 48px;
-  align-items: center;
+  align-items: stretch; /* make buttons fill bar height */
   width: 100%;
-  border-radius: 20px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
   gap: 0;
+  overflow: hidden; /* clip inner edges so active pill blends */
+  flex-wrap: nowrap; /* keep all tabs on one line */
+  position: relative;
+  justify-content: space-between; /* spread content-fit tabs */
 }
 
 .tabBarWrap {
@@ -23,12 +28,11 @@
 }
 
 .tabButton {
-  flex: 1 1 0;
+  flex: 0 0 auto; /* fit content only */
   height: 48px;
-  padding: 0 12px;
   font-size: 0.95rem;
   font-weight: 600;
-  transition: all 0.14s ease;
+  transition: background 0.14s ease, color 0.14s ease;
   border: none;
   outline: none;
   background: transparent;
@@ -36,23 +40,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20px 20px 0 0;
+  white-space: nowrap; /* prevent label wrapping */
+  position: relative;
 }
+
+/* Tabs are content-fit; spacing handled by space-between on container */
 
 .tabButton.active {
   background: #fefefe;
-  color: #e53935;
-  z-index: 20;
+  color: #4a4a4a;
+  z-index: 1;
   border-radius: 20px 20px 0 0;
+  font-family: 'Roboto', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: normal;
 }
 
 .tabButton.inactive {
   background: #4a4a4a;
-  color: #fff;
+  color: #fefefe;
+  font-family: 'Roboto', sans-serif;
+  font-size: 22px;
+  border-radius: 20px 20px 0 0;
+  font-weight: 300;
+  text-decoration-line: underline;
 }
 
 .tabButton.inactive:hover {
-  color: #e0e0e0;
+  color: #ffffff;
 }
 
 .card {

@@ -25,19 +25,18 @@ const Dashboard = () => {
 
   const [activeChart, setActiveChart] = useState("timeline"); // default open
   const chartTabs = [
-    { key: "timeline", label: "Overview" },
+    { key: "timeline", label: "Total Investments/Deals" },
     { key: "quarterly", label: "Sectors" },
     { key: "phase", label: "Stages" },
     { key: "canton", label: "Canton" },
     { key: "ceoGender", label: "Gender" },
   ];
 
-  // Load & process data (companies only for mapping)
+  // Load & process data (from window.startupData prepared in App)
   useEffect(() => {
     const loadData = async () => {
       try {
-        const jsonData = window.startupData;
-
+        const jsonData = window.startupData || {};
         let processedCompanies = [];
         let processedDeals = [];
 
@@ -49,23 +48,25 @@ const Dashboard = () => {
           processedDeals = processDeals(jsonData.Deals, processedCompanies);
           setDeals(processedDeals);
         }
-      } catch {
-        setLoading(false);
+      } catch (e) {
+        // swallow and proceed to hide loader
       } finally {
         setLoading(false);
       }
     };
-
     loadData();
   }, []);
 
-  // Filter options: deals-only, now including CEO genders
+  // Removed dynamic width measurement logic; CSS handles layout
+
+  // Filter options: deals-only, include phases, years, industries, cantons, CEO genders
   const filterOptions = useMemo(() => {
     if (!deals.length) {
       return {
         phases: [],
         dealYears: [],
         industries: [],
+        cantons: [],
         ceoGenders: [],
       };
     }
@@ -73,6 +74,7 @@ const Dashboard = () => {
       phases: [...new Set(deals.map((d) => d.Phase).filter(Boolean))].sort(),
       dealYears: [...new Set(deals.map((d) => d.Year).filter(Boolean))].sort(),
       industries: [...new Set(deals.map((d) => d.Industry).filter(Boolean))].sort(),
+      cantons: [...new Set(deals.map((d) => d.Canton).filter(Boolean))].sort(),
       ceoGenders: [...new Set(deals.map((d) => d["Gender CEO"]).filter(Boolean))].sort(),
     };
   }, [deals]);
@@ -144,6 +146,7 @@ const Dashboard = () => {
                     onClick={() => setActiveChart(tab.key)}
                     className={btnClass}
                     title={tab.label}
+                    style={{ paddingLeft: 18, paddingRight: 18 }}
                   >
                     {tab.label}
                   </button>
@@ -204,7 +207,7 @@ const Dashboard = () => {
                 <CantonAnalysisChart
                   deals={filteredDeals}
                   selectedCantonCount={filters.cantons.length}
-                  totalCantonCount={filterOptions.industries.length}
+                  totalCantonCount={filterOptions.cantons.length}
                 />
               </ChartErrorBoundary>
             )}

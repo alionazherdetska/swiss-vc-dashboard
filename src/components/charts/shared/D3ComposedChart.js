@@ -11,7 +11,8 @@ const D3ComposedChart = ({
   mode = "line", // 'line' or 'column'
   width = 400,
   height = 300,
-  margin = { top: 20, right: 30, bottom: 40, left: 60 },
+  // Increased bottom margin for rotated year labels
+  margin = { top: 20, right: 30, bottom: 60, left: 60 },
   strokeWidth = 2,
   gridColor = "#E2E8F0",
   axisColor = "#4A5568",
@@ -94,7 +95,14 @@ const D3ComposedChart = ({
       .attr("transform", `translate(0,${chartHeight})`)
       .call(d3.axisBottom(xScale));
 
-    xAxis.selectAll("text").style("font-size", "12px").style("fill", axisColor);
+    xAxis
+      .selectAll("text")
+      .style("font-size", "12px")
+      .style("fill", axisColor)
+      .attr("transform", "rotate(-45)")
+      .style("text-anchor", "end")
+      .attr("dx", "-0.8em")
+      .attr("dy", "0.15em");
 
     xAxis.selectAll("line, path").style("stroke", axisColor);
 

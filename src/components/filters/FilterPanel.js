@@ -80,7 +80,8 @@ const FilterPanel = ({
           // Overview layout: Years + All checkboxes in one column + Message
           <div className={styles.filtersRowOverview}>
             {/* Column 1: Years */}
-            <Section title="Years" onReset={() => updateFilter("yearRange", [2012, 2025])} plain>
+            {/* Removed onReset to hide reset button for Years */}
+            <Section title="Years" plain>
               <div className={styles.inputGroup}>
                 <input
                   type="number"
@@ -112,8 +113,8 @@ const FilterPanel = ({
               </div>
             </Section>
 
-            {/* Column 2: All filters as checkboxes */}
-            <Section title="Industries">
+            {/* Column 2: All filters as checkboxes with reset inside */}
+            <Section title="Industries" onReset={resetFilters}>
               <div className={styles.overviewCheckboxes}>
                 <label className={`${styles.itemLabel}`}>
                   <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
@@ -137,12 +138,7 @@ const FilterPanel = ({
               </div>
             </Section>
 
-            {/* Column 3: reset button placeholder (empty for layout) */}
-            <div className={styles.overviewResetColumn}>
-              <button type="button" className={styles.sectionReset} onClick={resetFilters}>
-                reset
-              </button>
-            </div>
+            {/* Column 3 removed - reset now inside Industries section */}
 
             {/* Column 4: Message */}
             <div className={styles.overviewMessage}>
@@ -159,13 +155,10 @@ const FilterPanel = ({
           // Regular layout for other tabs
           <div className={styles.filtersRow}>
             {/* Years */}
+            {/* Removed onReset to hide reset button for Years */}
             <Section
               title="Years"
               minHeight={filterHeights}
-              onReset={() =>
-                // Reset years to full range; assumption: default range is 2012-2025
-                updateFilter("yearRange", [2012, 2025])
-              }
               plain
             >
               <div className={styles.inputGroup}>
