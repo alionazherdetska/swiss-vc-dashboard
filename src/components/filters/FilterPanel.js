@@ -303,22 +303,21 @@ const FilterPanel = ({
                   })}
                 </>
               ) : (
-                // Radio buttons for secondary mode
+                // Checkbox for "All" with radio buttons for secondary mode
                 <>
                   <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                     <input
-                      type="radio"
-                      name="industry-radio"
+                      type="checkbox"
                       checked={filters.industries.length === 0}
                       onChange={() => updateFilter("industries", [])}
-                      className={styles.radio}
+                      className={styles.checkbox}
                     />
                     <span className={styles.labelTextBold}>All</span>
                   </label>
                   {filterOptions.industries?.map((industry) => (
                     <label
                       key={industry}
-                      className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                     >
                       <input
                         type="radio"
@@ -402,24 +401,23 @@ const FilterPanel = ({
                       })}
                     </>
                   ) : (
-                    // Radio buttons for secondary mode
+                    // Checkbox for "All" with radio buttons for secondary mode
                     <>
                       <label
                         className={`${styles.itemLabel} ${styles.itemLabelHover}`}
                       >
                         <input
-                          type="radio"
-                          name="phase-radio"
+                          type="checkbox"
                           checked={filters.phases.length === 0}
                           onChange={() => updateFilter("phases", [])}
-                          className={styles.radio}
+                          className={styles.checkbox}
                         />
                         <span className={styles.labelTextBold}>All</span>
                       </label>
                       {filterOptions.phases?.map((phase) => (
                         <label
                           key={phase}
-                          className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                          className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                         >
                           <input
                             type="radio"
@@ -513,22 +511,21 @@ const FilterPanel = ({
                     })}
                   </>
                 ) : (
-                  // Radio buttons for secondary mode
+                  // Checkbox for "All" with radio buttons for secondary mode
                   <>
                     <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                       <input
-                        type="radio"
-                        name="gender-radio"
+                        type="checkbox"
                         checked={(filters.ceoGenders?.length || 0) === 0}
                         onChange={() => updateFilter("ceoGenders", [])}
-                        className={styles.radio}
+                        className={styles.checkbox}
                       />
                       <span className={styles.labelTextBold}>All</span>
                     </label>
                     {filterOptions.ceoGenders?.map((gender) => (
                       <label
                         key={gender}
-                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                        className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                       >
                         <input
                           type="radio"
@@ -612,22 +609,21 @@ const FilterPanel = ({
                   })}
                 </>
               ) : (
-                // Radio buttons for secondary mode
+                // Checkbox for "All" with radio buttons for secondary mode
                 <>
                   <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                     <input
-                      type="radio"
-                      name="canton-radio"
+                      type="checkbox"
                       checked={filters.cantons.length === 0}
                       onChange={() => updateFilter("cantons", [])}
-                      className={styles.radio}
+                      className={styles.checkbox}
                     />
                     <span className={styles.labelTextBold}>All</span>
                   </label>
                   {OFFICIAL_CANTONS.map((canton) => (
                     <label
                       key={canton.code}
-                      className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                      className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                     >
                       <input
                         type="radio"

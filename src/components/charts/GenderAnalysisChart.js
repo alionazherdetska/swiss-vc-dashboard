@@ -10,11 +10,6 @@ import {
 import { getChartDims } from "../../lib/utils";
 import { CHART_MARGIN, EXPANDED_CHART_MARGIN, CEO_GENDER_COLOR_MAP } from "../../lib/constants";
 
-/**
- * Refactored ExpandableGenderAnalysisChart using new shared architecture
- * Reduces code by ~70% by leveraging shared components and utilities
- */
-
 // Chart component wrapper for gender data
 const GenderChart = ({
   data,
