@@ -9,6 +9,7 @@ import {
   ENHANCED_COLOR_PALETTE,
 } from "../../lib/constants";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
+import styles from "./Charts.module.css"
 
 const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
   const [expandedChart, setExpandedChart] = useState(null); // 'volume' | 'count' | null
@@ -84,7 +85,7 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
     ];
 
     return (
-      <div>
+      <div className={styles.chartArea}>
         <div className="flex items-center mb-2">
           <h3 className="text-md font-semibold text-gray-800 mr-2">{label}</h3>
           {!isExpandedView && (

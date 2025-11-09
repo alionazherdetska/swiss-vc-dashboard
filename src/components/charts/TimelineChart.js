@@ -7,13 +7,6 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
   const chartLabel = yLabel || defaultY;
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center mb-2">
-        {title && (
-          <h3 className="text-md font-semibold text-gray-800 mr-2">{title}</h3>
-        )}
-      </div>
-      <ResponsiveD3Container width="100%" height={400}>
         <D3AreaChart
           data={data}
           dataKey={chartKey}
@@ -27,7 +20,5 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
           yAxisLabel={chartLabel}
           showVolume={showVolume}
         />
-      </ResponsiveD3Container>
-    </div>
   );
 };

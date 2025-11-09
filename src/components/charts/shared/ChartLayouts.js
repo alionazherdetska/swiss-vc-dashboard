@@ -1,4 +1,5 @@
 import ChartHeader from "./ChartHeader";
+import styles from "../Charts.module.css"
 
 /**
  * Layout component for dual charts (volume and count side by side)
@@ -36,7 +37,7 @@ const DualChartLayout = ({
 
       <div className={gridClassName}>
         {/* Volume Chart */}
-        <div className="space-y-2 relative">
+        <div className={styles.chartArea}>
           <div className="pl-4">
             <ChartHeader
               title={volumeTitle}
@@ -51,7 +52,7 @@ const DualChartLayout = ({
         </div>
 
         {/* Count Chart */}
-        <div className="space-y-2 relative">
+        <div className={styles.chartArea}>
           <div className="pl-4">
             <ChartHeader
               title={countTitle}
@@ -101,7 +102,7 @@ const SingleChartLayout = ({
     <div className={className}>
       {children}
 
-      <div className="space-y-2 relative">
+      <div>
         <div className="pl-4">
           <ChartHeader
             title={title}

@@ -70,12 +70,6 @@
   margin-top: 18px;
 }
 
-.filterCard {
-  background: #fbfbfb;
-  border-radius: 8px;
-  padding: 12px;
-}
-
 .loadingContainer {
   min-height: 100vh;
   display: flex;
@@ -112,5 +106,5 @@
 }
 
 .chartsArea {
-  padding: 1rem;
+  padding: 20px;
 }

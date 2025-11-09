@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import * as d3 from "d3";
+import styles from "../Charts.module.css"
 
 /**
  * D3-based area chart component that replaces Recharts AreaChart
@@ -236,7 +237,7 @@ const D3AreaChart = ({
   ]);
 
   return (
-    <div className="relative">
+    <div className={styles.chartArea}>
       <svg ref={svgRef} width={width} height={height}></svg>
       <div
         ref={tooltipRef}

@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import { OFFICIAL_CANTONS, CANTON_COLOR_MAP, INDUSTRY_COLOR_MAP, CEO_GENDER_COLOR_MAP, STAGE_COLOR_MAP } from "../../lib/constants";
 import styles from "./FilterPanel.module.css";
 
-const Section = ({ title, children, minHeight, onReset }) => (
-  <div className={styles.sectionRoot}>
+const Section = ({ title, children, minHeight, onReset, plain }) => (
+  <div className={plain ? styles.sectionRootPlain : styles.sectionRoot}>
     <div className={styles.sectionHeader}>
       <div className={styles.sectionTitle}>{title}</div>
       {onReset ? (
@@ -46,9 +46,6 @@ const FilterPanel = ({
   const industriesTotal = filterOptions.industries?.length || 0;
   const phasesTotal = filterOptions.phases?.length || 0;
 
-  const selectAllLabel = (selected, total) =>
-    selected === total && total > 0 ? "Deselect All" : "Select All";
-
   // Calculate heights for each filter section
   const filterHeights = useMemo(() => {
     const heights = [];
@@ -89,6 +86,7 @@ const FilterPanel = ({
             <Section
               title="Years"
               onReset={() => updateFilter("yearRange", [2012, 2025])}
+              plain
             >
               <div className={styles.inputGroup}>
                 <input
@@ -205,6 +203,7 @@ const FilterPanel = ({
               // Reset years to full range; assumption: default range is 2012-2025
               updateFilter("yearRange", [2012, 2025])
             }
+            plain
           >
             <div className={styles.inputGroup}>
               <input
@@ -276,10 +275,10 @@ const FilterPanel = ({
                             : filterOptions.industries,
                         )
                       }
-                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                      className={styles.checkboxAll}
                     />
                     <span className={styles.labelTextBold}>
-                      {selectAllLabel(filters.industries.length, industriesTotal)}
+                      All
                     </span>
                   </label>
                   {filterOptions.industries?.map((industry) => {
@@ -287,7 +286,7 @@ const FilterPanel = ({
                     return (
                       <label
                         key={industry}
-                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                        className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                       >
                         <input
                           type="checkbox"
@@ -375,10 +374,10 @@ const FilterPanel = ({
                                 : filterOptions.phases,
                             )
                           }
-                          className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                          className={styles.checkboxAll}
                         />
                         <span className={styles.labelTextBold}>
-                          {selectAllLabel(filters.phases.length, phasesTotal)}
+                          All
                         </span>
                       </label>
                       {filterOptions.phases?.map((phase) => {
@@ -386,7 +385,7 @@ const FilterPanel = ({
                         return (
                           <label
                             key={phase}
-                            className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                            className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                           >
                             <input
                               type="checkbox"
@@ -486,10 +485,10 @@ const FilterPanel = ({
                               : filterOptions.ceoGenders,
                           )
                         }
-                        className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                        className={styles.checkboxAll}
                       />
                       <span className={styles.labelTextBold}>
-                        {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
+                        All
                       </span>
                     </label>
                     {filterOptions.ceoGenders?.map((gender) => {
@@ -497,7 +496,7 @@ const FilterPanel = ({
                       return (
                         <label
                           key={gender}
-                          className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                          className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                         >
                           <input
                             type="checkbox"
@@ -583,13 +582,10 @@ const FilterPanel = ({
                             : OFFICIAL_CANTONS.map((c) => c.name),
                         )
                       }
-                      className={`${styles.checkbox} ${styles.checkboxPrimary}`}
+                      className={styles.checkboxAll}
                     />
                     <span className={styles.labelTextBold}>
-                      {selectAllLabel(
-                        filters.cantons.length,
-                        OFFICIAL_CANTONS.length,
-                      )}
+                      All
                     </span>
                   </label>
                   {OFFICIAL_CANTONS.map((canton) => {
@@ -597,7 +593,7 @@ const FilterPanel = ({
                     return (
                       <label
                         key={canton.code}
-                        className={`${styles.itemLabel} ${styles.itemLabelHover}`}
+                        className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
                       >
                         <input
                           type="checkbox"
