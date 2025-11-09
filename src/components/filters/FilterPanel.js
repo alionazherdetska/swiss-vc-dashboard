@@ -156,11 +156,7 @@ const FilterPanel = ({
           <div className={styles.filtersRow}>
             {/* Years */}
             {/* Removed onReset to hide reset button for Years */}
-            <Section
-              title="Years"
-              minHeight={filterHeights}
-              plain
-            >
+            <Section title="Years" minHeight={filterHeights} plain>
               <div className={styles.inputGroup}>
                 <input
                   type="number"

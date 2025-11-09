@@ -1,7 +1,7 @@
 .innerContainer {
   border-radius: 20px;
   /* Apply gradient across the entire panel to match the reference */
-  background: linear-gradient(180deg, #FFFEFE 0%, #D9D9D9 100%);
+  background: linear-gradient(180deg, #fffefe 0%, #d9d9d9 100%);
 }
 
 .tabPanel {
@@ -36,7 +36,9 @@
   padding-right: var(--tab-pad-x);
   font-size: 0.95rem;
   font-weight: 600;
-  transition: background 0.14s ease, color 0.14s ease;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease;
   border: none;
   outline: none;
   background: transparent;
@@ -55,7 +57,7 @@
   color: #4a4a4a;
   z-index: 1;
   border-radius: 20px 20px 0 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-size: 22px;
   font-weight: 700;
   line-height: normal;
@@ -64,7 +66,7 @@
 .tabButton.inactive {
   background: #4a4a4a;
   color: #fefefe;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
   font-size: 22px;
   border-radius: 20px 20px 0 0;
   font-weight: 300;

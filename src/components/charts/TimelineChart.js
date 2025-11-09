@@ -12,9 +12,7 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
     <div>
       <div className="pl-4 mb-2">
         <ChartHeader title={headerTitle} />
-        {subTitle ? (
-          <div className="text-xs text-gray-500 -mt-1">{subTitle}</div>
-        ) : null}
+        {subTitle ? <div className="text-xs text-gray-500 -mt-1">{subTitle}</div> : null}
       </div>
       <D3AreaChart
         data={data}

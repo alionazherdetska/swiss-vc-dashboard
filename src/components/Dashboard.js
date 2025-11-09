@@ -222,15 +222,15 @@ const Dashboard = () => {
             )}
 
             <div className={styles.filtersWrap}>
-                <FilterPanel
-                  filters={filters}
-                  filterOptions={filterOptions}
-                  activeTab="deals"
-                  activeChart={activeChart}
-                  updateFilter={updateFilter}
-                  toggleArrayFilter={toggleArrayFilter}
-                  resetFilters={resetFilters}
-                />
+              <FilterPanel
+                filters={filters}
+                filterOptions={filterOptions}
+                activeTab="deals"
+                activeChart={activeChart}
+                updateFilter={updateFilter}
+                toggleArrayFilter={toggleArrayFilter}
+                resetFilters={resetFilters}
+              />
             </div>
           </div>
         </section>

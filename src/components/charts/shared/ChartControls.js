@@ -121,7 +121,10 @@ const ChartControls = ({
       <div className="flex items-center gap-2">
         {showExportButton && (
           <div className="inline-flex">
-            <ExportButton onClick={onExport} className="!px-4 !h-9 !rounded-full !border !border-gray-400 !bg-white !text-gray-700 hover:!bg-gray-50" />
+            <ExportButton
+              onClick={onExport}
+              className="!px-4 !h-9 !rounded-full !border !border-gray-400 !bg-white !text-gray-700 hover:!bg-gray-50"
+            />
           </div>
         )}
 
