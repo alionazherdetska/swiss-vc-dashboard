@@ -45,15 +45,10 @@ export const calculateYearlyData = (data, config) => {
 
       // Process each category
       categories.forEach((category) => {
-        const categoryItems = items.filter(
-          (item) => getCategoryValue(item) === category,
-        );
+        const categoryItems = items.filter((item) => getCategoryValue(item) === category);
 
         const count = categoryItems.length;
-        const volume = categoryItems.reduce(
-          (sum, item) => sum + getVolumeValue(item),
-          0,
-        );
+        const volume = categoryItems.reduce((sum, item) => sum + getVolumeValue(item), 0);
 
         const sanitizedKey = sanitizeKey(category);
         yearData[`${sanitizedKey}__count`] = count;
@@ -119,11 +114,7 @@ export const extractCategories = (data, getCategoryValue, sortFn = null) => {
 /**
  * Filter data by selected categories
  */
-export const filterDataByCategories = (
-  data,
-  selectedCategories,
-  getCategoryValue,
-) => {
+export const filterDataByCategories = (data, selectedCategories, getCategoryValue) => {
   if (!selectedCategories || selectedCategories.length === 0) return data;
 
   return data.filter((item) => {
@@ -135,11 +126,7 @@ export const filterDataByCategories = (
 /**
  * Prepare chart series data for D3 charts
  */
-export const prepareChartSeries = (
-  data,
-  categories,
-  metricSuffix = "__volume",
-) => {
+export const prepareChartSeries = (data, categories, metricSuffix = "__volume") => {
   return data.map((yearData) => {
     const series = { ...yearData };
 

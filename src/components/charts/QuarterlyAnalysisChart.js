@@ -2,11 +2,7 @@ import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
-import {
-  calculateYearlyData,
-  extractCategories,
-  getChartConfig,
-} from "./shared/ChartDataUtils";
+import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
 import { getChartDims, makeDistributedColorFn } from "../../lib/utils";
 import {
   CHART_MARGIN,
@@ -33,8 +29,7 @@ const QuarterlyChart = ({
   const yAxisLabel = isVolume ? "Investment Volume CHF (M)" : "Number of Deals";
 
   // Filter industries if selectedIndustries is provided
-  const displayIndustries =
-    selectedIndustries.length > 0 ? selectedIndustries : industries;
+  const displayIndustries = selectedIndustries.length > 0 ? selectedIndustries : industries;
 
   return (
     <D3MultiSeriesChart
@@ -62,14 +57,10 @@ const QuarterlyAnalysisChart = ({
 }) => {
   // Process data
   const { chartData, industries, colorOf } = useMemo(() => {
-    if (!deals?.length)
-      return { chartData: [], industries: [], colorOf: () => "#000" };
+    if (!deals?.length) return { chartData: [], industries: [], colorOf: () => "#000" };
 
     // Extract unique industries
-    const extractedIndustries = extractCategories(
-      deals,
-      (item) => item.Industry,
-    ).sort();
+    const extractedIndustries = extractCategories(deals, (item) => item.Industry).sort();
 
     // Calculate yearly data
     const config = getChartConfig("quarterly");
@@ -81,10 +72,7 @@ const QuarterlyAnalysisChart = ({
     });
 
     // Color function using industry color map with fallback to enhanced palette
-    const colorFn = makeDistributedColorFn(
-      INDUSTRY_COLOR_MAP,
-      ENHANCED_COLOR_PALETTE,
-    );
+    const colorFn = makeDistributedColorFn(INDUSTRY_COLOR_MAP, ENHANCED_COLOR_PALETTE);
 
     return {
       chartData: yearlyData,
@@ -149,13 +137,7 @@ const QuarterlyAnalysisChart = ({
   };
 
   // Expanded chart component
-  const ExpandedChart = ({
-    data,
-    mode,
-    expandedChart,
-    isExpanded,
-    showTotal,
-  }) => {
+  const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal }) => {
     const isVolumeChart = expandedChart === "volume";
 
     return isVolumeChart ? (

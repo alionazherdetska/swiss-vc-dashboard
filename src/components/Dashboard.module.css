@@ -1,6 +1,6 @@
 .innerContainer {
   border-radius: 20px;
-  background-color: #FEFEFE;
+  background-color: #fefefe;
 }
 
 .tabPanel {
@@ -40,7 +40,7 @@
 }
 
 .tabButton.active {
-  background: #FEFEFE;
+  background: #fefefe;
   color: #e53935;
   z-index: 20;
   border-radius: 20px 20px 0 0;
@@ -54,7 +54,6 @@
 .tabButton.inactive:hover {
   color: #e0e0e0;
 }
-
 
 .card {
   background: #ffffff;

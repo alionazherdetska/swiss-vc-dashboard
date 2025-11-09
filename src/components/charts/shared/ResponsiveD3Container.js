@@ -1,27 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
-const ResponsiveD3Container = ({
-  children,
-  width = "100%",
-  height = 400,
-  debounceTime = 100,
-}) => {
+const ResponsiveD3Container = ({ children, width = "100%", height = 400, debounceTime = 100 }) => {
   const containerRef = useRef(null);
   const timeoutRef = useRef(null);
   const resizeObserverRef = useRef(null);
-  
-  const [dimensions, setDimensions] = useState({ 
-    width: 800, 
-    height: typeof height === 'number' ? height : 400 
+
+  const [dimensions, setDimensions] = useState({
+    width: 800,
+    height: typeof height === "number" ? height : 400,
   });
 
   const updateDimensions = useCallback(() => {
     if (!containerRef.current) return;
-    
+
     const { width: containerWidth } = containerRef.current.getBoundingClientRect();
     const newHeight = typeof height === "number" ? height : 400;
-    
-    setDimensions(prevDims => {
+
+    setDimensions((prevDims) => {
       if (prevDims.width === containerWidth && prevDims.height === newHeight) {
         return prevDims;
       }
@@ -65,11 +60,7 @@ const ResponsiveD3Container = ({
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="d3-chart-container"
-      style={containerStyle}
-    >
+    <div ref={containerRef} className="d3-chart-container" style={containerStyle}>
       {React.Children.map(children, (child) =>
         React.isValidElement(child)
           ? React.cloneElement(child, {

@@ -34,9 +34,7 @@ export const useD3Chart = ({
 
   // Create main chart group with margins
   const createChartGroup = (svg) => {
-    return svg
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+    return svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
   };
 
   // Common axis styling
@@ -59,14 +57,8 @@ export const useD3Chart = ({
       .enter()
       .append("line")
       .attr("class", "grid-x")
-      .attr(
-        "x1",
-        (d) => xScale(d) + (xScale.bandwidth ? xScale.bandwidth() / 2 : 0),
-      )
-      .attr(
-        "x2",
-        (d) => xScale(d) + (xScale.bandwidth ? xScale.bandwidth() / 2 : 0),
-      )
+      .attr("x1", (d) => xScale(d) + (xScale.bandwidth ? xScale.bandwidth() / 2 : 0))
+      .attr("x2", (d) => xScale(d) + (xScale.bandwidth ? xScale.bandwidth() / 2 : 0))
       .attr("y1", 0)
       .attr("y2", chartHeight)
       .style("stroke", "#E2E8F0") // GRID_STROKE equivalent
@@ -136,9 +128,7 @@ export const useD3Chart = ({
       .range([0, chartWidth])
       .padding(0.1);
 
-    const maxValue = d3.max(data, (d) =>
-      isVolume ? d.volume || 0 : d.count || 0,
-    );
+    const maxValue = d3.max(data, (d) => (isVolume ? d.volume || 0 : d.count || 0));
     const yScale = d3
       .scaleLinear()
       .domain([0, maxValue * 1.1]) // Add 10% padding

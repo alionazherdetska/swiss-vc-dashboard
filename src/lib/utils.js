@@ -1,9 +1,4 @@
-import {
-  OFFICIAL_CANTONS,
-  CANTON_MAP,
-  CHART_MARGIN,
-  EXPANDED_CHART_MARGIN,
-} from "./constants";
+import { OFFICIAL_CANTONS, CANTON_MAP, CHART_MARGIN, EXPANDED_CHART_MARGIN } from "./constants";
 
 /* =========================
    Generic helpers for charts
@@ -122,9 +117,7 @@ export const processDeals = (dealsData, companiesData = []) => {
         companyLookup.set(title.toLowerCase().replace(/[^\w\s]/g, ""), company); // no punctuation
 
         // Remove common suffixes
-        const withoutSuffix = title
-          .toLowerCase()
-          .replace(/\s+(ag|sa|ltd|inc|corp|gmbh|llc)$/i, "");
+        const withoutSuffix = title.toLowerCase().replace(/\s+(ag|sa|ltd|inc|corp|gmbh|llc)$/i, "");
         if (withoutSuffix !== title.toLowerCase()) {
           companyLookup.set(withoutSuffix, company);
         }
@@ -133,9 +126,7 @@ export const processDeals = (dealsData, companiesData = []) => {
   }
 
   const processedDeals = dealsData
-    .filter(
-      (deal) => deal.Confidential !== "TRUE" && deal.Confidential !== true,
-    )
+    .filter((deal) => deal.Confidential !== "TRUE" && deal.Confidential !== true)
     .map((deal) => {
       let year = null;
       let quarter = null;
@@ -168,11 +159,7 @@ export const processDeals = (dealsData, companiesData = []) => {
           matchedCompany = companyLookup.get(withoutSuffix);
         }
 
-        if (
-          matchedCompany &&
-          matchedCompany.Industry &&
-          matchedCompany.Industry.trim()
-        ) {
+        if (matchedCompany && matchedCompany.Industry && matchedCompany.Industry.trim()) {
           industry = matchedCompany.Industry.trim();
           mappingSource = "company_lookup";
         }
@@ -222,13 +209,8 @@ export const processDeals = (dealsData, companiesData = []) => {
   return processedDeals;
 };
 
-export const generateChartData = (
-  activeTab,
-  filteredCompanies,
-  filteredDeals,
-) => {
-  const currentData =
-    activeTab === "companies" ? filteredCompanies : filteredDeals;
+export const generateChartData = (activeTab, filteredCompanies, filteredDeals) => {
+  const currentData = activeTab === "companies" ? filteredCompanies : filteredDeals;
 
   if (activeTab === "companies") {
     const byYear = {},
@@ -255,15 +237,13 @@ export const generateChartData = (
       .sort((a, b) => b[1] - a[1])
       .map(([name]) => name);
 
-    const allYears = Array.from(
-      new Set(currentData.map((d) => d.Year).filter(Boolean)),
-    ).sort((a, b) => a - b);
+    const allYears = Array.from(new Set(currentData.map((d) => d.Year).filter(Boolean))).sort(
+      (a, b) => a - b
+    );
 
     const industryTrends = realIndustries.map((industry) => {
       const industryData = allYears.map((year) => {
-        const count = currentData.filter(
-          (d) => d.Industry === industry && d.Year === year,
-        ).length;
+        const count = currentData.filter((d) => d.Industry === industry && d.Year === year).length;
         return { year, value: count, count, volume: 0, quarter: null };
       });
 
@@ -307,13 +287,11 @@ export const generateChartData = (
   currentData.forEach((item) => {
     if (item.Year) {
       byYear[item.Year] = (byYear[item.Year] || 0) + 1;
-      byYearVolume[item.Year] =
-        (byYearVolume[item.Year] || 0) + (item.Amount || 0);
+      byYearVolume[item.Year] = (byYearVolume[item.Year] || 0) + (item.Amount || 0);
     }
     if (item.Type) byType[item.Type] = (byType[item.Type] || 0) + 1;
     if (item.Phase) byPhase[item.Phase] = (byPhase[item.Phase] || 0) + 1;
-    if (item.AmountRange)
-      byAmount[item.AmountRange] = (byAmount[item.AmountRange] || 0) + 1;
+    if (item.AmountRange) byAmount[item.AmountRange] = (byAmount[item.AmountRange] || 0) + 1;
     if (item.Canton) byCanton[item.Canton] = (byCanton[item.Canton] || 0) + 1;
 
     // Only deals with REAL industry + time granularity

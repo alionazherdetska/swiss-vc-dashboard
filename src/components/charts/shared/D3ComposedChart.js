@@ -32,9 +32,7 @@ const D3ComposedChart = ({
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
-    const g = svg
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Scales
     const xScale = d3
@@ -48,7 +46,7 @@ const D3ComposedChart = ({
       d3.max(categories, (cat) => {
         const key = `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`;
         return d[key] || 0;
-      }),
+      })
     );
 
     const yScale = d3
@@ -127,11 +125,7 @@ const D3ComposedChart = ({
       // Stacked bar chart
       const stack = d3
         .stack()
-        .keys(
-          categories.map(
-            (cat) => `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`,
-          ),
-        )
+        .keys(categories.map((cat) => `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`))
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
 
@@ -237,7 +231,7 @@ const D3ComposedChart = ({
           const year = Math.round(
             xScale.invert
               ? xScale.invert(mouseX)
-              : data[Math.floor(mouseX / (chartWidth / data.length))]?.year,
+              : data[Math.floor(mouseX / (chartWidth / data.length))]?.year
           );
 
           // Show tooltip for closest data point
@@ -247,16 +241,13 @@ const D3ComposedChart = ({
             const categoryValues = categories
               .map((cat) => ({
                 category: cat,
-                value:
-                  closestData[
-                    `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`
-                  ] || 0,
+                value: closestData[`${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`] || 0,
               }))
               .filter((cv) => cv.value > 0);
 
             if (categoryValues.length > 0) {
               const maxCategory = categoryValues.reduce((max, curr) =>
-                curr.value > max.value ? curr : max,
+                curr.value > max.value ? curr : max
               );
 
               const formattedValue = tooltipFormatter

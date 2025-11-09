@@ -52,9 +52,7 @@ class ChartErrorBoundary extends React.Component {
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h3 className="font-semibold text-red-900">
-                {chartName} Rendering Error
-              </h3>
+              <h3 className="font-semibold text-red-900">{chartName} Rendering Error</h3>
               <p className="text-red-800 text-sm mt-1">
                 {isPersistent
                   ? "This chart has encountered a persistent error. Please refresh the page."
@@ -63,9 +61,7 @@ class ChartErrorBoundary extends React.Component {
 
               {process.env.NODE_ENV !== "production" && error && (
                 <details className="mt-2 text-xs text-red-700">
-                  <summary className="cursor-pointer underline">
-                    Error details
-                  </summary>
+                  <summary className="cursor-pointer underline">Error details</summary>
                   <pre className="mt-1 p-2 bg-red-100 rounded overflow-auto max-h-32">
                     {error.toString()}
                   </pre>

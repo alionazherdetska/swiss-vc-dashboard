@@ -32,21 +32,30 @@ const BaseExpandableChart = ({
     setChartState((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  const handleExpand = useCallback((chartType = "volume") => {
-    updateChartState({ expanded: chartType });
-  }, [updateChartState]);
+  const handleExpand = useCallback(
+    (chartType = "volume") => {
+      updateChartState({ expanded: chartType });
+    },
+    [updateChartState]
+  );
 
   const handleModalClose = useCallback(() => {
     updateChartState({ expanded: null });
   }, [updateChartState]);
 
-  const handleModalModeChange = useCallback((mode) => {
-    updateChartState({ modalMode: mode });
-  }, [updateChartState]);
+  const handleModalModeChange = useCallback(
+    (mode) => {
+      updateChartState({ modalMode: mode });
+    },
+    [updateChartState]
+  );
 
-  const handleModalShowTotalChange = useCallback((show) => {
-    updateChartState({ modalShowTotal: show });
-  }, [updateChartState]);
+  const handleModalShowTotalChange = useCallback(
+    (show) => {
+      updateChartState({ modalShowTotal: show });
+    },
+    [updateChartState]
+  );
 
   const processedData = useMemo(
     () => (onDataProcess ? onDataProcess(data) : data),

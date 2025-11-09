@@ -30,7 +30,7 @@ const ChartHeader = ({
               onClick={onExpand}
               className="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-sm font-medium"
               title={expandTitle}
-              style={{ fontSize: '0.875rem' }}
+              style={{ fontSize: "0.875rem" }}
             >
               <span>expand</span>
               <Maximize2 className="h-4 w-4" />

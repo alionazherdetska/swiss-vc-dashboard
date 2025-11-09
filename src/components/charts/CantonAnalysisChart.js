@@ -2,21 +2,9 @@ import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
-import {
-  calculateYearlyData,
-  extractCategories,
-  getChartConfig,
-} from "./shared/ChartDataUtils";
-import {
-  getChartDims,
-  normalizeCanton,
-  makeDistributedColorFn,
-} from "../../lib/utils";
-import {
-  CHART_MARGIN,
-  EXPANDED_CHART_MARGIN,
-  ENHANCED_COLOR_PALETTE,
-} from "../../lib/constants";
+import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
+import { getChartDims, normalizeCanton, makeDistributedColorFn } from "../../lib/utils";
+import { CHART_MARGIN, EXPANDED_CHART_MARGIN, ENHANCED_COLOR_PALETTE } from "../../lib/constants";
 
 /**
  * Refactored ExpandableCantonAnalysisChart using new shared architecture
@@ -60,12 +48,11 @@ const CantonChart = ({
 const CantonAnalysisChart = ({ deals }) => {
   // Process data
   const { chartData, cantons, colorOf } = useMemo(() => {
-    if (!deals?.length)
-      return { chartData: [], cantons: [], colorOf: () => "#000" };
+    if (!deals?.length) return { chartData: [], cantons: [], colorOf: () => "#000" };
 
     // Extract and normalize cantons
     const extractedCantons = extractCategories(deals, (item) =>
-      normalizeCanton(item.Canton),
+      normalizeCanton(item.Canton)
     ).sort();
 
     // Calculate yearly data
@@ -78,10 +65,7 @@ const CantonAnalysisChart = ({ deals }) => {
     });
 
     // Color function
-    const colorFn = makeDistributedColorFn(
-      extractedCantons,
-      ENHANCED_COLOR_PALETTE,
-    );
+    const colorFn = makeDistributedColorFn(extractedCantons, ENHANCED_COLOR_PALETTE);
 
     return {
       chartData: yearlyData,

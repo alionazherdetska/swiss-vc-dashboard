@@ -1,6 +1,6 @@
 import { useRef, useEffect } from "react";
 import * as d3 from "d3";
-import styles from "../Charts.module.css"
+import styles from "../Charts.module.css";
 
 /**
  * D3-based area chart component that replaces Recharts AreaChart
@@ -57,9 +57,7 @@ const D3AreaChart = ({
       .attr("stop-color", fillColor)
       .attr("stop-opacity", 0.1);
 
-    const g = svg
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Scales
     const xScale = d3
@@ -122,10 +120,7 @@ const D3AreaChart = ({
       .curve(d3.curveMonotoneX);
 
     // Draw area
-    g.append("path")
-      .datum(data)
-      .attr("fill", `url(#area-gradient-${dataKey})`)
-      .attr("d", area);
+    g.append("path").datum(data).attr("fill", `url(#area-gradient-${dataKey})`).attr("d", area);
 
     // Draw line stroke
     g.append("path")
@@ -186,9 +181,7 @@ const D3AreaChart = ({
         const closestData =
           data.find((d) => d.year === year) ||
           data.reduce((prev, curr) =>
-            Math.abs(curr.year - year) < Math.abs(prev.year - year)
-              ? curr
-              : prev,
+            Math.abs(curr.year - year) < Math.abs(prev.year - year) ? curr : prev
           );
 
         if (closestData) {

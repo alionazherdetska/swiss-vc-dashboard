@@ -23,8 +23,6 @@
   font-size: 0.875rem;
 }
 
-
-
 .filtersRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -85,7 +83,9 @@
   padding-left: 15px;
   padding-right: 9px;
   padding-bottom: 15px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
 .sectionRootPlain {
@@ -149,7 +149,7 @@
 }
 
 .itemLabelHover:hover {
-  background: #f9fafb
+  background: #f9fafb;
 }
 
 .checkbox {
@@ -159,8 +159,8 @@
   width: 20px;
   height: 20px;
   border-radius: 5px;
-  border: 1px solid #4A4A4A;
-  background: #FEFEFE;
+  border: 1px solid #4a4a4a;
+  background: #fefefe;
   flex-shrink: 0;
   cursor: pointer;
   position: relative;
@@ -172,17 +172,17 @@
 }
 
 .checkbox:checked {
-  background-color: #FEFEFE;
+  background-color: #fefefe;
 }
 
 .checkbox:checked::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 50%;
   top: 50%;
   width: 12px;
   height: 12px;
-  background-color: #4A4A4A;
+  background-color: #4a4a4a;
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   mask-size: contain;
@@ -202,8 +202,8 @@
   width: 20px;
   height: 20px;
   border-radius: 5px;
-  border: 1px solid #4A4A4A;
-  background: #D8D8D8;
+  border: 1px solid #4a4a4a;
+  background: #d8d8d8;
   flex-shrink: 0;
   cursor: pointer;
   position: relative;
@@ -215,18 +215,18 @@
 }
 
 .checkboxAll::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 50%;
   top: 50%;
   width: 10px;
   height: 2px;
-  background-color: #4A4A4A;
+  background-color: #4a4a4a;
   transform: translate(-50%, -50%);
 }
 
 .checkboxAll:checked {
-  background-color: #FEFEFE;
+  background-color: #fefefe;
 }
 
 .checkboxColored {
@@ -236,8 +236,8 @@
   width: 20px;
   height: 20px;
   border-radius: 5px;
-  border: 1px solid var(--STU--Dark-grey, #4A4A4A);
-  background: #FEFEFE;
+  border: 1px solid var(--STU--Dark-grey, #4a4a4a);
+  background: #fefefe;
   flex-shrink: 0;
   cursor: pointer;
   position: relative;
@@ -249,7 +249,7 @@
 }
 
 .checkboxColored:checked::before {
-  content: '';
+  content: "";
   width: 16px;
   height: 16px;
   border-radius: 4px;
@@ -257,13 +257,13 @@
 }
 
 .checkboxColored:checked::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 50%;
   top: 50%;
   width: 12px;
   height: 12px;
-  background-color: #4A4A4A;
+  background-color: #4a4a4a;
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   mask-size: contain;

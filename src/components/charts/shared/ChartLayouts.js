@@ -1,5 +1,5 @@
 import ChartHeader from "./ChartHeader";
-import styles from "../Charts.module.css"
+import styles from "../Charts.module.css";
 
 /**
  * Layout component for dual charts (volume and count side by side)

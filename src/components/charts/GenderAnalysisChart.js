@@ -2,11 +2,7 @@ import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
-import {
-  calculateYearlyData,
-  extractCategories,
-  getChartConfig,
-} from "./shared/ChartDataUtils";
+import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
 import { getChartDims } from "../../lib/utils";
 import { CHART_MARGIN, EXPANDED_CHART_MARGIN, CEO_GENDER_COLOR_MAP } from "../../lib/constants";
 
@@ -47,8 +43,7 @@ const GenderChart = ({
 const GenderAnalysisChart = ({ deals }) => {
   // Process data
   const { chartData, genders, colorOf } = useMemo(() => {
-    if (!deals?.length)
-      return { chartData: [], genders: [], colorOf: () => "#000" };
+    if (!deals?.length) return { chartData: [], genders: [], colorOf: () => "#000" };
 
     // Filter out deals with unknown gender
     const filteredDeals = deals.filter((d) => {
@@ -57,10 +52,7 @@ const GenderAnalysisChart = ({ deals }) => {
     });
 
     // Extract unique genders
-    const extractedGenders = extractCategories(
-      filteredDeals,
-      (item) => item["Gender CEO"],
-    ).sort();
+    const extractedGenders = extractCategories(filteredDeals, (item) => item["Gender CEO"]).sort();
 
     // Calculate yearly data
     const config = getChartConfig("gender");

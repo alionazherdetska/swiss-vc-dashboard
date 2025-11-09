@@ -40,9 +40,7 @@ const D3MultiSeriesChart = ({
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
-    const g = svg
-      .append("g")
-      .attr("transform", `translate(${margin.left},${margin.top})`);
+    const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
     // Scales
     const xScale = d3
@@ -58,8 +56,8 @@ const D3MultiSeriesChart = ({
     } else {
       maxValue = d3.max(data, (d) =>
         d3.max(categories, (cat) =>
-          getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix),
-        ),
+          getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)
+        )
       );
     }
 
@@ -132,9 +130,7 @@ const D3MultiSeriesChart = ({
 
     if (mode === "column") {
       // Stacked bar chart
-      const stack = d3
-        .stack()
-        .keys(categories.map((cat) => cat.replace(/[^a-zA-Z0-9]/g, "_")));
+      const stack = d3.stack().keys(categories.map((cat) => cat.replace(/[^a-zA-Z0-9]/g, "_")));
 
       const stackedData = stack(
         data.map((d) => {
@@ -144,7 +140,7 @@ const D3MultiSeriesChart = ({
             row[key] = getSeriesValue(d, key, metricSuffix);
           });
           return row;
-        }),
+        })
       );
 
       g.selectAll(".category-group")
@@ -162,8 +158,7 @@ const D3MultiSeriesChart = ({
         .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
         .attr("width", xScale.bandwidth())
         .on("mouseover", function (event, d) {
-          const category =
-            categories[stackedData.findIndex((s) => s.includes(d))];
+          const category = categories[stackedData.findIndex((s) => s.includes(d))];
           const value = d[1] - d[0];
           const formattedValue = isVolume
             ? `CHF ${d3.format(",.1f")(value)}M`
@@ -171,9 +166,7 @@ const D3MultiSeriesChart = ({
 
           tooltip
             .style("opacity", 1)
-            .html(
-              `<strong>${category}</strong><br/>${d.data.year}: ${formattedValue}`,
-            )
+            .html(`<strong>${category}</strong><br/>${d.data.year}: ${formattedValue}`)
             .style("left", `${event.pageX + 10}px`)
             .style("top", `${event.pageY - 10}px`);
         })
@@ -218,9 +211,7 @@ const D3MultiSeriesChart = ({
 
             tooltip
               .style("opacity", 1)
-              .html(
-                `<strong>${category}</strong><br/>${d.year}: ${formattedValue}`,
-              )
+              .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`)
               .style("left", `${event.pageX + 10}px`)
               .style("top", `${event.pageY - 10}px`);
           })

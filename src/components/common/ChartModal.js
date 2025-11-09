@@ -47,9 +47,7 @@ const ChartModal = ({ isOpen, onClose, title, children }) => {
         {/* Fixed Header */}
         <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4 rounded-t-lg">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">
-              {title}
-            </h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate pr-4">{title}</h2>
             <button
               onClick={onClose}
               className="flex-shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-md bg-gray-800 hover:bg-gray-900 text-white transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"

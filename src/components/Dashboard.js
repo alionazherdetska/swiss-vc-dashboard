@@ -1,11 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import FilterPanel from "./filters/FilterPanel.js";
 import { TimelineChart } from "./charts/TimelineChart.js";
-import {
-  processCompanies,
-  processDeals,
-  generateChartData,
-} from "../lib/utils";
+import { processCompanies, processDeals, generateChartData } from "../lib/utils";
 import ChartErrorBoundary from "./charts/shared/ChartErrorBoundary.js";
 import QuarterlyAnalysisChart from "./charts/QuarterlyAnalysisChart.js";
 import PhaseAnalysisChart from "./charts/PhaseAnalysisChart.js";
@@ -34,7 +30,6 @@ const Dashboard = () => {
     { key: "phase", label: "Stages" },
     { key: "canton", label: "Canton" },
     { key: "ceoGender", label: "Gender" },
-    
   ];
 
   // Load & process data (companies only for mapping)
@@ -54,7 +49,6 @@ const Dashboard = () => {
           processedDeals = processDeals(jsonData.Deals, processedCompanies);
           setDeals(processedDeals);
         }
-
       } catch {
         setLoading(false);
       } finally {
@@ -78,39 +72,21 @@ const Dashboard = () => {
     return {
       phases: [...new Set(deals.map((d) => d.Phase).filter(Boolean))].sort(),
       dealYears: [...new Set(deals.map((d) => d.Year).filter(Boolean))].sort(),
-      industries: [
-        ...new Set(deals.map((d) => d.Industry).filter(Boolean)),
-      ].sort(),
-      ceoGenders: [
-        ...new Set(deals.map((d) => d["Gender CEO"]).filter(Boolean)),
-      ].sort(),
+      industries: [...new Set(deals.map((d) => d.Industry).filter(Boolean))].sort(),
+      ceoGenders: [...new Set(deals.map((d) => d["Gender CEO"]).filter(Boolean))].sort(),
     };
   }, [deals]);
-
-  
 
   // Apply filters (deals only, now including CEO gender filter)
   const filteredDeals = useMemo(() => {
     return deals.filter((item) => {
-      if (
-        filters.industries.length &&
-        !filters.industries.includes(item.Industry)
-      )
-        return false;
+      if (filters.industries.length && !filters.industries.includes(item.Industry)) return false;
       // dealTypes filter removed
-      if (filters.phases.length && !filters.phases.includes(item.Phase))
+      if (filters.phases.length && !filters.phases.includes(item.Phase)) return false;
+      if (filters.cantons.length && !filters.cantons.includes(item.Canton)) return false;
+      if (filters.ceoGenders.length && !filters.ceoGenders.includes(item["Gender CEO"]))
         return false;
-      if (filters.cantons.length && !filters.cantons.includes(item.Canton))
-        return false;
-      if (
-        filters.ceoGenders.length &&
-        !filters.ceoGenders.includes(item["Gender CEO"])
-      )
-        return false;
-      if (
-        item.Year &&
-        (item.Year < filters.yearRange[0] || item.Year > filters.yearRange[1])
-      )
+      if (item.Year && (item.Year < filters.yearRange[0] || item.Year > filters.yearRange[1]))
         return false;
       return true;
     });
@@ -122,8 +98,7 @@ const Dashboard = () => {
   }, [filteredDeals]);
 
   // Filter helpers
-  const updateFilter = (key, value) =>
-    setFilters((prev) => ({ ...prev, [key]: value }));
+  const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
   const toggleArrayFilter = (key, value) =>
     setFilters((prev) => ({
       ...prev,
@@ -146,9 +121,7 @@ const Dashboard = () => {
       <div className={styles.loadingContainer}>
         <div className={styles.textCenter}>
           <div className={styles.spinner} />
-          <p className={styles.textMuted}>
-            Loading Swiss startup ecosystem data...
-          </p>
+          <p className={styles.textMuted}>Loading Swiss startup ecosystem data...</p>
         </div>
       </div>
     );
@@ -181,72 +154,70 @@ const Dashboard = () => {
 
           {/* Active chart rendered by tab selection */}
           <div className={styles.chartsArea}>
-           {activeChart === "timeline" && (
-  <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.timelineGrid || ""}`}>
-    <div className={styles.card}>
-      <ChartErrorBoundary chartName="Timeline Volume">
-        <TimelineChart
-          data={chartData.timeline}
-          showVolume={true}
-          title="Invested Capital by Year"
-          yLabel="Invested Capital CHF (M)"
-        />
-      </ChartErrorBoundary>
-    </div>
-    <div className={styles.card}>
-      <ChartErrorBoundary chartName="Timeline Count">
-        <TimelineChart
-          data={chartData.timeline}
-          showVolume={false}
-          title="Number of Deals by Year"
-          yLabel="Number of Deals"
-        />
-      </ChartErrorBoundary>
-    </div>
-  </div>
-)}
+            {activeChart === "timeline" && (
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.timelineGrid || ""}`}>
+                <div className={styles.card}>
+                  <ChartErrorBoundary chartName="Timeline Volume">
+                    <TimelineChart
+                      data={chartData.timeline}
+                      showVolume={true}
+                      title="Invested Capital by Year"
+                      yLabel="Invested Capital CHF (M)"
+                    />
+                  </ChartErrorBoundary>
+                </div>
+                <div className={styles.card}>
+                  <ChartErrorBoundary chartName="Timeline Count">
+                    <TimelineChart
+                      data={chartData.timeline}
+                      showVolume={false}
+                      title="Number of Deals by Year"
+                      yLabel="Number of Deals"
+                    />
+                  </ChartErrorBoundary>
+                </div>
+              </div>
+            )}
 
-{activeChart === "quarterly" && (
-  <ChartErrorBoundary chartName="Quarterly Analysis">
-    <QuarterlyAnalysisChart
-      deals={filteredDeals}
-      selectedIndustryCount={filters.industries.length}
-      totalIndustryCount={filterOptions.industries.length}
-    />
-  </ChartErrorBoundary>
-)}
+            {activeChart === "quarterly" && (
+              <ChartErrorBoundary chartName="Quarterly Analysis">
+                <QuarterlyAnalysisChart
+                  deals={filteredDeals}
+                  selectedIndustryCount={filters.industries.length}
+                  totalIndustryCount={filterOptions.industries.length}
+                />
+              </ChartErrorBoundary>
+            )}
 
-{activeChart === "phase" && (
-  <ChartErrorBoundary chartName="Phase Analysis">
-    <PhaseAnalysisChart
-      deals={filteredDeals}
-      selectedPhaseCount={filters.phases.length}
-      totalPhaseCount={filterOptions.phases.length}
-    />
-  </ChartErrorBoundary>
-)}
+            {activeChart === "phase" && (
+              <ChartErrorBoundary chartName="Phase Analysis">
+                <PhaseAnalysisChart
+                  deals={filteredDeals}
+                  selectedPhaseCount={filters.phases.length}
+                  totalPhaseCount={filterOptions.phases.length}
+                />
+              </ChartErrorBoundary>
+            )}
 
-{activeChart === "canton" && (
-  <ChartErrorBoundary chartName="Canton Analysis">
-    <CantonAnalysisChart
-      deals={filteredDeals}
-      selectedCantonCount={filters.cantons.length}
-      totalCantonCount={filterOptions.industries.length}
-    />
-  </ChartErrorBoundary>
-)}
+            {activeChart === "canton" && (
+              <ChartErrorBoundary chartName="Canton Analysis">
+                <CantonAnalysisChart
+                  deals={filteredDeals}
+                  selectedCantonCount={filters.cantons.length}
+                  totalCantonCount={filterOptions.industries.length}
+                />
+              </ChartErrorBoundary>
+            )}
 
-{activeChart === "ceoGender" && (
-  <ChartErrorBoundary chartName="Gender Analysis">
-    <GenderAnalysisChart
-      deals={filteredDeals}
-      selectedGenderCount={filters.ceoGenders.length}
-      totalGenderCount={filterOptions.ceoGenders.length}
-    />
-  </ChartErrorBoundary>
-)}
-
-            
+            {activeChart === "ceoGender" && (
+              <ChartErrorBoundary chartName="Gender Analysis">
+                <GenderAnalysisChart
+                  deals={filteredDeals}
+                  selectedGenderCount={filters.ceoGenders.length}
+                  totalGenderCount={filterOptions.ceoGenders.length}
+                />
+              </ChartErrorBoundary>
+            )}
 
             <div className={styles.filtersWrap}>
               <div className={styles.filterCard}>

@@ -3,13 +3,9 @@ import { Maximize2 } from "lucide-react";
 import D3ComposedChart from "./shared/D3ComposedChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ChartModal from "../common/ChartModal";
-import {
-  AXIS_STROKE,
-  GRID_STROKE,
-  ENHANCED_COLOR_PALETTE,
-} from "../../lib/constants";
+import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from "../../lib/constants";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
-import styles from "./Charts.module.css"
+import styles from "./Charts.module.css";
 
 const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
   const [expandedChart, setExpandedChart] = useState(null); // 'volume' | 'count' | null
@@ -19,16 +15,12 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
 
   // Extract phases from deals
   const phases = useMemo(() => {
-    return Array.from(
-      new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim())),
-    ).sort();
+    return Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort();
   }, [deals]);
 
   // Color palette for phases
   const colorOf = (phase) =>
-    ENHANCED_COLOR_PALETTE[
-      phases.indexOf(phase) % ENHANCED_COLOR_PALETTE.length
-    ];
+    ENHANCED_COLOR_PALETTE[phases.indexOf(phase) % ENHANCED_COLOR_PALETTE.length];
 
   // Prepare phase/year rows for charting
   const rows = useMemo(() => {
@@ -40,12 +32,10 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
       if (!byYear[year]) byYear[year] = { year };
       byYear[year][`${phaseKey}__volume`] =
         (byYear[year][`${phaseKey}__volume`] || 0) + Number(d.Amount || 0);
-      byYear[year][`${phaseKey}__count`] =
-        (byYear[year][`${phaseKey}__count`] || 0) + 1;
+      byYear[year][`${phaseKey}__count`] = (byYear[year][`${phaseKey}__count`] || 0) + 1;
       byYear[year]["__grandTotalVolume"] =
         (byYear[year]["__grandTotalVolume"] || 0) + Number(d.Amount || 0);
-      byYear[year]["__grandTotalCount"] =
-        (byYear[year]["__grandTotalCount"] || 0) + 1;
+      byYear[year]["__grandTotalCount"] = (byYear[year]["__grandTotalCount"] || 0) + 1;
     });
     const allRows = Object.values(byYear).sort((a, b) => a.year - b.year);
     // Find first year with any non-zero value
@@ -63,26 +53,14 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
   const expandedDims = getChartDims(true);
 
   // Chart content (dual charts)
-  const ChartContent = ({
-    chartType,
-    modeState,
-    onModeChange,
-    isExpandedView = false,
-  }) => {
-    const label =
-      chartType === "volume"
-        ? "Investment Volume vs Year"
-        : "Number of Deals vs Year";
-    const yLabel =
-      chartType === "volume" ? "Investment Volume CHF (M)" : "Number of Deals";
+  const ChartContent = ({ chartType, modeState, onModeChange, isExpandedView = false }) => {
+    const label = chartType === "volume" ? "Investment Volume vs Year" : "Number of Deals vs Year";
+    const yLabel = chartType === "volume" ? "Investment Volume CHF (M)" : "Number of Deals";
     const dataKeySuffix = chartType === "volume" ? "__volume" : "__count";
     const dimsToUse = isExpandedView ? expandedDims : dims;
 
     // Custom tooltip formatter to round values
-    const tooltipFormatter = (value, name) => [
-      Math.round(value * 100) / 100,
-      name,
-    ];
+    const tooltipFormatter = (value, name) => [Math.round(value * 100) / 100, name];
 
     return (
       <div className={styles.chartArea}>
@@ -93,7 +71,7 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
               className="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-sm font-medium"
               title="Expand chart"
               onClick={() => setExpandedChart(chartType)}
-              style={{ fontSize: '0.875rem' }}
+              style={{ fontSize: "0.875rem" }}
             >
               <span>expand</span>
               <Maximize2 className="h-4 w-4" />
@@ -151,16 +129,8 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
       {/* Removed controls from preview - controls only in modal */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ChartContent
-          chartType="volume"
-          modeState={leftMode}
-          onModeChange={setLeftMode}
-        />
-        <ChartContent
-          chartType="count"
-          modeState={rightMode}
-          onModeChange={setRightMode}
-        />
+        <ChartContent chartType="volume" modeState={leftMode} onModeChange={setLeftMode} />
+        <ChartContent chartType="count" modeState={rightMode} onModeChange={setRightMode} />
       </div>
 
       <ChartModal

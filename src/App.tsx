@@ -9,54 +9,50 @@ export function App() {
 
   useEffect(() => {
     const loadData = async () => {
-  try {
-    setLoadingProgress("Fetching data file...");
+      try {
+        setLoadingProgress("Fetching data file...");
 
-    const response = await fetch("/startup-data.json");
-    
-    if (!response.ok) {
-      throw new Error(
-        `Failed to load data (${response.status}): ${response.statusText}`
-      );
-    }
+        const response = await fetch("/startup-data.json");
 
-    const contentType = response.headers.get('content-type');
-    if (!contentType?.includes('application/json')) {
-      throw new Error('Invalid response type. Expected JSON.');
-    }
+        if (!response.ok) {
+          throw new Error(`Failed to load data (${response.status}): ${response.statusText}`);
+        }
 
-    setLoadingProgress("Parsing JSON data...");
-    const jsonData = await response.json();
+        const contentType = response.headers.get("content-type");
+        if (!contentType?.includes("application/json")) {
+          throw new Error("Invalid response type. Expected JSON.");
+        }
 
-    // Validate data structure
-    if (!jsonData || typeof jsonData !== 'object') {
-      throw new Error('Invalid data structure: must be object or array');
-    }
+        setLoadingProgress("Parsing JSON data...");
+        const jsonData = await response.json();
 
-    if (Array.isArray(jsonData)) {
-      if (jsonData.length === 0) {
-        throw new Error('Data array is empty');
+        // Validate data structure
+        if (!jsonData || typeof jsonData !== "object") {
+          throw new Error("Invalid data structure: must be object or array");
+        }
+
+        if (Array.isArray(jsonData)) {
+          if (jsonData.length === 0) {
+            throw new Error("Data array is empty");
+          }
+          window.startupData = { Companies: [], Deals: jsonData };
+        } else if (!jsonData.Companies && !jsonData.Deals) {
+          throw new Error("Data must contain Companies and/or Deals arrays");
+        } else {
+          window.startupData = jsonData;
+        }
+
+        setLoadingProgress("Processing data...");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        setLoadingProgress("Finalizing dashboard...");
+        setLoading(false);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown error occurred";
+        setError(message);
+        setLoading(false);
       }
-      window.startupData = { Companies: [], Deals: jsonData };
-    } else if (!jsonData.Companies && !jsonData.Deals) {
-      throw new Error('Data must contain Companies and/or Deals arrays');
-    } else {
-      window.startupData = jsonData;
-    }
-
-    setLoadingProgress("Processing data...");
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setLoadingProgress("Finalizing dashboard...");
-    setLoading(false);
-  } catch (error) {
-    const message = error instanceof Error 
-      ? error.message 
-      : 'Unknown error occurred';
-    setError(message);
-    setLoading(false);
-  }
-};
+    };
 
     loadData();
   }, []);
@@ -68,11 +64,7 @@ export function App() {
           className="text-center max-w-md"
           style={{ maxWidth: "1020px", width: "100%", margin: "0 auto" }}
         >
-          <img
-            src="/logo.png"
-            alt="Swiss Startup Ecosystem Logo"
-            className="h-16 mx-auto mb-4"
-          />
+          <img src="/logo.png" alt="Swiss Startup Ecosystem Logo" className="h-16 mx-auto mb-4" />
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Swiss Startup Ecosystem Dashboard
@@ -100,12 +92,8 @@ export function App() {
           style={{ maxWidth: "1020px", width: "100%", margin: "0 auto" }}
         >
           <div className="text-red-600 text-6xl mb-4">🏢</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Data Loading Error
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Unable to load the Swiss startup ecosystem data.
-          </p>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Data Loading Error</h2>
+          <p className="text-gray-600 mb-4">Unable to load the Swiss startup ecosystem data.</p>
 
           <div className="text-sm text-red-600 bg-red-50 p-4 rounded-lg mb-4">
             <strong>Error:</strong> {error}
@@ -115,13 +103,9 @@ export function App() {
             <p className="font-semibold mb-2">Troubleshooting:</p>
             <ul className="text-left space-y-1">
               <li>
-                • Ensure <code>startup-data.json</code> is in the{" "}
-                <code>public</code> folder
+                • Ensure <code>startup-data.json</code> is in the <code>public</code> folder
               </li>
-              <li>
-                • Check that the JSON file contains Companies and/or Deals
-                arrays
-              </li>
+              <li>• Check that the JSON file contains Companies and/or Deals arrays</li>
               <li>
                 • Verify JSON structure:{" "}
                 <code>
