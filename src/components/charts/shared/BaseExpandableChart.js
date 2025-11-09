@@ -116,6 +116,7 @@ const BaseExpandableChart = ({
         isOpen={chartState.expanded !== null}
         onClose={handleModalClose}
         title={modalTitle}
+        onExport={onExport}
       >
         {chartState.expanded && (
           <div className="space-y-4">
@@ -127,7 +128,7 @@ const BaseExpandableChart = ({
               showTotal={chartState.modalShowTotal}
               onShowTotalChange={handleModalShowTotalChange}
               showExpandButton={false}
-              onExport={onExport}
+              showExportButton={false}
             />
 
             {ExpandedChartComponent ? (

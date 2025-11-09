@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Maximize2 } from "lucide-react";
 import D3ComposedChart from "./shared/D3ComposedChart";
+import ChartHeader from "./shared/ChartHeader";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ChartModal from "../common/ChartModal";
 import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from "../../lib/constants";
@@ -52,11 +53,12 @@ const PhaseAnalysisChart = ({ deals }) => {
   const dims = getChartDims(false);
   // Expanded chart target size inside modal: 700 x 350
   const expandedDimsBase = getChartDims(true, 450);
-  const expandedDims = { ...expandedDimsBase, width: 900 };
+  const expandedDims = { ...expandedDimsBase, width: 950 };
 
   // Chart content (dual charts)
   const ChartContent = ({ chartType, modeState, onModeChange, isExpandedView = false }) => {
-    const yLabel = chartType === "volume" ? "Investment Volume CHF (M)" : "Number of Deals";
+    const isVolume = chartType === "volume";
+    const yLabel = isVolume ? "Investment Volume CHF (M)" : "Number of Deals";
     const dataKeySuffix = chartType === "volume" ? "__volume" : "__count";
     const dimsToUse = isExpandedView ? expandedDims : dims;
 
@@ -65,18 +67,16 @@ const PhaseAnalysisChart = ({ deals }) => {
 
     return (
       <div className={styles.chartArea}>
-        <div className="flex items-center mb-2">
-          {!isExpandedView && (
-            <button
-              className="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-sm font-medium"
-              title="Expand chart"
-              onClick={() => setExpandedChart(chartType)}
-            >
-              <span>expand</span>
-              <Maximize2 className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+        <ChartHeader
+          title={isVolume ? "Investment Volume vs Year" : "Number of Deals vs Year"}
+          subtitle={isVolume ? "by Phase" : "by Phase"}
+          showExpandButton={!isExpandedView}
+          onExpand={() => setExpandedChart(chartType)}
+          expandTitle={isVolume ? "Expand Volume Chart" : "Expand Count Chart"}
+          className="flex items-start gap-4 mb-2"
+          titleClassName="text-md font-semibold text-gray-800"
+          subtitleClassName="text-xs text-gray-500"
+        />
         <ResponsiveD3Container width="100%" height={dimsToUse.height}>
           <D3ComposedChart
             data={rows}

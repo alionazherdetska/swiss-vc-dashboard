@@ -77,7 +77,7 @@ const GenderAnalysisChart = ({ deals }) => {
   const dims = getChartDims(false, undefined, CHART_MARGIN);
   // Expanded chart target size inside modal: 700 x 350
   const expandedDimsBase = getChartDims(true, 450, EXPANDED_CHART_MARGIN);
-  const expandedDims = { ...expandedDimsBase, width: 900 };
+  const expandedDims = { ...expandedDimsBase, width: 950 };
 
   // Main chart components
   const VolumeChart = ({ data, mode, isExpanded = false }) => {

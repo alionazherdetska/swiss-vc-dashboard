@@ -55,10 +55,9 @@ const ChartControls = ({
   children,
 
   // Styling
-  className = "flex flex-wrap items-center justify-between gap-4 p-3 rounded-full bg-gray-100 border border-gray-300",
 }) => {
   return (
-    <div className={className}>
+    <div>
       <div className="flex flex-wrap items-center gap-4">
         {/* Mode controls for dual charts */}
         {showModeControls && isDualChart && (
@@ -91,7 +90,6 @@ const ChartControls = ({
         {/* Mode controls for single charts */}
         {showModeControls && !isDualChart && (
           <div className="flex items-center gap-2">
-            <span className="text-gray-700">Chart Type:</span>
             <select
               value={singleMode}
               onChange={(e) => onSingleModeChange?.(e.target.value)}
@@ -105,7 +103,7 @@ const ChartControls = ({
 
         {/* Show Total checkbox */}
         {showTotalControl && (
-          <label className="flex items-center gap-2 px-3 h-9 rounded-full bg-white border border-gray-300">
+          <label className="flex items-center gap-2 px-3 h-9">
             <input
               type="checkbox"
               checked={showTotal}

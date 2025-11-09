@@ -3,6 +3,7 @@ const ExportButton = ({
   onClick = () => window.print(),
   className = "",
   iconOnly = false,
+  label,
 }) => {
   if (iconOnly) {
     return (
@@ -22,6 +23,7 @@ const ExportButton = ({
       title={title}
       onClick={onClick}
     >
+      {label ? <span>{label}</span> : null}
       <img src="/download.svg" alt="Download" className="h-5 w-5" />
     </button>
   );
