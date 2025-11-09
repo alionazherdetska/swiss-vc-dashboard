@@ -55,7 +55,7 @@ const ChartControls = ({
   children,
 
   // Styling
-  className = "flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50",
+  className = "flex flex-wrap items-center justify-between gap-4 p-3 rounded-full bg-gray-100 border border-gray-300",
 }) => {
   return (
     <div className={className}>
@@ -68,7 +68,7 @@ const ChartControls = ({
               <select
                 value={leftMode}
                 onChange={(e) => onLeftModeChange?.(e.target.value)}
-                className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
+                className="px-3 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
               >
                 <option value="line">Line</option>
                 <option value="column">Column</option>
@@ -79,7 +79,7 @@ const ChartControls = ({
               <select
                 value={rightMode}
                 onChange={(e) => onRightModeChange?.(e.target.value)}
-                className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
+                className="px-3 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
               >
                 <option value="line">Line</option>
                 <option value="column">Column</option>
@@ -95,7 +95,7 @@ const ChartControls = ({
             <select
               value={singleMode}
               onChange={(e) => onSingleModeChange?.(e.target.value)}
-              className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
+              className="px-3 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
             >
               <option value="line">Line</option>
               <option value="column">Column</option>
@@ -105,7 +105,7 @@ const ChartControls = ({
 
         {/* Show Total checkbox */}
         {showTotalControl && (
-          <label className="flex items-center gap-2">
+          <label className="flex items-center gap-2 px-3 h-9 rounded-full bg-white border border-gray-300">
             <input
               type="checkbox"
               checked={showTotal}
@@ -121,24 +121,18 @@ const ChartControls = ({
 
       {/* Action buttons */}
       <div className="flex items-center gap-2">
-        {showExportButton && <ExportButton onClick={onExport} />}
+        {showExportButton && (
+          <div className="inline-flex">
+            <ExportButton onClick={onExport} className="!px-4 !h-9 !rounded-full !border !border-gray-400 !bg-white !text-gray-700 hover:!bg-gray-50" />
+          </div>
+        )}
 
         {showExpandButton && (
           <button
             onClick={onExpand}
             title={expandTitle}
             aria-label={expandTitle}
-            style={{
-              width: 16,
-              height: 16,
-              borderRadius: 15,
-              border: "1px solid #4A4A4A",
-              background: "#FEFEFE",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 0,
-            }}
+            className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-gray-400 bg-white hover:bg-gray-50 transition-colors"
           >
             <ExpandIcon />
           </button>

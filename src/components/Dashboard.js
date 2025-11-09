@@ -146,7 +146,6 @@ const Dashboard = () => {
                     onClick={() => setActiveChart(tab.key)}
                     className={btnClass}
                     title={tab.label}
-                    style={{ paddingLeft: 18, paddingRight: 18 }}
                   >
                     {tab.label}
                   </button>
@@ -223,7 +222,6 @@ const Dashboard = () => {
             )}
 
             <div className={styles.filtersWrap}>
-              <div className={styles.filterCard}>
                 <FilterPanel
                   filters={filters}
                   filterOptions={filterOptions}
@@ -233,7 +231,6 @@ const Dashboard = () => {
                   toggleArrayFilter={toggleArrayFilter}
                   resetFilters={resetFilters}
                 />
-              </div>
             </div>
           </div>
         </section>

@@ -234,10 +234,7 @@ const D3AreaChart = ({
       <svg ref={svgRef} width={width} height={height}></svg>
       <div
         ref={tooltipRef}
-        className="absolute pointer-events-none opacity-0 transition-opacity z-50"
-        style={{
-          position: "fixed",
-        }}
+        className="absolute pointer-events-none opacity-0 transition-opacity z-50 fixed"
       />
     </div>
   );

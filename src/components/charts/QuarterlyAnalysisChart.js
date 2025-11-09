@@ -83,7 +83,9 @@ const QuarterlyAnalysisChart = ({
 
   // Chart dimensions
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 720, EXPANDED_CHART_MARGIN);
+  // Expanded chart target size inside modal: 700 x 350
+  const expandedDimsBase = getChartDims(true, 450, EXPANDED_CHART_MARGIN);
+  const expandedDims = { ...expandedDimsBase, width: 900 };
 
   // Main chart components
   const VolumeChart = ({ data, mode, isExpanded = false }) => {

@@ -12,8 +12,8 @@ export const sanitizeKey = (s) =>
 
 // Compute chart dimensions; optional margins override
 export const getChartDims = (isExpandedView, forcedHeight, margins) => ({
-  width: 800,
-  height: forcedHeight ?? (isExpandedView ? 600 : 420),
+  width: isExpandedView ? 1000 : 800,
+  height: forcedHeight ?? (isExpandedView ? 700 : 420),
   margin: margins ?? (isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN),
 });
 

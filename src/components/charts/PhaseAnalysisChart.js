@@ -7,7 +7,7 @@ import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from "../../lib/cons
 import { sanitizeKey, getChartDims } from "../../lib/utils";
 import styles from "./Charts.module.css";
 
-const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
+const PhaseAnalysisChart = ({ deals }) => {
   const [expandedChart, setExpandedChart] = useState(null); // 'volume' | 'count' | null
   const [leftMode, setLeftMode] = useState("line");
   const [rightMode, setRightMode] = useState("line");
@@ -50,11 +50,12 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
   }, [deals, phases]);
 
   const dims = getChartDims(false);
-  const expandedDims = getChartDims(true);
+  // Expanded chart target size inside modal: 700 x 350
+  const expandedDimsBase = getChartDims(true, 450);
+  const expandedDims = { ...expandedDimsBase, width: 900 };
 
   // Chart content (dual charts)
   const ChartContent = ({ chartType, modeState, onModeChange, isExpandedView = false }) => {
-    const label = chartType === "volume" ? "Investment Volume vs Year" : "Number of Deals vs Year";
     const yLabel = chartType === "volume" ? "Investment Volume CHF (M)" : "Number of Deals";
     const dataKeySuffix = chartType === "volume" ? "__volume" : "__count";
     const dimsToUse = isExpandedView ? expandedDims : dims;
@@ -65,13 +66,11 @@ const PhaseAnalysisChart = ({ deals, selectedPhaseCount, totalPhaseCount }) => {
     return (
       <div className={styles.chartArea}>
         <div className="flex items-center mb-2">
-          <h3 className="text-md font-semibold text-gray-800 mr-2">{label}</h3>
           {!isExpandedView && (
             <button
               className="px-3 py-1.5 rounded-md border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5 text-sm font-medium"
               title="Expand chart"
               onClick={() => setExpandedChart(chartType)}
-              style={{ fontSize: "0.875rem" }}
             >
               <span>expand</span>
               <Maximize2 className="h-4 w-4" />

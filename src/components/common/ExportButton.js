@@ -19,7 +19,6 @@ const ExportButton = ({
   return (
     <button
       className={`h-10 px-2 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors ${className}`}
-      style={{ minHeight: "40px" }}
       title={title}
       onClick={onClick}
     >

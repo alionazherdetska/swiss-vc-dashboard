@@ -1,6 +1,7 @@
 .innerContainer {
   border-radius: 20px;
-  background-color: #fefefe;
+  /* Apply gradient across the entire panel to match the reference */
+  background: linear-gradient(180deg, #FFFEFE 0%, #D9D9D9 100%);
 }
 
 .tabPanel {
@@ -21,6 +22,7 @@
   flex-wrap: nowrap; /* keep all tabs on one line */
   position: relative;
   justify-content: space-between; /* spread content-fit tabs */
+  --tab-pad-x: 45px; /* default horizontal padding per tab */
 }
 
 .tabBarWrap {
@@ -30,6 +32,8 @@
 .tabButton {
   flex: 0 0 auto; /* fit content only */
   height: 48px;
+  padding-left: var(--tab-pad-x);
+  padding-right: var(--tab-pad-x);
   font-size: 0.95rem;
   font-weight: 600;
   transition: background 0.14s ease, color 0.14s ease;
@@ -122,4 +126,5 @@
 
 .chartsArea {
   padding: 20px;
+  /* Gradient is applied on the container now */
 }

@@ -257,19 +257,11 @@ const D3MultiSeriesChart = ({
   ]);
 
   return (
-    <div className="relative">
-      <svg ref={svgRef} width={width} height={height}></svg>
+    <div className="relative" style={{ width, height }}>
+      <svg ref={svgRef} width="100%" height="100%"></svg>
       <div
         ref={tooltipRef}
-        className="absolute pointer-events-none opacity-0 transition-opacity z-50"
-        style={{
-          background: "rgba(0, 0, 0, 0.9)",
-          color: "white",
-          padding: "8px 12px",
-          borderRadius: "6px",
-          fontSize: "13px",
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-        }}
+        className="absolute pointer-events-none opacity-0 transition-opacity z-50 bg-black/90 text-white px-3 py-2 rounded-md text-[13px] shadow-lg"
       />
     </div>
   );

@@ -60,21 +60,15 @@ export function App() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div
-          className="text-center max-w-md"
-          style={{ maxWidth: "1020px", width: "100%", margin: "0 auto" }}
-        >
+        <div className="text-center max-w-md mx-auto w-full max-w-screen-lg">
           <img src="/logo.png" alt="Swiss Startup Ecosystem Logo" className="h-16 mx-auto mb-4" />
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Swiss Startup Ecosystem Dashboard
           </h2>
           <p className="text-gray-600 mb-4">{loadingProgress}</p>
-          <div className="bg-gray-200 rounded-full h-2 mb-4">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: "75%" }}
-            ></div>
+          <div className="bg-gray-200 rounded-full h-2 mb-4 overflow-hidden">
+            <div className="bg-blue-600 h-2 rounded-full transition-all duration-500 w-3/4"></div>
           </div>
           <p className="text-sm text-gray-500">
             Loading Swiss companies and investment deals data...
@@ -87,10 +81,7 @@ export function App() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div
-          className="text-center p-6"
-          style={{ maxWidth: "1020px", width: "100%", margin: "0 auto" }}
-        >
+        <div className="text-center p-6 mx-auto w-full max-w-screen-lg">
           <div className="text-red-600 text-6xl mb-4">🏢</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Data Loading Error</h2>
           <p className="text-gray-600 mb-4">Unable to load the Swiss startup ecosystem data.</p>

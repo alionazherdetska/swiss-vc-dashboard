@@ -6,7 +6,6 @@ const BaseExpandableChart = ({
   data,
   ChartComponent,
   ExpandedChartComponent,
-  isDualChart = false,
   supportsTotal = false,
   initialLeftMode = "line",
   initialRightMode = "line",
