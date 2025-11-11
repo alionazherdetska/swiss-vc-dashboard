@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
+import ChartLegend from "./shared/ChartLegend";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
@@ -72,7 +73,7 @@ const QuarterlyAnalysisChart = ({
     });
 
     // Color function using industry color map with fallback to enhanced palette
-    const colorFn = makeDistributedColorFn(INDUSTRY_COLOR_MAP, ENHANCED_COLOR_PALETTE);
+    const colorFn = (industry) => INDUSTRY_COLOR_MAP[industry] || ENHANCED_COLOR_PALETTE[extractedIndustries.indexOf(industry) % ENHANCED_COLOR_PALETTE.length];
 
     return {
       chartData: yearlyData,
@@ -141,35 +142,39 @@ const QuarterlyAnalysisChart = ({
   // Expanded chart component
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal }) => {
     const isVolumeChart = expandedChart === "volume";
-
-    return isVolumeChart ? (
-      <QuarterlyChart
-        data={data}
-        industries={industries}
-        mode={mode}
-        isExpanded={isExpanded}
-        isVolume={true}
-        width={expandedDims.width}
-        height={expandedDims.height}
-        margin={expandedDims.margin}
-        colorOf={colorOf}
-        showTotal={showTotal}
-        selectedIndustries={selectedIndustries}
-      />
-    ) : (
-      <QuarterlyChart
-        data={data}
-        industries={industries}
-        mode={mode}
-        isExpanded={isExpanded}
-        isVolume={false}
-        width={expandedDims.width}
-        height={expandedDims.height}
-        margin={expandedDims.margin}
-        colorOf={colorOf}
-        showTotal={showTotal}
-        selectedIndustries={selectedIndustries}
-      />
+    return (
+      <>
+        {isVolumeChart ? (
+          <QuarterlyChart
+            data={data}
+            industries={industries}
+            mode={mode}
+            isExpanded={isExpanded}
+            isVolume={true}
+            width={expandedDims.width}
+            height={expandedDims.height}
+            margin={expandedDims.margin}
+            colorOf={colorOf}
+            showTotal={showTotal}
+            selectedIndustries={selectedIndustries}
+          />
+        ) : (
+          <QuarterlyChart
+            data={data}
+            industries={industries}
+            mode={mode}
+            isExpanded={isExpanded}
+            isVolume={false}
+            width={expandedDims.width}
+            height={expandedDims.height}
+            margin={expandedDims.margin}
+            colorOf={colorOf}
+            showTotal={showTotal}
+            selectedIndustries={selectedIndustries}
+          />
+        )}
+        <ChartLegend items={industries} colorOf={colorOf} title="Industries" />
+      </>
     );
   };
 

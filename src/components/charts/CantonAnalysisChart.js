@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
+import ChartLegend from "./shared/ChartLegend";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
-import { getChartDims, normalizeCanton, makeDistributedColorFn } from "../../lib/utils";
-import { CHART_MARGIN, EXPANDED_CHART_MARGIN, ENHANCED_COLOR_PALETTE } from "../../lib/constants";
+import { getChartDims, normalizeCanton } from "../../lib/utils";
+import { CHART_MARGIN, EXPANDED_CHART_MARGIN, ENHANCED_COLOR_PALETTE, CANTON_COLOR_MAP } from "../../lib/constants";
 
 /**
  * Refactored ExpandableCantonAnalysisChart using new shared architecture
@@ -64,8 +65,8 @@ const CantonAnalysisChart = ({ deals }) => {
       includeTotal: true,
     });
 
-    // Color function
-    const colorFn = makeDistributedColorFn(extractedCantons, ENHANCED_COLOR_PALETTE);
+    // Color function using canton color map with fallback to enhanced palette
+    const colorFn = (canton) => CANTON_COLOR_MAP[canton] || ENHANCED_COLOR_PALETTE[extractedCantons.indexOf(canton) % ENHANCED_COLOR_PALETTE.length];
 
     return {
       chartData: yearlyData,
@@ -132,11 +133,15 @@ const CantonAnalysisChart = ({ deals }) => {
   // Expanded chart component
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
     const isVolumeChart = expandedChart === "volume";
-
-    return isVolumeChart ? (
-      <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
-    ) : (
-      <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+    return (
+      <>
+        {isVolumeChart ? (
+          <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
+        ) : (
+          <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+        )}
+        <ChartLegend items={cantons} colorOf={colorOf} title="Cantons" />
+      </>
     );
   };
 

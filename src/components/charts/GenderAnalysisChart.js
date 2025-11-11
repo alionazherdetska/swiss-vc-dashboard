@@ -3,8 +3,9 @@ import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
+import ChartLegend from "./shared/ChartLegend";
 import { getChartDims } from "../../lib/utils";
-import { CHART_MARGIN, EXPANDED_CHART_MARGIN, CEO_GENDER_COLOR_MAP } from "../../lib/constants";
+import { CHART_MARGIN, EXPANDED_CHART_MARGIN, CEO_GENDER_COLOR_MAP, ENHANCED_COLOR_PALETTE } from "../../lib/constants";
 
 // Chart component wrapper for gender data
 const GenderChart = ({
@@ -43,7 +44,7 @@ const GenderChart = ({
 const GenderAnalysisChart = ({ deals }) => {
   // Process data
   const { chartData, genders, colorOf } = useMemo(() => {
-    if (!deals?.length) return { chartData: [], genders: [], colorOf: () => "#000" };
+      if (!deals?.length) return { chartData: [], genders: [], colorOf: () => "#000" };
 
     // Filter out deals with unknown gender
     const filteredDeals = deals.filter((d) => {
@@ -63,8 +64,8 @@ const GenderAnalysisChart = ({ deals }) => {
       includeTotal: true,
     });
 
-    // Color function using CEO gender color map
-    const colorFn = (gender) => CEO_GENDER_COLOR_MAP[gender] || "#666666";
+      // Color function using gender color map with fallback to palette
+      const colorFn = (gender) => CEO_GENDER_COLOR_MAP[gender] || ENHANCED_COLOR_PALETTE[extractedGenders.indexOf(gender) % ENHANCED_COLOR_PALETTE.length];
 
     return {
       chartData: yearlyData,
@@ -132,10 +133,15 @@ const GenderAnalysisChart = ({ deals }) => {
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
     const isVolumeChart = expandedChart === "volume";
 
-    return isVolumeChart ? (
-      <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
-    ) : (
-      <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+    return (
+      <>
+        {isVolumeChart ? (
+          <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
+        ) : (
+          <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+        )}
+        <ChartLegend items={genders} colorOf={colorOf} title="Genders" />
+      </>
     );
   };
 

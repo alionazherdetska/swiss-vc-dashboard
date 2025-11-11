@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
-import { Maximize2 } from "lucide-react";
 import D3ComposedChart from "./shared/D3ComposedChart";
+import ChartLegend from "./shared/ChartLegend";
 import ChartHeader from "./shared/ChartHeader";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ChartModal from "../common/ChartModal";
-import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE } from "../../lib/constants";
+import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE, STAGE_COLOR_MAP } from "../../lib/constants";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
 import styles from "./Charts.module.css";
 
@@ -19,9 +19,8 @@ const PhaseAnalysisChart = ({ deals }) => {
     return Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort();
   }, [deals]);
 
-  // Color palette for phases
-  const colorOf = (phase) =>
-    ENHANCED_COLOR_PALETTE[phases.indexOf(phase) % ENHANCED_COLOR_PALETTE.length];
+  // Color palette for phases (use STAGE_COLOR_MAP for consistency with legend)
+  const colorOf = (phase) => STAGE_COLOR_MAP[phase] || ENHANCED_COLOR_PALETTE[phases.indexOf(phase) % ENHANCED_COLOR_PALETTE.length];
 
   // Prepare phase/year rows for charting
   const rows = useMemo(() => {
@@ -119,6 +118,7 @@ const PhaseAnalysisChart = ({ deals }) => {
           onModeChange={setModalMode}
           isExpandedView={true}
         />
+        <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
       </div>
     );
   };
