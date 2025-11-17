@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   OFFICIAL_CANTONS,
   CANTON_COLOR_MAP,

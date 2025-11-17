@@ -120,9 +120,16 @@ const ChartControls = ({
       {/* Action buttons */}
       <div className="flex items-center gap-2">
         {showExportButton && (
-          <div className="inline-flex">
+          <div className="inline-flex items-center gap-2">
             <ExportButton
-              onClick={onExport}
+              label="CSV"
+              onClick={() => onExport?.("csv")}
+              className="!px-4 !h-9 !rounded-full !border !border-gray-400 !bg-white !text-gray-700 hover:!bg-gray-50"
+            />
+
+            <ExportButton
+              label="PDF"
+              onClick={() => onExport?.("pdf")}
               className="!px-4 !h-9 !rounded-full !border !border-gray-400 !bg-white !text-gray-700 hover:!bg-gray-50"
             />
           </div>

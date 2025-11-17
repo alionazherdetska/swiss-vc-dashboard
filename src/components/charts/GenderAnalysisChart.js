@@ -152,10 +152,6 @@ const GenderAnalysisChart = ({ deals }) => {
     );
   };
 
-  // Handle export
-  const handleExport = () => {
-    // TODO: Implement export functionality
-  };
 
   return (
     <BaseExpandableChart
@@ -180,7 +176,7 @@ const GenderAnalysisChart = ({ deals }) => {
       initialLeftMode="line"
       initialRightMode="line"
       initialShowTotal={false}
-      onExport={handleExport}
+      
     />
   );
 };

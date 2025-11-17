@@ -192,10 +192,6 @@ const QuarterlyAnalysisChart = ({
     );
   };
 
-  // Handle export
-  const handleExport = () => {
-    // TODO: Implement export functionality
-  };
 
   return (
     <BaseExpandableChart
@@ -220,7 +216,7 @@ const QuarterlyAnalysisChart = ({
       initialLeftMode="line"
       initialRightMode="line"
       initialShowTotal={false}
-      onExport={handleExport}
+      
     />
   );
 };

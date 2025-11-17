@@ -153,10 +153,6 @@ const CantonAnalysisChart = ({ deals }) => {
     );
   };
 
-  // Handle export
-  const handleExport = () => {
-    // TODO: Implement export functionality
-  };
 
   return (
     <BaseExpandableChart
@@ -181,7 +177,7 @@ const CantonAnalysisChart = ({ deals }) => {
       initialLeftMode="line"
       initialRightMode="line"
       initialShowTotal={false}
-      onExport={handleExport}
+      
     />
   );
 };

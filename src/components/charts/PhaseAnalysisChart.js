@@ -1,19 +1,38 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import BaseExpandableChart from "./shared/BaseExpandableChart";
 import D3ComposedChart from "./shared/D3ComposedChart";
 import ChartLegend from "./shared/ChartLegend";
 import ChartHeader from "./shared/ChartHeader";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
-import ChartModal from "../common/ChartModal";
 import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE, STAGE_COLOR_MAP } from "../../lib/constants";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
 import styles from "./Charts.module.css";
 
-const PhaseAnalysisChart = ({ deals }) => {
-  const [expandedChart, setExpandedChart] = useState(null); // 'volume' | 'count' | null
-  const [leftMode, setLeftMode] = useState("line");
-  const [rightMode, setRightMode] = useState("line");
-  const [modalMode, setModalMode] = useState("line");
+const PhaseChart = ({ data, phases, isVolume, mode, width, height, margin, isExpanded = false, colorOf }) => {
+  const dataKeySuffix = isVolume ? "__volume" : "__count";
+  const yLabel = isVolume ? "Investment Volume CHF (M)" : "Number of Deals";
 
+  return (
+    <div className={styles.chartArea}>
+      <ResponsiveD3Container width="100%" height={height}>
+        <D3ComposedChart
+          data={data}
+          categories={phases}
+          mode={mode}
+          margin={margin}
+          strokeWidth={2}
+          gridColor={GRID_STROKE}
+          axisColor={AXIS_STROKE}
+          yAxisLabel={yLabel}
+          colorOf={colorOf}
+          dataKeySuffix={dataKeySuffix}
+        />
+      </ResponsiveD3Container>
+    </div>
+  );
+};
+
+const PhaseAnalysisChart = ({ deals }) => {
   // Extract phases from deals
   const phases = useMemo(() => {
     return Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort();
@@ -50,106 +69,122 @@ const PhaseAnalysisChart = ({ deals }) => {
   }, [deals, phases]);
 
   const dims = getChartDims(false);
-  // Expanded chart target size inside modal: 700 x 350
   const expandedDimsBase = getChartDims(true, 450);
   const expandedDims = { ...expandedDimsBase, width: 950 };
 
-  // Chart content (dual charts)
-  const ChartContent = ({ chartType, modeState, onModeChange, isExpandedView = false }) => {
-    const isVolume = chartType === "volume";
-    const yLabel = isVolume ? "Investment Volume CHF (M)" : "Number of Deals";
-    const dataKeySuffix = chartType === "volume" ? "__volume" : "__count";
-    const dimsToUse = isExpandedView ? expandedDims : dims;
-
-    // Custom tooltip formatter to round values
-    const tooltipFormatter = (value, name) => [Math.round(value * 100) / 100, name];
+  const VolumeChart = ({ data, mode, isExpanded = false }) => {
+    const currentDims = isExpanded
+      ? expandedDims
+      : {
+          ...dims,
+          width: dims.width / 2,
+        };
 
     return (
-      <div className={styles.chartArea}>
-        <ChartHeader
-          title={isVolume ? "Investment Volume vs Year" : "Number of Deals vs Year"}
-          subtitle={isVolume ? "by Phase" : "by Phase"}
-          showExpandButton={!isExpandedView}
-          onExpand={() => setExpandedChart(chartType)}
-          expandTitle={isVolume ? "Expand Volume Chart" : "Expand Count Chart"}
-          className="flex items-start gap-4 mb-2"
-          titleClassName="text-md font-semibold text-gray-800"
-          subtitleClassName="text-xs text-gray-500"
-        />
-        <ResponsiveD3Container width="100%" height={dimsToUse.height}>
-          <D3ComposedChart
-            data={rows}
-            categories={phases}
-            mode={modeState}
-            margin={dimsToUse.margin}
-            strokeWidth={2}
-            gridColor={GRID_STROKE}
-            axisColor={AXIS_STROKE}
-            yAxisLabel={yLabel}
-            colorOf={colorOf}
-            dataKeySuffix={dataKeySuffix}
-            tooltipFormatter={tooltipFormatter}
-          />
-        </ResponsiveD3Container>
-      </div>
+      <PhaseChart
+        data={data}
+        phases={phases}
+        isVolume={true}
+        mode={mode}
+        width={currentDims.width}
+        height={currentDims.height}
+        margin={currentDims.margin}
+        isExpanded={isExpanded}
+        colorOf={colorOf}
+      />
     );
   };
 
-  const ExpandedModalContent = () => {
-    const chartType = expandedChart;
-    return (
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50">
-          <div className="flex flex-wrap items-center gap-4">
-            <select
-              value={modalMode}
-              onChange={(e) => setModalMode(e.target.value)}
-              className="px-3 py-1 border rounded-md text-sm bg-white border-gray-300 text-gray-700"
-            >
-              <option value="line">Line</option>
-              <option value="column">Column</option>
-            </select>
-          </div>
-        </div>
-        
-        {/* Legend on the LEFT, Chart on the RIGHT */}
-        <div className="flex gap-6 items-start">
-          {/* Legend on the LEFT */}
-          <div className="flex-shrink-0 pt-8">
-            <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
-          </div>
+  const CountChart = ({ data, mode, isExpanded = false }) => {
+    const currentDims = isExpanded
+      ? expandedDims
+      : {
+          ...dims,
+          width: dims.width / 2,
+        };
 
-          {/* Chart on the RIGHT */}
-          <div className="flex-1 min-w-0">
-            <ChartContent
-              chartType={chartType}
-              modeState={modalMode}
-              onModeChange={setModalMode}
-              isExpandedView={true}
-            />
-          </div>
+    return (
+      <PhaseChart
+        data={data}
+        phases={phases}
+        isVolume={false}
+        mode={mode}
+        width={currentDims.width}
+        height={currentDims.height}
+        margin={currentDims.margin}
+        isExpanded={isExpanded}
+        colorOf={colorOf}
+      />
+    );
+  };
+
+  const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
+    const isVolumeChart = expandedChart === "volume";
+
+    return (
+      <div className="flex gap-6 items-start">
+        <div className="flex-shrink-0 pt-8">
+          <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          {isVolumeChart ? (
+            <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
+          ) : (
+            <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+          )}
         </div>
       </div>
     );
   };
 
   return (
-    <div className="space-y-6">
-      {/* Removed controls from preview - controls only in modal */}
+    <BaseExpandableChart
+      title="Phase Analysis"
+      data={rows}
+      ChartComponent={({ data, leftMode, rightMode, showTotal, onExpand }) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <div className="pl-4">
+              <ChartHeader
+                title={"Investment Volume vs Year"}
+                subtitle={"by Phase"}
+                showExpandButton={true}
+                onExpand={() => onExpand && onExpand("volume")}
+                expandTitle="Expand Volume Chart"
+                className="flex items-start gap-4 mb-2"
+                titleClassName="text-md font-semibold text-gray-800"
+                subtitleClassName="text-xs text-gray-500"
+              />
+            </div>
+            <VolumeChart data={data} mode={leftMode} />
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ChartContent chartType="volume" modeState={leftMode} onModeChange={setLeftMode} />
-        <ChartContent chartType="count" modeState={rightMode} onModeChange={setRightMode} />
-      </div>
-
-      <ChartModal
-        isOpen={expandedChart !== null}
-        onClose={() => setExpandedChart(null)}
-        title={`Expanded ${expandedChart === "volume" ? "Investment Volume" : "Deal Count"} by Phase Chart`}
-      >
-        <ExpandedModalContent />
-      </ChartModal>
-    </div>
+          <div>
+            <div className="pl-4">
+              <ChartHeader
+                title={"Number of Deals vs Year"}
+                subtitle={"by Phase"}
+                showExpandButton={true}
+                onExpand={() => onExpand && onExpand("count")}
+                expandTitle="Expand Count Chart"
+                className="flex items-start gap-4 mb-2"
+                titleClassName="text-md font-semibold text-gray-800"
+                subtitleClassName="text-xs text-gray-500"
+              />
+            </div>
+            <CountChart data={data} mode={rightMode} />
+          </div>
+        </div>
+      )}
+      ExpandedChartComponent={ExpandedChart}
+      isDualChart={true}
+      supportsSingleMode={false}
+      supportsTotal={true}
+      initialLeftMode="line"
+      initialRightMode="line"
+      initialShowTotal={false}
+    />
   );
 };
 
