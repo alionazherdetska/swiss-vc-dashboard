@@ -79,7 +79,7 @@ const CantonAnalysisChart = ({ deals }) => {
   const dims = getChartDims(false, undefined, CHART_MARGIN);
   // Expanded chart target size inside modal: 700 x 350
   const expandedDimsBase = getChartDims(true, 450, EXPANDED_CHART_MARGIN);
-  const expandedDims = { ...expandedDimsBase, width: 950 };
+  const expandedDims = { ...expandedDimsBase };
 
   // Main chart components
   const VolumeChart = ({ data, mode, isExpanded = false }) => {
@@ -135,14 +135,14 @@ const CantonAnalysisChart = ({ deals }) => {
     const isVolumeChart = expandedChart === "volume";
     
     return (
-      <div className="flex gap-6 items-start">
-        {/* Legend on the LEFT */}
-        <div className="flex-shrink-0 pt-8">
+      <div className="grid grid-cols-5 gap-6 items-start">
+        {/* Legend on the LEFT - 1/5 */}
+        <div className="col-span-1 pt-8">
           <ChartLegend items={cantons} colorOf={colorOf} title="Cantons" />
         </div>
 
-        {/* Chart on the RIGHT */}
-        <div className="flex-1 min-w-0">
+        {/* Chart on the RIGHT - 4/5 */}
+        <div className="col-span-4 min-w-0">
           {isVolumeChart ? (
             <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
           ) : (

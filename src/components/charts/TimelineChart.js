@@ -20,17 +20,16 @@ const InnerArea = ({ data, dataKey, mode, width, height, margin, yAxisLabel }) =
   );
 };
 
-export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
+export const TimelineChart = ({ data, showVolume = false, title }) => {
   const chartKey = showVolume ? "volume" : "count";
   const defaultY = showVolume ? "Volume (CHF M)" : "Count";
-  const chartLabel = yLabel || defaultY;
   const headerTitle = title || (showVolume ? "Invested capital" : "Number of deals");
 
   const ChartComponent = ({ data: chartData, singleMode, onExpand }) => (
     <SingleChartLayout
       title={headerTitle}
       ChartComponent={(props) => (
-        <InnerArea {...props} data={chartData} dataKey={chartKey} yAxisLabel={chartLabel} />
+        <InnerArea {...props} data={chartData} dataKey={chartKey} />
       )}
       onExpand={() => onExpand && onExpand(showVolume ? "volume" : "count")}
     />
@@ -46,7 +45,7 @@ export const TimelineChart = ({ data, showVolume = false, title, yLabel }) => {
       data={data}
       ChartComponent={ChartComponent}
       ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => (
-        <InnerArea data={d} dataKey={chartKey} mode={mode} width={950} height={350} margin={{ top: 50, right: 50, left: 60, bottom: 60 }} yAxisLabel={chartLabel} isExpanded={true} />
+        <InnerArea data={d} dataKey={chartKey} mode={mode} width={950} height={350} margin={{ top: 50, right: 50, left: 60, bottom: 60 }} isExpanded={true} />
       )}
       isDualChart={false}
       supportsSingleMode={true}

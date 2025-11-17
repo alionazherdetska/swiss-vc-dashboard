@@ -8,9 +8,8 @@ import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE, STAGE_COLOR_MAP } fro
 import { sanitizeKey, getChartDims } from "../../lib/utils";
 import styles from "./Charts.module.css";
 
-const PhaseChart = ({ data, phases, isVolume, mode, width, height, margin, isExpanded = false, colorOf }) => {
+const PhaseChart = ({ data, phases, isVolume, mode, width, height, margin, isExpanded = false, colorOf, showDataPoints = true }) => {
   const dataKeySuffix = isVolume ? "__volume" : "__count";
-  const yLabel = isVolume ? "Investment Volume CHF (M)" : "Number of Deals";
 
   return (
     <div className={styles.chartArea}>
@@ -23,9 +22,9 @@ const PhaseChart = ({ data, phases, isVolume, mode, width, height, margin, isExp
           strokeWidth={2}
           gridColor={GRID_STROKE}
           axisColor={AXIS_STROKE}
-          yAxisLabel={yLabel}
           colorOf={colorOf}
           dataKeySuffix={dataKeySuffix}
+          showDataPoints={showDataPoints}
         />
       </ResponsiveD3Container>
     </div>
@@ -70,7 +69,7 @@ const PhaseAnalysisChart = ({ deals }) => {
 
   const dims = getChartDims(false);
   const expandedDimsBase = getChartDims(true, 450);
-  const expandedDims = { ...expandedDimsBase, width: 950 };
+  const expandedDims = { ...expandedDimsBase };
 
   const VolumeChart = ({ data, mode, isExpanded = false }) => {
     const currentDims = isExpanded
@@ -122,12 +121,14 @@ const PhaseAnalysisChart = ({ deals }) => {
     const isVolumeChart = expandedChart === "volume";
 
     return (
-      <div className="flex gap-6 items-start">
-        <div className="flex-shrink-0 pt-8">
+      <div className="grid grid-cols-5 gap-6 items-start">
+        {/* Legend on the LEFT - 1/5 */}
+        <div className="col-span-1 pt-8">
           <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
         </div>
 
-        <div className="flex-1 min-w-0">
+        {/* Chart on the RIGHT - 4/5 */}
+        <div className="col-span-4 min-w-0">
           {isVolumeChart ? (
             <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
           ) : (

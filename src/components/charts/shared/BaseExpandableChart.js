@@ -213,23 +213,12 @@ const BaseExpandableChart = ({
               showExportButton={false}
             />
 
-            {/* Changed layout here - flex instead of default stacking */}
-            <div className="flex gap-6 items-start">
-              {/* This is where your legend/labels should go - LEFT SIDE */}
-              <div className="flex-shrink-0 pt-8">
-                {/* Legend will be rendered by your chart component */}
-              </div>
-
-              {/* Chart container - RIGHT SIDE */}
-              <div className="flex-1 min-w-0">
                 {ExpandedChartComponent ? (
                   <ExpandedChartComponent {...expandedChartProps} />
                 ) : (
                   <ChartComponent {...expandedChartProps} />
                 )}
-              </div>
             </div>
-          </div>
         )}
       </ChartModal>
     </div>

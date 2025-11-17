@@ -20,6 +20,8 @@ const D3ComposedChart = ({
   colorOf,
   dataKeySuffix = "__volume",
   tooltipFormatter,
+  // Show visible data points on line charts
+  showDataPoints = false,
 }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
@@ -199,7 +201,7 @@ const D3ComposedChart = ({
             .attr("stroke-width", strokeWidth)
             .attr("d", line);
 
-          // Add data points for tooltip interaction
+          // Add data points for interaction; visible if `showDataPoints` is true
           g.selectAll(`.dot-${i}`)
             .data(lineData)
             .enter()
@@ -207,8 +209,10 @@ const D3ComposedChart = ({
             .attr("class", `dot-${i}`)
             .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
             .attr("cy", (d) => yScale(d[dataKey] || 0))
-            .attr("r", 0) // Invisible dots for hover interaction
+            .attr("r", showDataPoints ? 4 : 0)
             .attr("fill", color)
+            .attr("stroke", "none")
+            .attr("stroke-width", 0)
             .on("mouseover", function (event, d) {
               const value = d[dataKey] || 0;
               const formattedValue = tooltipFormatter
