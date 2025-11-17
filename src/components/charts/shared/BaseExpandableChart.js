@@ -13,7 +13,6 @@ const BaseExpandableChart = ({
   initialShowTotal = false,
   onExport,
   onDataProcess,
-  className = "space-y-6",
   chartProps = {},
   children,
 }) => {
@@ -54,6 +53,15 @@ const BaseExpandableChart = ({
       updateChartState({ modalShowTotal: show });
     },
     [updateChartState]
+  );
+
+  const handleExport = useCallback(
+    (format) => {
+      if (onExport) {
+        onExport(format, chartState.expanded);
+      }
+    },
+    [onExport, chartState.expanded]
   );
 
   const processedData = useMemo(
@@ -105,9 +113,7 @@ const BaseExpandableChart = ({
   }, [chartState.expanded]);
 
   return (
-    <div className={className}>
-      {/* Removed ChartControls from preview - controls only in modal */}
-
+    <div>
       <ChartComponent {...baseChartProps} />
 
       {children}
@@ -116,7 +122,7 @@ const BaseExpandableChart = ({
         isOpen={chartState.expanded !== null}
         onClose={handleModalClose}
         title={modalTitle}
-        onExport={onExport}
+        onExport={handleExport}
       >
         {chartState.expanded && (
           <div className="space-y-4">
@@ -131,11 +137,22 @@ const BaseExpandableChart = ({
               showExportButton={false}
             />
 
-            {ExpandedChartComponent ? (
-              <ExpandedChartComponent {...expandedChartProps} />
-            ) : (
-              <ChartComponent {...expandedChartProps} />
-            )}
+            {/* Changed layout here - flex instead of default stacking */}
+            <div className="flex gap-6 items-start">
+              {/* This is where your legend/labels should go - LEFT SIDE */}
+              <div className="flex-shrink-0 pt-8">
+                {/* Legend will be rendered by your chart component */}
+              </div>
+
+              {/* Chart container - RIGHT SIDE */}
+              <div className="flex-1 min-w-0">
+                {ExpandedChartComponent ? (
+                  <ExpandedChartComponent {...expandedChartProps} />
+                ) : (
+                  <ChartComponent {...expandedChartProps} />
+                )}
+              </div>
+            </div>
           </div>
         )}
       </ChartModal>

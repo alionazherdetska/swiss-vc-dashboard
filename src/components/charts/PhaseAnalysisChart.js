@@ -101,7 +101,6 @@ const PhaseAnalysisChart = ({ deals }) => {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-gray-50">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-gray-700">Chart Type:</span>
             <select
               value={modalMode}
               onChange={(e) => setModalMode(e.target.value)}
@@ -112,13 +111,24 @@ const PhaseAnalysisChart = ({ deals }) => {
             </select>
           </div>
         </div>
-        <ChartContent
-          chartType={chartType}
-          modeState={modalMode}
-          onModeChange={setModalMode}
-          isExpandedView={true}
-        />
-        <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
+        
+        {/* Legend on the LEFT, Chart on the RIGHT */}
+        <div className="flex gap-6 items-start">
+          {/* Legend on the LEFT */}
+          <div className="flex-shrink-0 pt-8">
+            <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
+          </div>
+
+          {/* Chart on the RIGHT */}
+          <div className="flex-1 min-w-0">
+            <ChartContent
+              chartType={chartType}
+              modeState={modalMode}
+              onModeChange={setModalMode}
+              isExpandedView={true}
+            />
+          </div>
+        </div>
       </div>
     );
   };

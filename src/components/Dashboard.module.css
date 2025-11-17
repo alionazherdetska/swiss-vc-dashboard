@@ -77,14 +77,6 @@
   color: #ffffff;
 }
 
-.card {
-  background: #ffffff;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
 .filtersWrap {
   display: flex;
   gap: 12px;

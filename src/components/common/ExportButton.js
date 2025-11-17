@@ -1,8 +1,9 @@
 const ExportButton = ({
-  title = "Export chart (print or save as PDF)",
+  title = "Export chart",
   onClick = () => window.print(),
   className = "",
   iconOnly = false,
+  showIcon = true,
   label,
 }) => {
   if (iconOnly) {
@@ -19,12 +20,12 @@ const ExportButton = ({
 
   return (
     <button
-      className={`h-10 px-2 flex items-center gap-2 text-base font-medium rounded-md bg-gray-100 text-gray-900 hover:bg-gray-200 border-none shadow-none transition-colors ${className}`}
+      className={`h-10 px-4 flex items-center gap-2 text-sm font-medium rounded-full bg-white text-gray-800 hover:bg-gray-50 border border-gray-300 transition-colors ${className}`}
       title={title}
       onClick={onClick}
     >
-      {label ? <span>{label}</span> : null}
-      <img src="/download.svg" alt="Download" className="h-5 w-5" />
+      {label && <span>{label}</span>}
+      {showIcon && <img src="/download.svg" alt="Download" className="h-4 w-4" />}
     </button>
   );
 };

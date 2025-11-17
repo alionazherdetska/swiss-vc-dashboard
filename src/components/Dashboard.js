@@ -158,7 +158,6 @@ const Dashboard = () => {
           <div className={styles.chartsArea}>
             {activeChart === "timeline" && (
               <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.timelineGrid || ""}`}>
-                <div className={styles.card}>
                   <ChartErrorBoundary chartName="Timeline Volume">
                     <TimelineChart
                       data={chartData.timeline}
@@ -167,8 +166,6 @@ const Dashboard = () => {
                       yLabel="Invested Capital CHF (M)"
                     />
                   </ChartErrorBoundary>
-                </div>
-                <div className={styles.card}>
                   <ChartErrorBoundary chartName="Timeline Count">
                     <TimelineChart
                       data={chartData.timeline}
@@ -178,7 +175,6 @@ const Dashboard = () => {
                     />
                   </ChartErrorBoundary>
                 </div>
-              </div>
             )}
 
             {activeChart === "quarterly" && (

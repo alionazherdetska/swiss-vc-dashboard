@@ -1,9 +1,7 @@
-import React from "react";
-
 const ChartLegend = ({ items = [], colorOf, title = "Legend" }) => {
   if (!items || !items.length) return null;
   return (
-    <div className="flex flex-wrap gap-4 justify-center items-center py-2">
+    <div className="flex flex-col flex-wrap gap-4 justify-center py-2">
       {title && (
         <span className="text-sm font-semibold text-gray-700 mr-4">{title}:</span>
       )}

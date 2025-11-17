@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   OFFICIAL_CANTONS,
   CANTON_COLOR_MAP,
@@ -83,7 +83,6 @@ const FilterPanel = ({
 
   return (
     <div className={styles.panelRoot}>
-      <div className={styles.panelCard}>
         {isOverviewTab ? (
           // Overview layout: Years + All checkboxes in one column + Message
           <div className={styles.filtersRowOverview}>
@@ -581,7 +580,7 @@ const FilterPanel = ({
             {/* Deal types filter removed intentionally */}
           </div>
         )}
-      </div>
+
     </div>
   );
 };

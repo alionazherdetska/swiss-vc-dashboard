@@ -39,12 +39,25 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport }) => {
             </div>
             <div className="flex items-center gap-3">
               {onExport && (
-                <ExportButton
-                  onClick={onExport}
-                  label="Download"
-                  className="!h-10 !px-5 !rounded-full !bg-white !border !border-gray-400 !text-gray-800 hover:!bg-gray-50"
-                  title="Download chart"
-                />
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Download</span>
+                  <ExportButton
+                    onClick={() => onExport('csv')}
+                    label="CSV"
+                    iconOnly={false}
+                    showIcon={true}
+                    className="!h-10 !px-4 !rounded-full !bg-white !border !border-gray-300 !text-gray-800 hover:!bg-gray-50"
+                    title="Download as CSV"
+                  />
+                  <ExportButton
+                    onClick={() => onExport('pdf')}
+                    label="PDF"
+                    iconOnly={false}
+                    showIcon={true}
+                    className="!h-10 !px-4 !rounded-full !bg-white !border !border-gray-300 !text-gray-800 hover:!bg-gray-50"
+                    title="Download as PDF"
+                  />
+                </div>
               )}
               <button onClick={onClose} className={styles.closeBtn} aria-label="Close modal">
                 <span className="mr-1">Close</span>

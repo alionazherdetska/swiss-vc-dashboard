@@ -130,18 +130,26 @@ const CantonAnalysisChart = ({ deals }) => {
     );
   };
 
-  // Expanded chart component
+  // Expanded chart component with legend on the left
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
     const isVolumeChart = expandedChart === "volume";
+    
     return (
-      <>
-        {isVolumeChart ? (
-          <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
-        ) : (
-          <CountChart data={data} mode={mode} isExpanded={isExpanded} />
-        )}
-        <ChartLegend items={cantons} colorOf={colorOf} title="Cantons" />
-      </>
+      <div className="flex gap-6 items-start">
+        {/* Legend on the LEFT */}
+        <div className="flex-shrink-0 pt-8">
+          <ChartLegend items={cantons} colorOf={colorOf} title="Cantons" />
+        </div>
+
+        {/* Chart on the RIGHT */}
+        <div className="flex-1 min-w-0">
+          {isVolumeChart ? (
+            <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
+          ) : (
+            <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+          )}
+        </div>
+      </div>
     );
   };
 

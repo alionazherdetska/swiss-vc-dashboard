@@ -61,9 +61,11 @@
   border: none;
   cursor: pointer;
 }
+
 .closeBtn:hover {
   background: #111827;
 }
+
 .closeBtn:focus {
   outline: 2px solid #374151;
   outline-offset: 2px;

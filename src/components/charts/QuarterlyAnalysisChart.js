@@ -4,7 +4,7 @@ import ChartLegend from "./shared/ChartLegend";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
-import { getChartDims, makeDistributedColorFn } from "../../lib/utils";
+import { getChartDims } from "../../lib/utils";
 import {
   CHART_MARGIN,
   EXPANDED_CHART_MARGIN,
@@ -25,6 +25,7 @@ const QuarterlyChart = ({
   colorOf,
   showTotal = false,
   selectedIndustries = [],
+  showDataPoints = true, // Added prop for data points
 }) => {
   const metricSuffix = isVolume ? "__volume" : "__count";
   const yAxisLabel = isVolume ? "Investment Volume CHF (M)" : "Number of Deals";
@@ -46,6 +47,7 @@ const QuarterlyChart = ({
       showTotal={showTotal}
       yAxisLabel={yAxisLabel}
       metricSuffix={metricSuffix}
+      showDataPoints={showDataPoints} // Pass to D3MultiSeriesChart
     />
   );
 };
@@ -110,6 +112,7 @@ const QuarterlyAnalysisChart = ({
         colorOf={colorOf}
         showTotal={false}
         selectedIndustries={selectedIndustries}
+        showDataPoints={true} // Enable data points
       />
     );
   };
@@ -135,46 +138,57 @@ const QuarterlyAnalysisChart = ({
         colorOf={colorOf}
         showTotal={false}
         selectedIndustries={selectedIndustries}
+        showDataPoints={true} // Enable data points
       />
     );
   };
 
-  // Expanded chart component
+  // Expanded chart component with legend on the left
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal }) => {
     const isVolumeChart = expandedChart === "volume";
+    
     return (
-      <>
-        {isVolumeChart ? (
-          <QuarterlyChart
-            data={data}
-            industries={industries}
-            mode={mode}
-            isExpanded={isExpanded}
-            isVolume={true}
-            width={expandedDims.width}
-            height={expandedDims.height}
-            margin={expandedDims.margin}
-            colorOf={colorOf}
-            showTotal={showTotal}
-            selectedIndustries={selectedIndustries}
-          />
-        ) : (
-          <QuarterlyChart
-            data={data}
-            industries={industries}
-            mode={mode}
-            isExpanded={isExpanded}
-            isVolume={false}
-            width={expandedDims.width}
-            height={expandedDims.height}
-            margin={expandedDims.margin}
-            colorOf={colorOf}
-            showTotal={showTotal}
-            selectedIndustries={selectedIndustries}
-          />
-        )}
-        <ChartLegend items={industries} colorOf={colorOf} title="Industries" />
-      </>
+      <div className="flex gap-6 items-start">
+        {/* Legend on the LEFT */}
+        <div className="flex-shrink-0 pt-8">
+          <ChartLegend items={industries} colorOf={colorOf} title="Industries" />
+        </div>
+
+        {/* Chart on the RIGHT */}
+        <div className="flex-1 min-w-0">
+          {isVolumeChart ? (
+            <QuarterlyChart
+              data={data}
+              industries={industries}
+              mode={mode}
+              isExpanded={isExpanded}
+              isVolume={true}
+              width={expandedDims.width}
+              height={expandedDims.height}
+              margin={expandedDims.margin}
+              colorOf={colorOf}
+              showTotal={showTotal}
+              selectedIndustries={selectedIndustries}
+              showDataPoints={true} // Enable data points
+            />
+          ) : (
+            <QuarterlyChart
+              data={data}
+              industries={industries}
+              mode={mode}
+              isExpanded={isExpanded}
+              isVolume={false}
+              width={expandedDims.width}
+              height={expandedDims.height}
+              margin={expandedDims.margin}
+              colorOf={colorOf}
+              showTotal={showTotal}
+              selectedIndustries={selectedIndustries}
+              showDataPoints={true} // Enable data points
+            />
+          )}
+        </div>
+      </div>
     );
   };
 
