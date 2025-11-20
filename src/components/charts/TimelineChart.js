@@ -3,6 +3,7 @@ import { SingleChartLayout } from "./shared/ChartLayouts";
 import D3AreaChart from "./shared/D3AreaChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ChartLegend from "./shared/ChartLegend";
+import { getChartDims } from "../../lib/utils";
 
 const InnerArea = ({ data, dataKey, mode, width, height, margin, yAxisLabel }) => {
   return (
@@ -44,26 +45,31 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       title={headerTitle}
       data={data}
       ChartComponent={ChartComponent}
-      ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => (
-        <div className="grid grid-cols-5 items-start h-[400px]">
+      ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => {
+        const expandedDims = getChartDims(true, 450);
+
+        return (
+          <div className="grid grid-cols-5 items-start">
           <div className="col-span-1 pt-8">
             <ChartLegend items={[headerTitle]} colorOf={() => "#E84A5F"} title={"Series"} />
           </div>
 
           <div className="col-span-4 min-w-0">
-            <ResponsiveD3Container height={350}>
+            <ResponsiveD3Container width="100%" height={expandedDims.height}>
               <InnerArea
                 data={d}
                 dataKey={chartKey}
                 mode={mode}
-                height={350}
+                height={expandedDims.height}
+                margin={{ top: 50, right: 50, left: 60, bottom: 60 }}
                 isExpanded={true}
                 yAxisLabel={defaultY}
               />
             </ResponsiveD3Container>
           </div>
         </div>
-      )}
+      );
+      }}
       isDualChart={false}
       supportsSingleMode={true}
       supportsTotal={false}

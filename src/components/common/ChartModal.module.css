@@ -16,7 +16,7 @@
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  height: 700px;
+  height: 600px;
   width: 1000px;
   max-width: calc(100% - 48px);
   padding: 38px 22px 68px 48px;
