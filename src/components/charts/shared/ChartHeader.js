@@ -1,4 +1,4 @@
-import { Maximize2 } from "lucide-react";
+import styles from "../Charts.module.css";
 
 // Unified chart header to better match modal design (title + optional subtitle + compact expand icon)
 const ChartHeader = ({
@@ -23,11 +23,12 @@ const ChartHeader = ({
           {showExpandButton && (
             <button
               onClick={onExpand}
-              className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-gray-400 bg-white hover:bg-gray-50 transition-colors"
+              className={styles.expandButton}
               title={expandTitle}
               aria-label={expandTitle}
             >
-              <Maximize2 className="h-4 w-4 text-gray-700" />
+              expand
+                <img src="/expand.svg" className={styles.expandIcon} alt="" />
             </button>
           )}
           {children}
