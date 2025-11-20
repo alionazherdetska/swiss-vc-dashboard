@@ -1,0 +1,4 @@
+build
+node_modules
+public/startup-data.json
+pnpm-lock.yaml

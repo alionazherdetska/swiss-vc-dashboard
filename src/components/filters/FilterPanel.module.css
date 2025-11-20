@@ -1,0 +1,322 @@
+.panelRoot {
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.inputGroup {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.inputSmall {
+  width: 5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: #111827; /* gray-900 */
+}
+
+.textMuted {
+  color: #6b7280; /* gray-600 */
+  font-size: 0.875rem;
+}
+
+.filtersRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.filtersRowOverview {
+  display: grid;
+  grid-template-columns: auto auto auto 1.5fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.overviewCheckboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.overviewResetColumn {
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2rem;
+}
+
+.overviewMessage {
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  align-self: start;
+}
+
+.overviewMessageTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.overviewMessageText {
+  font-size: 0.75rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.stackColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.sectionRoot {
+  min-width: 0;
+  padding-top: 8px;
+  padding-left: 15px;
+  padding-right: 9px;
+  border-radius: 5px;
+  background-color: #fefefe;
+  padding-bottom: 15px;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.sectionRootPlain {
+  min-width: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.sectionReset {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #e6e6e6;
+  background: #ffffff;
+  color: #374151;
+}
+
+.listScroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 15rem;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+/* Same layout as listScroll but without height cap or scrollbar */
+.listNoScroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 6px;
+}
+
+/* removed deprecated .filterCardWrap */
+
+.listScroll::-webkit-scrollbar-thumb {
+  background: #c7c7c7;
+  border-radius: 8px;
+}
+
+.listScroll::after {
+  content: "";
+}
+
+.itemLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border-radius: 0.375rem;
+}
+
+.itemLabelIndented {
+  padding-left: 1.75rem;
+}
+
+.itemLabelHover:hover {
+  background: #f9fafb;
+}
+
+.checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid #4a4a4a;
+  background: #fefefe;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox:checked {
+  background-color: #fefefe;
+}
+
+.checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background-color: #4a4a4a;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.checkboxAll {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid #4a4a4a;
+  background: #d8d8d8;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkboxAll::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 2px;
+  background-color: #4a4a4a;
+  transform: translate(-50%, -50%);
+}
+
+.checkboxAll:checked {
+  background-color: #fefefe;
+}
+
+.checkboxColored {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid var(--STU--Dark-grey, #4a4a4a);
+  background: #fefefe;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkboxColored:checked::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background-color: var(--checkbox-bg-color);
+}
+
+.checkboxColored:checked::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  background-color: #4a4a4a;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M20 6L9 17L4 12' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-position: center;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+.radio {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  flex-shrink: 0;
+  accent-color: #e53935;
+  cursor: pointer;
+}
+
+.colorIndicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.labelText {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.labelTextMuted {
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.labelTextBold {
+  font-size: 0.875rem;
+  color: #374151;
+  font-weight: 600;
+}

@@ -1,0 +1,124 @@
+.innerContainer {
+  border-radius: 20px;
+  /* Apply gradient across the entire panel to match the reference */
+  background: linear-gradient(180deg, #fffefe 0%, #d9d9d9 100%);
+}
+
+.tabPanel {
+  border: 0;
+  position: relative;
+  overflow: visible;
+}
+.tabBar {
+  display: flex;
+  background: #4a4a4a;
+  height: 48px;
+  align-items: stretch; /* make buttons fill bar height */
+  width: 100%;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  gap: 0;
+  overflow: hidden; /* clip inner edges so active pill blends */
+  flex-wrap: nowrap; /* keep all tabs on one line */
+  position: relative;
+  justify-content: space-between; /* spread content-fit tabs */
+  --tab-pad-x: 45px; /* default horizontal padding per tab */
+}
+
+.tabBarWrap {
+  background-color: #4a4a4a;
+}
+
+.tabButton {
+  flex: 0 0 auto; /* fit content only */
+  height: 48px;
+  padding-left: var(--tab-pad-x);
+  padding-right: var(--tab-pad-x);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap; /* prevent label wrapping */
+  position: relative;
+}
+
+/* Tabs are content-fit; spacing handled by space-between on container */
+
+.tabButton.active {
+  background: #fefefe;
+  color: #4a4a4a;
+  z-index: 1;
+  border-radius: 20px 20px 0 0;
+  font-family: "Roboto", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.tabButton.inactive {
+  background: #4a4a4a;
+  color: #fefefe;
+  font-family: "Roboto", sans-serif;
+  font-size: 22px;
+  border-radius: 20px 20px 0 0;
+  font-weight: 300;
+  text-decoration-line: underline;
+}
+
+.tabButton.inactive:hover {
+  color: #ffffff;
+}
+
+.filtersWrap {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.loadingContainer {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.spinner {
+  border-radius: 9999px;
+  height: 3rem;
+  width: 3rem;
+  border-bottom-width: 2px;
+  border-color: transparent;
+  border-bottom-color: #e53935;
+  margin: 0 auto 1rem auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.textMuted {
+  color: #6b7280;
+}
+
+.chartsArea {
+  padding: 20px;
+  /* Gradient is applied on the container now */
+}

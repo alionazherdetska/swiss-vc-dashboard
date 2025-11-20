@@ -1,284 +1,292 @@
-import React, { useState, useEffect, useMemo } from 'react';
-
-// Panels / components you still use
-import FilterPanel from './filters/FilterPanel.js';
-import { TimelineChart } from './charts/TimelineChart.js';
-
-import { processCompanies, processDeals, generateChartData } from '../lib/utils';
-import { SAMPLE_DATA } from '../lib/constants.js';
-import ExpandableQuarterlyAnalysisChart from './charts/sectorAnalysisChart/ExpandableQuarterlyAnalysisChart.js';
-import ExpandablePhaseAnalysisChart from './charts/phaseAnalysisChart/ExpandablePhaseAnalysisChart.js';
-import ExpandableCantonAnalysisChart from './charts/sectorAnalysisChart/ExpandableCantonAnalysisChart.js';
-import ExpandableGenderAnalysisChart from './charts/sectorAnalysisChart/ExpandableGenderAnalysisChart.js';
-import ExpandableExitsAnalysisChart from './charts/sectorAnalysisChart/ExpandableExitsAnalysisChart.js';
+import { useState, useEffect, useMemo } from "react";
+import FilterPanel from "./filters/FilterPanel.js";
+import { TimelineChart } from "./charts/TimelineChart.js";
+import { processCompanies, processDeals, generateChartData } from "../lib/utils";
+import ChartErrorBoundary from "./charts/shared/ChartErrorBoundary.js";
+import QuarterlyAnalysisChart from "./charts/QuarterlyAnalysisChart.js";
+import PhaseAnalysisChart from "./charts/PhaseAnalysisChart.js";
+import CantonAnalysisChart from "./charts/CantonAnalysisChart.js";
+import GenderAnalysisChart from "./charts/GenderAnalysisChart.js";
+import styles from "./Dashboard.module.css";
 
 const Dashboard = () => {
-	// Companies only for mapping; UI is deals-only
-	const [deals, setDeals] = useState([]);
-	const [loading, setLoading] = useState(true);
-	const [exits, setExits] = useState([]);
+  // Companies only for mapping; UI is deals-only
+  const [deals, setDeals] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Filters: keep `yearRange` global across tabs, other filters scoped per-chart
+  const [globalFilters, setGlobalFilters] = useState({
+    yearRange: [2012, 2025],
+  });
 
-	// Filters
-	const [filters, setFilters] = useState({
-		industries: [],
-		ceoGenders: [], // Now used for deals filtering
-		cantons: [],
-		yearRange: [2012, 2025],
-		dealTypes: [],
-		phases: [],
-	});
+  const defaultChartFilters = {
+    industries: [],
+    ceoGenders: [],
+    cantons: [],
+    phases: [],
+  };
 
-	const [activeChart, setActiveChart] = useState('timeline'); // default open
-	const chartTabs = [
-		{ key: 'timeline', label: 'Overview' },
-		{ key: 'quarterly', label: 'Sectors' },
-		{ key: 'phase', label: 'Stages' },
-		{ key: 'canton', label: 'Canton' },
-		{ key: 'ceoGender', label: 'Gender' },
-		{ key: 'exits', label: 'Exits' },
-	];
+  const [chartFilters, setChartFilters] = useState({
+    timeline: { ...defaultChartFilters },
+    quarterly: { ...defaultChartFilters },
+    phase: { ...defaultChartFilters },
+    canton: { ...defaultChartFilters },
+    ceoGender: { ...defaultChartFilters },
+  });
 
-	// Load & process data (companies only for mapping)
-	useEffect(() => {
-		const loadData = async () => {
-			try {
-				const jsonData = window.startupData || SAMPLE_DATA;
+  const [activeChart, setActiveChart] = useState("timeline"); // default open
+  const chartTabs = [
+    { key: "timeline", label: "Total Investments/Deals" },
+    { key: "quarterly", label: "Sectors" },
+    { key: "phase", label: "Stages" },
+    { key: "canton", label: "Canton" },
+    { key: "ceoGender", label: "Gender" },
+  ];
 
-				let processedCompanies = [];
-				let processedDeals = [];
+  // Load & process data (from window.startupData prepared in App)
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const jsonData = window.startupData || {};
+        let processedCompanies = [];
+        let processedDeals = [];
 
-				if (jsonData.Companies) {
-					processedCompanies = processCompanies(jsonData.Companies);
-				}
+        if (jsonData.Companies) {
+          processedCompanies = processCompanies(jsonData.Companies);
+        }
 
-				if (jsonData.Deals) {
-					processedDeals = processDeals(jsonData.Deals, processedCompanies);
-					setDeals(processedDeals);
-				}
+        if (jsonData.Deals) {
+          processedDeals = processDeals(jsonData.Deals, processedCompanies);
+          setDeals(processedDeals);
+        }
+      } catch (e) {
+        // swallow and proceed to hide loader
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
-				if (jsonData.Exits) {
-					const processedExits = jsonData.Exits.map((e) => ({
-						...e, // Pass through all fields
-						Year: Number(e.Year) || null,
-						VolumeMChf: Number(
-							e['Amount for publication (CHF m)'] ?? 
-							e['amount (CHF m) public and confidential - nur zur Gesamtauswertung (nicht f\u00fcr Publikation)'] ?? 
-							e.ProceedsMChf ?? 
-							e.ExitValueMChf ?? 
-							0
-						),
-					}));
-					console.log('Processed exits:', processedExits); // Debug log
-					setExits(processedExits);
-				}
+  // Removed dynamic width measurement logic; CSS handles layout
 
-			} catch {
-				setLoading(false);
-			} finally {
-				setLoading(false);       // always clear loading, success or error
-			}
-		};
+  // Filter options: deals-only, include phases, years, industries, cantons, CEO genders
+  const filterOptions = useMemo(() => {
+    if (!deals.length) {
+      return {
+        phases: [],
+        dealYears: [],
+        industries: [],
+        cantons: [],
+        ceoGenders: [],
+      };
+    }
+    return {
+      phases: [...new Set(deals.map((d) => d.Phase).filter(Boolean))].sort(),
+      dealYears: [...new Set(deals.map((d) => d.Year).filter(Boolean))].sort(),
+      industries: [...new Set(deals.map((d) => d.Industry).filter(Boolean))].sort(),
+      cantons: [...new Set(deals.map((d) => d.Canton).filter(Boolean))].sort(),
+      ceoGenders: [...new Set(deals.map((d) => d["Gender CEO"]).filter(Boolean))].sort(),
+    };
+  }, [deals]);
 
-		loadData();
-	}, []);
+  // Base filtered deals apply only the global yearRange
+  const baseFilteredDeals = useMemo(() => {
+    const yr = globalFilters.yearRange;
+    return deals.filter((item) => {
+      if (!item.Year) return false;
+      if (item.Year < yr[0] || item.Year > yr[1]) return false;
+      return true;
+    });
+  }, [deals, globalFilters.yearRange]);
 
-	// Filter options: deals-only, now including CEO genders
-	const filterOptions = useMemo(() => {
-		if (!deals.length) {
-			return { dealTypes: [], phases: [], dealYears: [], industries: [], ceoGenders: [] };
-		}
-		return {
-			dealTypes: [...new Set(deals.map((d) => d.Type).filter(Boolean))].sort(),
-			phases: [...new Set(deals.map((d) => d.Phase).filter(Boolean))].sort(),
-			dealYears: [...new Set(deals.map((d) => d.Year).filter(Boolean))].sort(),
-			industries: [
-				...new Set(deals.map((d) => d.Industry).filter(Boolean)),
-			].sort(),
-			ceoGenders: [...new Set(deals.map((d) => d['Gender CEO']).filter(Boolean))].sort(),
-		};
-	}, [deals]);
+  // Helper to filter by a chart's local filters on top of baseFilteredDeals
+  const applyChartFilters = (dataset, localFilters) => {
+    if (!localFilters) return dataset;
+    return dataset.filter((item) => {
+      if (localFilters.industries?.length && !localFilters.industries.includes(item.Industry))
+        return false;
+      if (localFilters.phases?.length && !localFilters.phases.includes(item.Phase)) return false;
+      if (localFilters.cantons?.length && !localFilters.cantons.includes(item.Canton)) return false;
+      if (
+        localFilters.ceoGenders?.length &&
+        !localFilters.ceoGenders.includes(item["Gender CEO"])
+      )
+        return false;
+      return true;
+    });
+  };
 
-	//exits timeline (group by year)
-	const exitsTimeline = useMemo(() => {
-		if (!exits.length) return [];
+  // Chart-specific filtered datasets
+  const timelineDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.timeline),
+    [baseFilteredDeals, chartFilters.timeline]
+  );
 
-		const byYear = new Map();
-		for (const e of exits) {
-			if (!e.Year) continue;
-			const y = e.Year;
-			const prev = byYear.get(y) || { year: y, count: 0, volume: 0 };
-			prev.count += 1;
-			// Use your normalized numeric field for exits volume:
-			prev.volume += Number(e.VolumeMChf || 0);
-			byYear.set(y, prev);
-		}
-		return [...byYear.values()].sort((a, b) => a.year - b.year);
-	}, [exits]);
+  const quarterlyDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.quarterly),
+    [baseFilteredDeals, chartFilters.quarterly]
+  );
 
-	// Apply filters (deals only, now including CEO gender filter)
-	const filteredDeals = useMemo(() => {
-		return deals.filter((item) => {
-			if (
-				filters.industries.length &&
-				!filters.industries.includes(item.Industry)
-			)
-				return false;
-			if (filters.dealTypes.length && !filters.dealTypes.includes(item.Type))
-				return false;
-			if (filters.phases.length && !filters.phases.includes(item.Phase))
-				return false;
-			if (filters.cantons.length && !filters.cantons.includes(item.Canton))
-				return false;
-			if (
-				filters.ceoGenders.length && 
-				!filters.ceoGenders.includes(item['Gender CEO'])
-			)
-				return false;
-			if (
-				item.Year &&
-				(item.Year < filters.yearRange[0] || item.Year > filters.yearRange[1])
-			)
-				return false;
-			return true;
-		});
-	}, [deals, filters]);
+  const phaseDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.phase),
+    [baseFilteredDeals, chartFilters.phase]
+  );
 
-	// Chart data (deals-only)
-	const chartData = useMemo(() => {
-		return generateChartData('deals', [], filteredDeals);
-	}, [filteredDeals]);
+  const cantonDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.canton),
+    [baseFilteredDeals, chartFilters.canton]
+  );
 
-	// Filter helpers
-	const updateFilter = (key, value) =>
-		setFilters((prev) => ({ ...prev, [key]: value }));
-	const toggleArrayFilter = (key, value) =>
-		setFilters((prev) => ({
-			...prev,
-			[key]: prev[key].includes(value)
-				? prev[key].filter((item) => item !== value)
-				: [...prev[key], value],
-		}));
-	const resetFilters = () =>
-		setFilters({
-			industries: [],
-			cantons: [],
-			ceoGenders: [],
-			searchQuery: '',
-			yearRange: [2012, 2025],
-			dealTypes: [],
-			phases: [],
-		});
+  const genderDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.ceoGender),
+    [baseFilteredDeals, chartFilters.ceoGender]
+  );
 
-	if (loading) {
-		return (
-			<div className='min-h-screen flex items-center justify-center bg-gray-50'>
-				<div className='text-center'>
-					<div className='animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4' />
-					<p className='text-gray-600'>
-						Loading Swiss startup ecosystem data...
-					</p>
-				</div>
-			</div>
-		);
-	}
+  // Chart data (deals-only) for timeline
+  const chartData = useMemo(() => {
+    return generateChartData("deals", [], timelineDeals);
+  }, [timelineDeals]);
 
-	return (
-		<div className='min-h-screen bg-gray-50'>
+  // Filter helpers: yearRange is global; other filters are chart-scoped
+  const updateFilter = (key, value) => {
+    if (key === "yearRange") {
+      setGlobalFilters((prev) => ({ ...prev, yearRange: value }));
+      return;
+    }
+    setChartFilters((prev) => ({
+      ...prev,
+      [activeChart]: { ...(prev[activeChart] || {}), [key]: value },
+    }));
+  };
 
-				<div className='grid grid-cols-1 lg:grid-cols-5 gap-2'>
-					{/* Filters Panel */}
-					<div className='lg:col-span-1'>
-						<FilterPanel
-							filters={filters}
-							filterOptions={filterOptions}
-							activeTab='deals'
-							updateFilter={updateFilter}
-							toggleArrayFilter={toggleArrayFilter}
-							resetFilters={resetFilters}
-						/>
-					</div>
+  const toggleArrayFilter = (key, value) => {
+    setChartFilters((prev) => {
+      const arr = prev[activeChart]?.[key] || [];
+      const next = arr.includes(value) ? arr.filter((i) => i !== value) : [...arr, value];
+      return { ...prev, [activeChart]: { ...(prev[activeChart] || {}), [key]: next } };
+    });
+  };
 
-					{/* Charts Panel with tab-like chart selector */}
-					<div className='lg:col-span-4'>
-						<div className='flex flex-col gap-4 rounded-lg shadow-sm p-6 border bg-white border-gray-200'>
-							{/* Tab bar */}
-							<div className='flex space-x-2 p-1 rounded-lg bg-gray-100'>
-								{chartTabs.map(tab => (
-									<button
-										key={tab.key}
-										onClick={() => setActiveChart(tab.key)}
-										className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
-											activeChart === tab.key
-												? 'bg-white text-red-600 shadow-sm border border-red-200'
-												: 'text-gray-600 hover:text-gray-800'
-										}`}
-										title={tab.label}
-									>
-										{tab.label}
-									</button>
-								))}
-							</div>
+  const resetFilters = () => {
+    setChartFilters((prev) => ({ ...prev, [activeChart]: { ...defaultChartFilters } }));
+  };
 
-							{/* Active chart rendered by tab selection */}
-							<div className='border rounded-lg p-4 border-gray-200 bg-gray-50'>
-								{activeChart === 'timeline' && (
-									<div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={true}
-											title='Invested Capital by Year'
-											yLabel='Invested Capital CHF (M)'
-										/>
-										<TimelineChart
-											data={chartData.timeline}
-											showVolume={false}
-											title='Number of Deals by Year'
-											yLabel='Number of Deals'
-										/>
-									</div>
-								)}
-								{activeChart === 'quarterly' && (
-									<ExpandableQuarterlyAnalysisChart
-										deals={filteredDeals}
-										selectedIndustryCount={filters.industries.length}
-										totalIndustryCount={filterOptions.industries.length}
-									/>
-								)}
-								{activeChart === 'phase' && (
-										<ExpandablePhaseAnalysisChart
-											deals={filteredDeals}
-											selectedPhaseCount={filters.phases.length}
-											totalPhaseCount={filterOptions.phases.length}
-										/>
-								)}
-								{activeChart === 'canton' && (
-										<ExpandableCantonAnalysisChart
-											deals={filteredDeals}
-											selectedCantonCount={filters.cantons.length}
-											totalCantonCount={filterOptions.industries.length}
-										/>
-								)}
-								{activeChart === 'ceoGender' && (
-										<ExpandableGenderAnalysisChart
-											deals={filteredDeals}
-											selectedGenderCount={filters.ceoGenders.length}
-											totalGenderCount={filterOptions.ceoGenders.length}
-										/>
-								)}
-								{activeChart === 'exits' && (
-										<ExpandableExitsAnalysisChart
-											exits={exits}
-											selectedYearCount={exitsTimeline.length}
-											totalYearCount={exitsTimeline.length}
-										/>
-								)}
-							</div>
-						</div>
-					</div>
-				</div>
-		</div>
-	);
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <div className={styles.textCenter}>
+          <div className={styles.spinner} />
+          <p className={styles.textMuted}>Loading Swiss startup ecosystem data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`grid grid-cols-1 ${styles.dashboardContainer}`}>
+      <div className="inner-panel">
+        {/* Charts Panel with tab-like chart selector */}
+        <section className={styles.tabPanel + " " + styles.innerContainer}>
+          {/* Tab bar */}
+          <div className={styles.tabBarWrap}>
+            <div className={styles.tabBar}>
+              {chartTabs.map((tab) => {
+                const isActive = activeChart === tab.key;
+                const btnClass = `${styles.tabButton} ${isActive ? styles.active : styles.inactive}`;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveChart(tab.key)}
+                    className={btnClass}
+                    title={tab.label}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active chart rendered by tab selection */}
+          <div className={styles.chartsArea}>
+            {activeChart === "timeline" && (
+              <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.timelineGrid || ""}`}>
+                  <ChartErrorBoundary chartName="Timeline Volume">
+                    <TimelineChart
+                      data={chartData.timeline}
+                      showVolume={true}
+                      title="Invested Capital by Year"
+                      yLabel="Invested Capital CHF (M)"
+                    />
+                  </ChartErrorBoundary>
+                  <ChartErrorBoundary chartName="Timeline Count">
+                    <TimelineChart
+                      data={chartData.timeline}
+                      showVolume={false}
+                      title="Number of Deals by Year"
+                      yLabel="Number of Deals"
+                    />
+                  </ChartErrorBoundary>
+                </div>
+            )}
+
+            {activeChart === "quarterly" && (
+              <ChartErrorBoundary chartName="Quarterly Analysis">
+                <QuarterlyAnalysisChart
+                  deals={quarterlyDeals}
+                  selectedIndustryCount={chartFilters.quarterly.industries.length}
+                  totalIndustryCount={filterOptions.industries.length}
+                />
+              </ChartErrorBoundary>
+            )}
+
+            {activeChart === "phase" && (
+              <ChartErrorBoundary chartName="Phase Analysis">
+                <PhaseAnalysisChart
+                  deals={phaseDeals}
+                  selectedPhaseCount={chartFilters.phase.phases.length}
+                  totalPhaseCount={filterOptions.phases.length}
+                />
+              </ChartErrorBoundary>
+            )}
+
+            {activeChart === "canton" && (
+              <ChartErrorBoundary chartName="Canton Analysis">
+                <CantonAnalysisChart
+                  deals={cantonDeals}
+                  selectedCantonCount={chartFilters.canton.cantons.length}
+                  totalCantonCount={filterOptions.cantons.length}
+                />
+              </ChartErrorBoundary>
+            )}
+
+            {activeChart === "ceoGender" && (
+              <ChartErrorBoundary chartName="Gender Analysis">
+                <GenderAnalysisChart
+                  deals={genderDeals}
+                  selectedGenderCount={chartFilters.ceoGender.ceoGenders.length}
+                  totalGenderCount={filterOptions.ceoGenders.length}
+                />
+              </ChartErrorBoundary>
+            )}
+
+            <div className={styles.filtersWrap}>
+              <FilterPanel
+                filters={{ ...(chartFilters[activeChart] || {}), yearRange: globalFilters.yearRange }}
+                filterOptions={filterOptions}
+                activeTab="deals"
+                activeChart={activeChart}
+                updateFilter={updateFilter}
+                toggleArrayFilter={toggleArrayFilter}
+                resetFilters={resetFilters}
+              />
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;

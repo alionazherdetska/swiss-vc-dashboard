@@ -1,80 +1,32 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Filter, ChevronDown } from "lucide-react";
-import { OFFICIAL_CANTONS } from "../../lib/constants";
+import { useMemo } from "react";
+import {
+  OFFICIAL_CANTONS,
+  CANTON_COLOR_MAP,
+  INDUSTRY_COLOR_MAP,
+  CEO_GENDER_COLOR_MAP,
+  STAGE_COLOR_MAP,
+} from "../../lib/constants";
+import styles from "./FilterPanel.module.css";
 
-/* ---------- Collapsible Section ---------- */
-const Section = ({ id, title, countBadge, defaultOpen = false, children }) => {
-  const STORAGE_KEY = `filters.section.${id}.open`;
-  const prefersReduced =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-  const [open, setOpen] = useState(() => {
-    const saved =
-      typeof window !== "undefined"
-        ? window.localStorage.getItem(STORAGE_KEY)
-        : null;
-    return saved != null ? saved === "1" : defaultOpen;
-  });
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, open ? "1" : "0");
-    } catch {}
-  }, [open, STORAGE_KEY]);
-
-  const contentRef = useRef(null);
-  const [maxH, setMaxH] = useState("0px");
-
-  useEffect(() => {
-    if (!contentRef.current) return;
-    const h = open ? `${contentRef.current.scrollHeight}px` : "0px";
-    setMaxH(h);
-  }, [open, children]);
-
-  return (
-    <div className="mb-2 border border-gray-200 rounded-md overflow-hidden bg-white">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-2 py-1.5 text-left"
-        aria-expanded={open}
-        aria-controls={`${id}-content`}
-      >
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-gray-800">{title}</span>
-          {countBadge != null && (
-            <span className="text-xs px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-600">
-              {countBadge}
-            </span>
-          )}
-        </div>
-        <ChevronDown
-          className={`h-4 w-4 text-gray-500 transition-transform ${open ? "rotate-180" : ""}`}
-          aria-hidden="true"
-        />
-      </button>
-
-      <div
-        id={`${id}-content`}
-        ref={contentRef}
-        style={{
-          maxHeight: maxH,
-          transition: prefersReduced ? "none" : "max-height 180ms ease",
-        }}
-        className="overflow-hidden border-t border-gray-100 bg-white"
-      >
-        <div className="p-2">{children}</div>
-      </div>
+const Section = ({ title, children, minHeight, onReset, plain }) => (
+  <div className={plain ? styles.sectionRootPlain : styles.sectionRoot}>
+    <div className={styles.sectionHeader}>
+      <div className={styles.sectionTitle}>{title}</div>
+      {onReset ? (
+        <button type="button" className={styles.sectionReset} onClick={onReset}>
+          Reset
+        </button>
+      ) : null}
     </div>
-  );
-};
+    <div style={{ minHeight: minHeight ? `${minHeight}px` : "auto" }}>{children}</div>
+  </div>
+);
 
-/* ---------- Main FilterPanel ---------- */
 const FilterPanel = ({
   filters,
   filterOptions,
   activeTab,
+  activeChart,
   updateFilter,
   toggleArrayFilter,
   resetFilters,
@@ -82,284 +34,553 @@ const FilterPanel = ({
   const companiesTab = activeTab === "companies";
   const dealsTab = !companiesTab;
 
+  // Allowed canton subset (no scroll, only these shown)
+  // Use canton codes to avoid accent / naming mismatches (ZH, ZG, VD, GE, BS, BE)
+  const ALLOWED_CANTON_CODES = useMemo(() => ["ZH", "ZG", "VD", "GE", "BS", "BE"], []);
+  const allowedCantons = useMemo(
+    () => OFFICIAL_CANTONS.filter((c) => ALLOWED_CANTON_CODES.includes(c.code)),
+    [ALLOWED_CANTON_CODES]
+  );
+
+  // Determine which filter should be primary (checkboxes with colors)
+  // On Overview tab (timeline), all filters should show as checkboxes with "All" labels
+  const isOverviewTab = activeChart === "timeline";
+  const isCantonPrimary = activeChart === "canton";
+  const isIndustryPrimary = activeChart === "quarterly";
+  const isPhasePrimary = activeChart === "phase";
+  const isGenderPrimary = activeChart === "ceoGender";
+
   const ceoTotal = filterOptions.ceoGenders?.length || 0;
   const industriesTotal = filterOptions.industries?.length || 0;
-  const dealTypesTotal = filterOptions.dealTypes?.length || 0;
   const phasesTotal = filterOptions.phases?.length || 0;
 
-  const selectAllLabel = (selected, total) =>
-    selected === total && total > 0 ? "Deselect All" : "Select All";
+  // Calculate heights for each filter section
+  const filterHeights = useMemo(() => {
+    const heights = [];
 
-  const sectionIds = useMemo(() => {
-    const base = ["year", "cantons", "ceo", "industries"]; // Always include CEO gender
-    if (dealsTab) base.push("dealtypes", "phases");
-    return base;
-  }, [dealsTab]);
+  // Cantons: header + items (subset, no scroll)
+  const cantonsHeight = 40 + (allowedCantons.length + 1) * 28;
+    heights.push(cantonsHeight);
 
-  const [remountKey, setRemountKey] = useState(0);
-  const setAllSections = (open) => {
-    try {
-      sectionIds.forEach((id) =>
-        window.localStorage.setItem(
-          `filters.section.${id}.open`,
-          open ? "1" : "0"
-        )
-      );
-      setRemountKey((k) => k + 1);
-    } catch {}
-  };
+    // CEO Gender: header + items
+    const ceoHeight = 40 + (ceoTotal + 1) * 28;
+    heights.push(ceoHeight);
+
+    // Industries: header + items (capped at max-h-60 = 240px)
+    const industriesHeight = Math.min(40 + (industriesTotal + 1) * 28, 280);
+    heights.push(industriesHeight);
+
+    if (dealsTab) {
+      // Phases: header + items (capped at max-h-60 = 240px)
+      const phasesHeight = Math.min(40 + (phasesTotal + 1) * 28, 280);
+      heights.push(phasesHeight);
+    }
+
+    // Sort and get second longest
+    const sorted = [...heights].sort((a, b) => b - a);
+    return sorted[1] || sorted[0] || 100;
+  }, [ceoTotal, industriesTotal, phasesTotal, dealsTab, allowedCantons.length]);
 
   return (
-    <div
-      key={remountKey}
-      className="rounded-lg shadow-sm px-4 py-6 border bg-white border-gray-200 text-xs sticky top-4 z-20"
-    >
-      <div className="flex justify-between items-center mb-2">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-700" />
-          <h2 className="text-sm font-semibold text-gray-900">Filters</h2>
-        </div>
-        <button
-          onClick={resetFilters}
-          className="px-2.5 py-1 text-xs font-medium rounded-md border border-red-300 bg-red-50 text-red-700 hover:bg-red-100"
-        >
-          Reset
-        </button>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 mb-8">
-        <button
-          onClick={() => setAllSections(true)}
-          className="px-1.5 py-1 text-xs font-medium rounded-md border border-green-300 bg-green-50 text-green-800 hover:bg-green-100"
-        >
-          Expand all
-        </button>
-        <button
-          onClick={() => setAllSections(false)}
-          className="px-1.5 py-1 text-xs font-medium rounded-md border border-blue-300 bg-blue-50 text-blue-800 hover:bg-blue-100"
-        >
-          Collapse all
-        </button>
-      </div>
-
-      {/* Year Range */}
-      <Section
-        id="year"
-        title="Year Range"
-        defaultOpen
-      >
-        <div className="flex items-center gap-1 ">
-          <input
-            type="number"
-            min="2012"
-            max={filters.yearRange[1] - 1}
-            value={filters.yearRange[0]}
-            onChange={(e) =>
-              updateFilter("yearRange", [
-                Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
-                filters.yearRange[1],
-              ])
-            }
-            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
-          />
-          <span className="text-gray-500">to</span>
-          <input
-            type="number"
-            min={filters.yearRange[0] + 1}
-            max="2025"
-            value={filters.yearRange[1]}
-            onChange={(e) =>
-              updateFilter("yearRange", [
-                filters.yearRange[0],
-                Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
-              ])
-            }
-            className="w-16 px-2 py-1 text-xs border border-gray-300 rounded bg-white text-gray-900 leading-[1.5]"
-          />
-
-        </div>
-      </Section>
-
-      {/* Cantons */}
-      <Section id="cantons" title="Cantons">
-        <div className="space-y-1 max-h-40 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
-          <label className="flex items-center gap-1 px-1 py-1.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.cantons.length === OFFICIAL_CANTONS.length}
-              onChange={() =>
-                updateFilter(
-                  "cantons",
-                  filters.cantons.length === OFFICIAL_CANTONS.length
-                    ? []
-                    : OFFICIAL_CANTONS.map((c) => c.name)
-                )
-              }
-              className="w-3.5 h-3.5 text-red-600"
-            />
-            <span className="text-xs text-gray-700">
-              {selectAllLabel(filters.cantons.length, OFFICIAL_CANTONS.length)}
-            </span>
-          </label>
-          {OFFICIAL_CANTONS.map((canton) => (
-            <label key={canton.code} className="flex items-center gap-1 px-1.5 py-1.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.cantons.includes(canton.name)}
-                onChange={() => toggleArrayFilter("cantons", canton.name)}
-                className="w-3.5 h-3.5 text-red-600"
-              />
-              <span className="text-xs text-gray-700">
-                {canton.name} ({canton.code})
-              </span>
-            </label>
-          ))}
-        </div>
-      </Section>
-
-      {/* CEO Gender - Now shown for both companies and deals */}
-      <Section id="ceo" title="CEO Gender">
-        <div className="space-y-1 p-1 border rounded border-gray-200">
-          <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={(filters.ceoGenders?.length || 0) === ceoTotal}
-              onChange={() =>
-                updateFilter(
-                  "ceoGenders",
-                  (filters.ceoGenders?.length || 0) === ceoTotal
-                    ? []
-                    : filterOptions.ceoGenders
-                )
-              }
-              className="w-3.5 h-3.5 text-red-600"
-            />
-            <span className="text-xs text-gray-700">
-              {selectAllLabel(filters.ceoGenders?.length || 0, ceoTotal)}
-            </span>
-          </label>
-          {filterOptions.ceoGenders?.map((gender) => (
-            <label key={gender} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.ceoGenders?.includes(gender) || false}
-                onChange={() => toggleArrayFilter("ceoGenders", gender)}
-                className="w-3.5 h-3.5 text-red-600"
-              />
-              <span className="text-xs text-gray-700">{gender}</span>
-            </label>
-          ))}
-        </div>
-      </Section>
-
-      {/* Industries */}
-      <Section id="industries" title="Industries" defaultOpen>
-        <div className="space-y-1 max-h-40 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
-          <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.industries.length === industriesTotal}
-              onChange={() =>
-                updateFilter(
-                  "industries",
-                  filters.industries.length === industriesTotal
-                    ? []
-                    : filterOptions.industries
-                )
-              }
-              className="w-3.5 h-3.5 text-red-600"
-            />
-            <span className="text-xs text-gray-700">
-              {selectAllLabel(filters.industries.length, industriesTotal)}
-            </span>
-          </label>
-          {filterOptions.industries?.map((industry) => (
-            <label key={industry} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.industries.includes(industry)}
-                onChange={() => toggleArrayFilter("industries", industry)}
-                className="w-3.5 h-3.5 text-red-600"
-              />
-              <span className="text-xs text-gray-700">{industry}</span>
-            </label>
-          ))}
-        </div>
-      </Section>
-
-      {/* Deal Types */}
-      {dealsTab && (
-        <Section id="dealtypes" title="Deal Types">
-          <div className="space-y-1 max-h-36 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
-            <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.dealTypes.length === dealTypesTotal}
-                onChange={() =>
-                  updateFilter(
-                    "dealTypes",
-                    filters.dealTypes.length === dealTypesTotal
-                      ? []
-                      : filterOptions.dealTypes
-                  )
-                }
-                className="w-3.5 h-3.5 text-red-600"
-              />
-              <span className="text-xs text-gray-700">
-                {selectAllLabel(filters.dealTypes.length, dealTypesTotal)}
-              </span>
-            </label>
-            {filterOptions.dealTypes?.map((type) => (
-              <label key={type} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+    <div className={styles.panelRoot}>
+        {isOverviewTab ? (
+          // Overview layout: Years + All checkboxes in one column + Message
+          <div className={styles.filtersRowOverview}>
+            {/* Column 1: Years */}
+            {/* Removed onReset to hide reset button for Years */}
+            <Section title="Years" plain>
+              <div className={styles.inputGroup}>
                 <input
-                  type="checkbox"
-                  checked={filters.dealTypes.includes(type)}
-                  onChange={() => toggleArrayFilter("dealTypes", type)}
-                  className="w-3.5 h-3.5 text-red-600"
+                  type="number"
+                  min="2012"
+                  max={filters.yearRange[1] - 1}
+                  value={filters.yearRange[0]}
+                  onChange={(e) =>
+                    updateFilter("yearRange", [
+                      Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
+                      filters.yearRange[1],
+                    ])
+                  }
+                  className={styles.inputSmall}
                 />
-                <span className="text-xs text-gray-700">{type}</span>
-              </label>
-            ))}
-          </div>
-        </Section>
-      )}
-
-      {/* Funding Phases */}
-      {dealsTab && (
-        <Section id="phases" title="Funding Phases">
-          <div className="space-y-1 max-h-36 overflow-y-auto p-1 border rounded border-gray-200 scrollbar-thin">
-            <label className="flex items-center gap-1 px-1 py-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.phases.length === phasesTotal}
-                onChange={() =>
-                  updateFilter(
-                    "phases",
-                    filters.phases.length === phasesTotal
-                      ? []
-                      : filterOptions.phases
-                  )
-                }
-                className="w-3.5 h-3.5 text-red-600"
-              />
-              <span className="text-xs text-gray-700">
-                {selectAllLabel(filters.phases.length, phasesTotal)}
-              </span>
-            </label>
-            {filterOptions.phases?.map((phase) => (
-              <label key={phase} className="flex items-center gap-1 px-1 py-1 cursor-pointer">
+                <span className={styles.textMuted}>to</span>
                 <input
-                  type="checkbox"
-                  checked={filters.phases.includes(phase)}
-                  onChange={() => toggleArrayFilter("phases", phase)}
-                  className="w-3.5 h-3.5 text-red-600"
+                  type="number"
+                  min={filters.yearRange[0] + 1}
+                  max="2025"
+                  value={filters.yearRange[1]}
+                  onChange={(e) =>
+                    updateFilter("yearRange", [
+                      filters.yearRange[0],
+                      Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
+                    ])
+                  }
+                  className={styles.inputSmall}
                 />
-                <span className="text-xs text-gray-700">{phase}</span>
-              </label>
-            ))}
+              </div>
+            </Section>
+
+            {/* Column 2: All filters as checkboxes with reset inside */}
+            <Section title="Industries" onReset={resetFilters}>
+              <div className={styles.overviewCheckboxes}>
+                <label className={`${styles.itemLabel}`}>
+                  <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
+                  <span className={styles.labelText}>All Industries</span>
+                </label>
+
+                <label className={`${styles.itemLabel}`}>
+                  <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
+                  <span className={styles.labelText}>All Cantons</span>
+                </label>
+
+                <label className={`${styles.itemLabel}`}>
+                  <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
+                  <span className={styles.labelText}>All Stages</span>
+                </label>
+
+                <label className={`${styles.itemLabel}`}>
+                  <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
+                  <span className={styles.labelText}>All CEO genders</span>
+                </label>
+              </div>
+            </Section>
+
+            {/* Column 3 removed - reset now inside Industries section */}
+
+            {/* Column 4: Message */}
+            <div className={styles.overviewMessage}>
+              <h3 className={styles.overviewMessageTitle}>How to use the Filters</h3>
+              <p className={styles.overviewMessageText}>
+                In the Overview tab (Total investments/deals), the "All" filter is preselected
+                because the total of all investments is displayed. Reducing the display using
+                additional filters is only possible in the other tabs, as individual filters in the
+                overview would only change the total display.
+              </p>
+            </div>
           </div>
-        </Section>
-      )}
+        ) : (
+          // Regular layout for other tabs
+          <div className={styles.filtersRow}>
+            {/* Years */}
+            {/* Removed onReset to hide reset button for Years */}
+            <Section title="Years" minHeight={filterHeights} plain>
+              <div className={styles.inputGroup}>
+                <input
+                  type="number"
+                  min="2012"
+                  max={filters.yearRange[1] - 1}
+                  value={filters.yearRange[0]}
+                  onChange={(e) =>
+                    updateFilter("yearRange", [
+                      Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
+                      filters.yearRange[1],
+                    ])
+                  }
+                  className={styles.inputSmall}
+                />
+                <span className={styles.textMuted}>to</span>
+                <input
+                  type="number"
+                  min={filters.yearRange[0] + 1}
+                  max="2025"
+                  value={filters.yearRange[1]}
+                  onChange={(e) =>
+                    updateFilter("yearRange", [
+                      filters.yearRange[0],
+                      Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
+                    ])
+                  }
+                  className={styles.inputSmall}
+                />
+              </div>
+            </Section>
+
+            {/* Industries */}
+            <Section
+              title="Industries"
+              minHeight={filterHeights}
+              onReset={() => updateFilter("industries", [])}
+            >
+              <div className={`${styles.listNoScroll}`}>
+                {isOverviewTab ? (
+                  // Overview tab: single checkbox "All Industries"
+                  <label className={`${styles.itemLabel}`}>
+                    <input
+                      type="checkbox"
+                      checked={true}
+                      disabled
+                      className={`${styles.checkbox}`}
+                    />
+                    <span className={styles.labelText}>All Industries</span>
+                  </label>
+                ) : isIndustryPrimary ? (
+                  // Checkboxes with colors for primary mode
+                  <>
+                    <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                      <input
+                        type="checkbox"
+                        checked={filters.industries.length === industriesTotal}
+                        onChange={() =>
+                          updateFilter(
+                            "industries",
+                            filters.industries.length === industriesTotal
+                              ? []
+                              : filterOptions.industries
+                          )
+                        }
+                        className={styles.checkboxAll}
+                      />
+                      <span className={styles.labelTextBold}>All</span>
+                    </label>
+                    {filterOptions.industries?.map((industry) => {
+                      const color = INDUSTRY_COLOR_MAP[industry] || "#999";
+                      return (
+                        <label
+                          key={industry}
+                          className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filters.industries.includes(industry)}
+                            onChange={() => toggleArrayFilter("industries", industry)}
+                            className={`${styles.checkbox} ${styles.checkboxColored}`}
+                            style={{
+                              "--checkbox-bg-color": color,
+                            }}
+                          />
+                          <span className={styles.labelText}>{industry}</span>
+                        </label>
+                      );
+                    })}
+                  </>
+                ) : (
+                  // Checkbox for "All" with radio buttons for secondary mode
+                  <>
+                    <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                      <input
+                        type="checkbox"
+                        checked={filters.industries.length === 0}
+                        onChange={() => updateFilter("industries", [])}
+                        className={styles.checkbox}
+                      />
+                      <span className={styles.labelTextBold}>All</span>
+                    </label>
+                    {filterOptions.industries?.map((industry) => (
+                      <label
+                        key={industry}
+                        className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="radio"
+                          name="industry-radio"
+                          checked={
+                            filters.industries.length === 1 && filters.industries[0] === industry
+                          }
+                          onChange={() => updateFilter("industries", [industry])}
+                          className={styles.radio}
+                        />
+                        <span className={styles.labelText}>{industry}</span>
+                      </label>
+                    ))}
+                  </>
+                )}
+              </div>
+            </Section>
+
+            {/* Stack: Stages + CEO gender in one column */}
+            <div className={styles.stackColumn}>
+              {dealsTab ? (
+                <Section title="Stages" onReset={() => updateFilter("phases", [])}>
+                  <div className={styles.listScroll}>
+                    {isOverviewTab ? (
+                      // Overview tab: single checkbox "All Stages"
+                      <label className={`${styles.itemLabel}`}>
+                        <input
+                          type="checkbox"
+                          checked={true}
+                          disabled
+                          className={`${styles.checkbox}`}
+                        />
+                        <span className={styles.labelText}>All Stages</span>
+                      </label>
+                    ) : isPhasePrimary ? (
+                      // Checkboxes with colors for primary mode
+                      <>
+                        <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                          <input
+                            type="checkbox"
+                            checked={filters.phases.length === phasesTotal}
+                            onChange={() =>
+                              updateFilter(
+                                "phases",
+                                filters.phases.length === phasesTotal ? [] : filterOptions.phases
+                              )
+                            }
+                            className={styles.checkboxAll}
+                          />
+                          <span className={styles.labelTextBold}>All</span>
+                        </label>
+                        {filterOptions.phases?.map((phase) => {
+                          const color = STAGE_COLOR_MAP[phase] || "#999";
+                          return (
+                            <label
+                              key={phase}
+                              className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={filters.phases.includes(phase)}
+                                onChange={() => toggleArrayFilter("phases", phase)}
+                                className={`${styles.checkbox} ${styles.checkboxColored}`}
+                                style={{
+                                  "--checkbox-bg-color": color,
+                                }}
+                              />
+                              <span className={styles.labelText}>{phase}</span>
+                            </label>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      // Checkbox for "All" with radio buttons for secondary mode
+                      <>
+                        <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                          <input
+                            type="checkbox"
+                            checked={filters.phases.length === 0}
+                            onChange={() => updateFilter("phases", [])}
+                            className={styles.checkbox}
+                          />
+                          <span className={styles.labelTextBold}>All</span>
+                        </label>
+                        {filterOptions.phases?.map((phase) => (
+                          <label
+                            key={phase}
+                            className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                          >
+                            <input
+                              type="radio"
+                              name="phase-radio"
+                              checked={filters.phases.length === 1 && filters.phases[0] === phase}
+                              onChange={() => updateFilter("phases", [phase])}
+                              className={styles.radio}
+                            />
+                            <span className={styles.labelText}>{phase}</span>
+                          </label>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                </Section>
+              ) : (
+                <Section
+                  title="Stages"
+                  minHeight={filterHeights}
+                  onReset={() => updateFilter("phases", [])}
+                >
+                  <div className="space-y-1.5">
+                    <label className={`${styles.itemLabel}`}>
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled
+                        className={`${styles.checkbox}`}
+                      />
+                      <span className={styles.labelTextMuted}>All</span>
+                    </label>
+                  </div>
+                </Section>
+              )}
+
+              <Section title="CEO gender" onReset={() => updateFilter("ceoGenders", [])}>
+                <div className={styles.listScroll}>
+                  {isOverviewTab ? (
+                    // Overview tab: single checkbox "All CEO genders"
+                    <label className={`${styles.itemLabel}`}>
+                      <input
+                        type="checkbox"
+                        checked={true}
+                        disabled
+                        className={`${styles.checkbox}`}
+                      />
+                      <span className={styles.labelText}>All CEO genders</span>
+                    </label>
+                  ) : isGenderPrimary ? (
+                    // Checkboxes with colors for primary mode
+                    <>
+                      <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                        <input
+                          type="checkbox"
+                          checked={(filters.ceoGenders?.length || 0) === ceoTotal}
+                          onChange={() =>
+                            updateFilter(
+                              "ceoGenders",
+                              (filters.ceoGenders?.length || 0) === ceoTotal
+                                ? []
+                                : filterOptions.ceoGenders
+                            )
+                          }
+                          className={styles.checkboxAll}
+                        />
+                        <span className={styles.labelTextBold}>All</span>
+                      </label>
+                      {filterOptions.ceoGenders?.map((gender) => {
+                        const color = CEO_GENDER_COLOR_MAP[gender] || "#999";
+                        return (
+                          <label
+                            key={gender}
+                            className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={filters.ceoGenders?.includes(gender) || false}
+                              onChange={() => toggleArrayFilter("ceoGenders", gender)}
+                              className={`${styles.checkbox} ${styles.checkboxColored}`}
+                              style={{
+                                "--checkbox-bg-color": color,
+                              }}
+                            />
+                            <span className={styles.labelText}>{gender}</span>
+                          </label>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    // Checkbox for "All" with radio buttons for secondary mode
+                    <>
+                      <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                        <input
+                          type="checkbox"
+                          checked={(filters.ceoGenders?.length || 0) === 0}
+                          onChange={() => updateFilter("ceoGenders", [])}
+                          className={styles.checkbox}
+                        />
+                        <span className={styles.labelTextBold}>All</span>
+                      </label>
+                      {filterOptions.ceoGenders?.map((gender) => (
+                        <label
+                          key={gender}
+                          className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="radio"
+                            name="gender-radio"
+                            checked={
+                              (filters.ceoGenders?.length || 0) === 1 &&
+                              filters.ceoGenders?.[0] === gender
+                            }
+                            onChange={() => updateFilter("ceoGenders", [gender])}
+                            className={styles.radio}
+                          />
+                          <span className={styles.labelText}>{gender}</span>
+                        </label>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </Section>
+            </div>
+
+            {/* Cantons */}
+            <Section
+              title="Cantons"
+              minHeight={filterHeights}
+              onReset={() => updateFilter("cantons", [])}
+            >
+              <div className={styles.listNoScroll}>
+                {isOverviewTab ? (
+                  // Overview tab: single checkbox "All Cantons"
+                  <label className={`${styles.itemLabel}`}>
+                    <input
+                      type="checkbox"
+                      checked={true}
+                      disabled
+                      className={`${styles.checkbox}`}
+                    />
+                    <span className={styles.labelText}>All Cantons</span>
+                  </label>
+                ) : isCantonPrimary ? (
+                  // Checkboxes with colors for primary mode
+                  <>
+                    <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                      <input
+                        type="checkbox"
+                        checked={filters.cantons.length === allowedCantons.length}
+                        onChange={() =>
+                          updateFilter(
+                            "cantons",
+                            filters.cantons.length === allowedCantons.length
+                              ? []
+                              : allowedCantons.map((c) => c.name)
+                          )
+                        }
+                        className={styles.checkboxAll}
+                      />
+                      <span className={styles.labelTextBold}>All</span>
+                    </label>
+                    {allowedCantons.map((canton) => {
+                      const color = CANTON_COLOR_MAP[canton.name] || "#999";
+                      return (
+                        <label
+                          key={canton.code}
+                          className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={filters.cantons.includes(canton.name)}
+                            onChange={() => toggleArrayFilter("cantons", canton.name)}
+                            className={`${styles.checkbox} ${styles.checkboxColored}`}
+                            style={{
+                              "--checkbox-bg-color": color,
+                            }}
+                          />
+                          <span className={styles.labelText}>
+                            {canton.name} ({canton.code})
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </>
+                ) : (
+                  // Checkbox for "All" with radio buttons for secondary mode
+                  <>
+                    <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
+                      <input
+                        type="checkbox"
+                        checked={filters.cantons.length === 0}
+                        onChange={() => updateFilter("cantons", [])}
+                        className={styles.checkbox}
+                      />
+                      <span className={styles.labelTextBold}>All</span>
+                    </label>
+                    {allowedCantons.map((canton) => (
+                      <label
+                        key={canton.code}
+                        className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="radio"
+                          name="canton-radio"
+                          checked={
+                            filters.cantons.length === 1 && filters.cantons[0] === canton.name
+                          }
+                          onChange={() => updateFilter("cantons", [canton.name])}
+                          className={styles.radio}
+                        />
+                        <span className={styles.labelText}>
+                          {canton.name} ({canton.code})
+                        </span>
+                      </label>
+                    ))}
+                  </>
+                )}
+              </div>
+            </Section>
+
+            {/* Deal types filter removed intentionally */}
+          </div>
+        )}
+
     </div>
   );
 };

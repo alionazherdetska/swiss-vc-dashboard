@@ -1,54 +1,101 @@
-// constants.js
-import {
-  TrendingUp,
-  MapPin,
-  DollarSign,
-  BarChart3,
-  Calendar,
-  LineChart,
-} from "lucide-react";
+import { TrendingUp, MapPin, DollarSign, BarChart3, Calendar, LineChart } from "lucide-react";
 
 /* =========================
    Chart layout & styling
    ========================= */
 export const CHART_MARGIN = { top: 50, right: 50, left: 60, bottom: 60 };
-export const EXPANDED_CHART_MARGIN = { top: 80, right: 80, left: 80, bottom: 80 };
+export const EXPANDED_CHART_MARGIN = {
+  top: 80,
+  right: 80,
+  left: 80,
+  bottom: 80,
+};
 
 // Axis/grid stroke tokens (UI colors)
 export const AXIS_STROKE = "#4A5568";
-export const GRID_STROKE  = "#E2E8F0";
+export const GRID_STROKE = "#E2E8F0";
 
 /* =========================
    Sector colors / palettes
    ========================= */
 export const INDUSTRY_COLOR_MAP = {
-  Biotech: "#E84A5F",
-  Cleantech: "#2ECC71",
-  "Consumer Products": "#3498DB",
+  Biotech: "#5185B4",
+  Cleantech: "#CAC7B0",
+  "Consumer Products": "#6E5247",
   "Deep Tech": "#A0522D",
-  "Healthcare It": "#F7931E",
-  ICT: "#9B5DE5",
+  "Healthcare It": "#AFCAE2",
+  ICT: "#E28E04",
   Interdisciplinary: "#1ABC9C",
-  MedTech: "#FFD700",
-  "Micro / Nano": "#FF1493",
-  Unknown: "#32CD32",
+  MedTech: "#A6BA3C",
+  "Micro / Nano": "#2596be",
 };
 
 export const ENHANCED_COLOR_PALETTE = [
-  "#E84A5F", "#2ECC71", "#3498DB", "#A0522D", "#F7931E",
-  "#9B5DE5", "#1ABC9C", "#FFD700", "#FF1493", "#32CD32",
-  "#4169E1", "#8B4513", "#FF4500", "#8A2BE2", "#00CED1",
+  "#E84A5F",
+  "#2ECC71",
+  "#3498DB",
+  "#A0522D",
+  "#F7931E",
+  "#9B5DE5",
+  "#1ABC9C",
+  "#FFD700",
+  "#FF1493",
+  "#32CD32",
+  "#4169E1",
+  "#8B4513",
+  "#FF4500",
+  "#8A2BE2",
+  "#00CED1",
 ];
 
 // Label spacing presets when ≤3 industries are visible
 export const SMALLSET_LABEL_BASE_LIFT = { regular: -4, expanded: -8 };
-export const SMALLSET_LABEL_DY        = { regular: [-6, 1, 6], expanded: [-10, 1, 10] };
+export const SMALLSET_LABEL_DY = {
+  regular: [-6, 1, 6],
+  expanded: [-10, 1, 10],
+};
 
-/* =========================
-   Your existing constants
-   ========================= */
+export const CANTON_COLOR_MAP = {
+  Zürich: "#5185B4",
+  Bern: "#A6BA3C",
+  Luzern: "#FFC86D",
+  Uri: "#FF4500",
+  Schwyz: "#B9AFE2",
+  Obwalden: "#00CED1",
+  Nidwalden: "#FF1493",
+  Glarus: "#32CD32",
+  Zug: "#A0522D",
+  Fribourg: "#FFAEF9",
+  Solothurn: "#D452BF",
+  "Basel-Stadt": "#EE2E64",
+  "Basel-Landschaft": "#4BA7C9",
+  Schaffhausen: "#B7A728",
+  "Appenzell Ausserrhoden": "#3498DB",
+  "Appenzell Innerrhoden": "#E84A5F",
+  "St. Gallen": "#D8F443",
+  Graubünden: "#3498DB",
+  Aargau: "#FFFC4B",
+  Thurgau: "#E8676C",
+  Ticino: "#98E5FD",
+  Vaud: "#CAC7B0",
+  Valais: "#DFC1AB",
+  Neuchâtel: "#77E05A",
+  Genève: "#B0C8DE",
+  Jura: "#B67CE5",
+};
 
-// Official Swiss cantons in correct order with codes
+export const CEO_GENDER_COLOR_MAP = {
+  Female: "#FFAEF9",
+  Male: "#5185B4",
+  Other: "#B67CE5",
+};
+
+export const STAGE_COLOR_MAP = {
+  Seed: "#77E05A",
+  "Early Stage": "#FFC86D",
+  "Later Stage": "#98E5FD",
+};
+
 export const OFFICIAL_CANTONS = [
   { name: "Zürich", code: "ZH" },
   { name: "Bern", code: "BE" },
@@ -92,78 +139,38 @@ export const CANTON_MAP = {
   Abroad: null,
 };
 
-// Swiss VC Report color scheme (generic palette you already used)
-export const COLORS = [
-  "#E53E3E", // Red
-  "#3182CE", // Blue
-  "#38A169", // Green
-  "#D69E2E", // Yellow/Orange
-  "#805AD5", // Purple
-  "#DD6B20", // Orange
-  "#319795", // Teal
-  "#E53E3E", // Red variant
-  "#4A5568", // Gray
-  "#ED64A6", // Pink
-];
-
 // Chart type options (cleaned up)
 export const getChartOptions = (activeTab) =>
   [
     { key: "timeline", name: "Timeline Trends", icon: TrendingUp },
     ...(activeTab === "companies"
       ? [
-          { key: "industry-trends", name: "Top Industry Trends", icon: LineChart },
+          {
+            key: "industry-trends",
+            name: "Top Industry Trends",
+            icon: LineChart,
+          },
           { key: "funding-analysis", name: "Funding Status", icon: DollarSign },
         ]
       : []),
     ...(activeTab === "deals"
       ? [
-          { key: "quarterly-analysis", name: "Sector Analysis", icon: Calendar },
+          {
+            key: "quarterly-analysis",
+            name: "Sector Analysis",
+            icon: Calendar,
+          },
           { key: "phase-analysis", name: "Funding Phases", icon: BarChart3 },
         ]
       : []),
-    { key: "geographic-distribution", name: "Geographic Distribution", icon: MapPin },
+    {
+      key: "geographic-distribution",
+      name: "Geographic Distribution",
+      icon: MapPin,
+    },
   ].filter(Boolean);
 
-// Sample data fallback
-export const SAMPLE_DATA = {
-  Companies: [
-    {
-      Code: "CHE-384.775.108",
-      Title: "Noury AG",
-      Industry: "Other",
-      Vertical: "",
-      Canton: "Bern",
-      City: "Bern",
-      Year: "2021",
-      Funded: "FALSE",
-    },
-  ],
-  Deals: [
-    {
-      Id: "S4126",
-      Investors: "Elastic",
-      URL: "https://www.elastic.co/de/about/press/elastic-and-optimyze-join-forces",
-      "Date of the funding round": "10/14/21",
-      Type: "EXIT",
-      Phase: "Exit",
-      Canton: "Zürich",
-      Company: "optimyze.cloud AG",
-      Amount: "50",
-      Industry: "Technology",
-    },
-  ],
-};
-
-// Volume display options
 export const VOLUME_OPTIONS = [
   { key: "count", name: "Count", unit: "" },
   { key: "volume", name: "Volume", unit: "CHF M" },
-];
-
-// Time interval options for quarterly analysis
-export const TIME_INTERVALS = [
-  { key: "quarter", name: "Quarterly" },
-  { key: "half", name: "Half-Yearly" },
-  { key: "year", name: "Yearly" },
 ];

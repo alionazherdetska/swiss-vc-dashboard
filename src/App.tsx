@@ -1,44 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import './styles.css';
-import Dashboard from './components/Dashboard.js';
+import React, { useState, useEffect } from "react";
+import "./styles.css";
+import Dashboard from "./components/Dashboard.js";
 
 export function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [loadingProgress, setLoadingProgress] = useState('Initializing...');
+  const [loadingProgress, setLoadingProgress] = useState("Initializing...");
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        setLoadingProgress('Fetching data file...');
+        setLoadingProgress("Fetching data file...");
 
-        const response = await fetch('/startup-data.json');
+        const response = await fetch("/startup-data.json");
+
         if (!response.ok) {
-          throw new Error(
-            `Failed to load data file (${response.status}: ${response.statusText})`
-          );
+          throw new Error(`Failed to load data (${response.status}): ${response.statusText}`);
         }
 
-        setLoadingProgress('Parsing JSON data...');
+        const contentType = response.headers.get("content-type");
+        if (!contentType?.includes("application/json")) {
+          throw new Error("Invalid response type. Expected JSON.");
+        }
+
+        setLoadingProgress("Parsing JSON data...");
         const jsonData = await response.json();
 
-        if (!jsonData.Companies && !jsonData.Deals) {
-          if (Array.isArray(jsonData)) {
-            window.startupData = { Companies: [], Deals: jsonData };
-          } else {
-            throw new Error("Data file must contain 'Companies' and/or 'Deals' arrays");
+        // Validate data structure
+        if (!jsonData || typeof jsonData !== "object") {
+          throw new Error("Invalid data structure: must be object or array");
+        }
+
+        if (Array.isArray(jsonData)) {
+          if (jsonData.length === 0) {
+            throw new Error("Data array is empty");
           }
+          window.startupData = { Companies: [], Deals: jsonData };
+        } else if (!jsonData.Companies && !jsonData.Deals) {
+          throw new Error("Data must contain Companies and/or Deals arrays");
         } else {
           window.startupData = jsonData;
         }
 
-        setLoadingProgress('Processing data...');
+        setLoadingProgress("Processing data...");
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        setLoadingProgress('Finalizing dashboard...');
+        setLoadingProgress("Finalizing dashboard...");
         setLoading(false);
       } catch (error) {
-        setError(error.message);
+        const message = error instanceof Error ? error.message : "Unknown error occurred";
+        setError(message);
         setLoading(false);
       }
     };
@@ -48,23 +59,16 @@ export function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto' }}>
-          <img
-            src="/logo.png"
-            alt="Swiss Startup Ecosystem Logo"
-            className="h-16 mx-auto mb-4"
-          />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto w-full max-w-screen-lg">
+          <img src="/logo.png" alt="Swiss Startup Ecosystem Logo" className="h-16 mx-auto mb-4" />
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-6"></div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">
             Swiss Startup Ecosystem Dashboard
           </h2>
           <p className="text-gray-600 mb-4">{loadingProgress}</p>
-          <div className="bg-gray-200 rounded-full h-2 mb-4">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-              style={{ width: '75%' }}
-            ></div>
+          <div className="bg-gray-200 rounded-full h-2 mb-4 overflow-hidden">
+            <div className="bg-blue-600 h-2 rounded-full transition-all duration-500 w-3/4"></div>
           </div>
           <p className="text-sm text-gray-500">
             Loading Swiss companies and investment deals data...
@@ -76,15 +80,11 @@ export function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-6" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto' }}>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center p-6 mx-auto w-full max-w-screen-lg">
           <div className="text-red-600 text-6xl mb-4">🏢</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Data Loading Error
-          </h2>
-          <p className="text-gray-600 mb-4">
-            Unable to load the Swiss startup ecosystem data.
-          </p>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Data Loading Error</h2>
+          <p className="text-gray-600 mb-4">Unable to load the Swiss startup ecosystem data.</p>
 
           <div className="text-sm text-red-600 bg-red-50 p-4 rounded-lg mb-4">
             <strong>Error:</strong> {error}
@@ -94,16 +94,13 @@ export function App() {
             <p className="font-semibold mb-2">Troubleshooting:</p>
             <ul className="text-left space-y-1">
               <li>
-                • Ensure <code>startup-data.json</code> is in the{' '}
-                <code>public</code> folder
+                • Ensure <code>startup-data.json</code> is in the <code>public</code> folder
               </li>
+              <li>• Check that the JSON file contains Companies and/or Deals arrays</li>
               <li>
-                • Check that the JSON file contains Companies and/or Deals arrays
-              </li>
-              <li>
-                • Verify JSON structure:{' '}
+                • Verify JSON structure:{" "}
                 <code>
-                  {'{'}"Companies": [...], "Deals": [...]{'}'}
+                  {"{"}"Companies": [...], "Deals": [...]{"}"}
                 </code>
               </li>
               <li>• Refresh the page to retry</li>
@@ -123,8 +120,8 @@ export function App() {
   }
 
   return (
-    <div className="App" style={{ maxWidth: '1020px', width: '100%', margin: '0 auto', padding: '40px 0 0 0'}}>
-      <Dashboard/>
+    <div className="app app-container">
+      <Dashboard />
     </div>
   );
 }

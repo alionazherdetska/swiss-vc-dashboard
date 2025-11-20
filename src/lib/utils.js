@@ -1,36 +1,21 @@
-// utils.js
 import { OFFICIAL_CANTONS, CANTON_MAP, CHART_MARGIN, EXPANDED_CHART_MARGIN } from "./constants";
 
 /* =========================
    Generic helpers for charts
    ========================= */
 
-// Recharts-safe key
+// D3-safe key sanitization
 export const sanitizeKey = (s) =>
-  String(s || "Unknown").replace(/\s+/g, "_").replace(/[^\w]/g, "_");
+  String(s || "Unknown")
+    .replace(/\s+/g, "_")
+    .replace(/[^\w]/g, "_");
 
 // Compute chart dimensions; optional margins override
 export const getChartDims = (isExpandedView, forcedHeight, margins) => ({
-  width: isExpandedView ? 1200 : 780,
-  height: forcedHeight ?? (isExpandedView ? 600 : 420),
+  width: isExpandedView ? 1000 : 800,
+  height: forcedHeight ?? (isExpandedView ? 700 : 420),
   margin: margins ?? (isExpandedView ? EXPANDED_CHART_MARGIN : CHART_MARGIN),
 });
-
-// Keep Y labels within plot area
-export const clampY = (y, { height, margin }, pad = 8) => {
-  const innerTop = (margin?.top ?? 0) + pad;
-  const innerBottom = height - (margin?.bottom ?? 0) - pad;
-  return Math.max(innerTop, Math.min(y, innerBottom));
-};
-
-// Tick helpers
-const ceilToStep = (max, step) => Math.ceil(max / step) * step;
-export const getTicks = (min, max, step) => {
-  const end = ceilToStep(max, step);
-  const out = [];
-  for (let v = min; v <= end; v += step) out.push(v);
-  return out;
-};
 
 // Deterministic color distributor using a map + palette
 export const makeDistributedColorFn = (map, palette) => {
@@ -63,7 +48,7 @@ const parseAmountToMillions = (v) => {
   s = s
     .replace(/chf/g, "")
     .replace(/\s/g, "")
-    .replace(/[',']/g, "") // thousands separators (comma/apostrophe)
+    .replace(/[,']/g, "") // thousands separators (comma/apostrophe)
     .replace(/million(s)?/g, "m");
 
   // Already in millions? e.g., "5.2m"
@@ -91,31 +76,39 @@ export const normalizeCanton = (rawCanton) => {
 };
 
 export const processCompanies = (companiesData) => {
-  return companiesData.map((company) => ({
-    ...company,
-    Company: company.Title || company.Company,
-    Year: parseInt(company.Year) || new Date().getFullYear(),
-    Industry: company.Industry
-      ? company.Industry.trim()
-          .toLowerCase()
-          .replace(/\s*\(.*?\)/g, "")
-          .replace(/\s+/g, " ")
-          .split(" ")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ")
-          .replace(/Ict/g, "ICT")
-          .replace(/Biotech/g, "Biotech")
-          .replace(/Cleantech/g, "Cleantech")
-          .replace(/Medtech/g, "MedTech")
-          .replace(/^$/, "Unknown")
-      : "Unknown",
-    Canton: normalizeCanton(company.Canton) || "Unknown",
-    Funded: company.Funded === "TRUE" || company.Funded === true,
-    OOB: company.OOB === "TRUE" || company.OOB === true,
-    HasSpinoff: !!(company["Spin-offs"] && company["Spin-offs"] !== ""),
-    SpinoffType: company["Spin-offs"] || "None",
-    City: company.City || "Unknown",
-  }));
+  return companiesData.map((company) => {
+    let normalizedIndustry = null;
+    if (company.Industry && company.Industry.trim()) {
+      const cleaned = company.Industry
+        .trim()
+        .toLowerCase()
+        .replace(/\s*\(.*?\)/g, "")
+        .replace(/\s+/g, " ");
+      const titled = cleaned
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+        .replace(/Ict/g, "ICT")
+        .replace(/Biotech/g, "Biotech")
+        .replace(/Cleantech/g, "Cleantech")
+        .replace(/Medtech/g, "MedTech");
+      if (titled && titled.toLowerCase() !== "unknown") {
+        normalizedIndustry = titled;
+      }
+    }
+    return {
+      ...company,
+      Company: company.Title || company.Company,
+      Year: parseInt(company.Year) || new Date().getFullYear(),
+      Industry: normalizedIndustry, // null instead of 'Unknown'
+      Canton: normalizeCanton(company.Canton) || "Unknown",
+      Funded: company.Funded === "TRUE" || company.Funded === true,
+      OOB: company.OOB === "TRUE" || company.OOB === true,
+      HasSpinoff: !!(company["Spin-offs"] && company["Spin-offs"] !== ""),
+      SpinoffType: company["Spin-offs"] || "None",
+      City: company.City || "Unknown",
+    };
+  });
 };
 
 export const processDeals = (dealsData, companiesData = []) => {
@@ -132,9 +125,7 @@ export const processDeals = (dealsData, companiesData = []) => {
         companyLookup.set(title.toLowerCase().replace(/[^\w\s]/g, ""), company); // no punctuation
 
         // Remove common suffixes
-        const withoutSuffix = title
-          .toLowerCase()
-          .replace(/\s+(ag|sa|ltd|inc|corp|gmbh|llc)$/i, "");
+        const withoutSuffix = title.toLowerCase().replace(/\s+(ag|sa|ltd|inc|corp|gmbh|llc)$/i, "");
         if (withoutSuffix !== title.toLowerCase()) {
           companyLookup.set(withoutSuffix, company);
         }
@@ -177,7 +168,8 @@ export const processDeals = (dealsData, companiesData = []) => {
         }
 
         if (matchedCompany && matchedCompany.Industry && matchedCompany.Industry.trim()) {
-          industry = matchedCompany.Industry.trim();
+          const ic = matchedCompany.Industry.trim();
+          industry = ic.toLowerCase() === "unknown" ? null : ic;
           mappingSource = "company_lookup";
         }
       }
@@ -211,14 +203,14 @@ export const processDeals = (dealsData, companiesData = []) => {
           ? parseFloat(parsedAmountM) < 1
             ? "<1M"
             : parseFloat(parsedAmountM) < 5
-            ? "1-5M"
-            : parseFloat(parsedAmountM) < 10
-            ? "5-10M"
-            : parseFloat(parsedAmountM) < 25
-            ? "10-25M"
-            : parseFloat(parsedAmountM) < 50
-            ? "25-50M"
-            : "50M+"
+              ? "1-5M"
+              : parseFloat(parsedAmountM) < 10
+                ? "5-10M"
+                : parseFloat(parsedAmountM) < 25
+                  ? "10-25M"
+                  : parseFloat(parsedAmountM) < 50
+                    ? "25-50M"
+                    : "50M+"
           : "Unknown",
       };
     });
@@ -230,13 +222,16 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
   const currentData = activeTab === "companies" ? filteredCompanies : filteredDeals;
 
   if (activeTab === "companies") {
-    const byYear = {}, byIndustry = {}, byCanton = {}, byFunded = {};
+    const byYear = {},
+      byIndustry = {},
+      byCanton = {},
+      byFunded = {};
 
     currentData.forEach((item) => {
       if (item.Year) byYear[item.Year] = (byYear[item.Year] || 0) + 1;
 
       // Only count real industries from JSON
-      if (item.Industry && item.Industry !== "Unknown") {
+      if (item.Industry) {
         byIndustry[item.Industry] = (byIndustry[item.Industry] || 0) + 1;
       }
 
@@ -247,19 +242,17 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
     });
 
     const realIndustries = Object.entries(byIndustry)
-      .filter(([name]) => name && name !== "Unknown")
+      .filter(([name]) => name)
       .sort((a, b) => b[1] - a[1])
       .map(([name]) => name);
 
-    const allYears = Array.from(
-      new Set(currentData.map((d) => d.Year).filter(Boolean))
-    ).sort((a, b) => a - b);
+    const allYears = Array.from(new Set(currentData.map((d) => d.Year).filter(Boolean))).sort(
+      (a, b) => a - b
+    );
 
     const industryTrends = realIndustries.map((industry) => {
       const industryData = allYears.map((year) => {
-        const count = currentData.filter(
-          (d) => d.Industry === industry && d.Year === year
-        ).length;
+        const count = currentData.filter((d) => d.Industry === industry && d.Year === year).length;
         return { year, value: count, count, volume: 0, quarter: null };
       });
 
@@ -268,17 +261,25 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
 
     return {
       timeline: Object.entries(byYear)
-        .map(([year, count]) => ({ year: parseInt(year), count, volume: 0, label: year }))
+        .map(([year, count]) => ({
+          year: parseInt(year),
+          count,
+          volume: 0,
+          label: year,
+        }))
         .sort((a, b) => a.year - b.year),
       industries: Object.entries(byIndustry)
-        .filter(([name]) => name && name !== "Unknown")
+        .filter(([name]) => name)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value),
       cantons: Object.entries(byCanton)
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 15),
-      funded: Object.entries(byFunded).map(([name, value]) => ({ name, value })),
+      funded: Object.entries(byFunded).map(([name, value]) => ({
+        name,
+        value,
+      })),
       industryTrends,
     };
   }
@@ -316,13 +317,18 @@ export const generateChartData = (activeTab, filteredCompanies, filteredDeals) =
   });
 
   const dealIndustryTrends = Object.entries(byIndustryDeals)
-    .filter(([name]) => name && name !== "Unknown")
+    .filter(([name]) => name)
     .map(([industry, yearQuarterData]) => ({
       name: industry,
       data: Object.entries(yearQuarterData)
         .map(([yq, d]) => {
           const [year, qStr] = yq.split("-Q");
-          return { year: parseInt(year), quarter: parseInt(qStr), count: d.count, volume: d.volume };
+          return {
+            year: parseInt(year),
+            quarter: parseInt(qStr),
+            count: d.count,
+            volume: d.volume,
+          };
         })
         .filter((d) => d.year && d.quarter)
         .sort((a, b) => a.year - b.year || a.quarter - b.quarter),
