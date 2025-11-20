@@ -162,6 +162,7 @@ const BaseExpandableChart = ({
       chartState.showTotal,
       handleExpand,
       handleExport,
+      updateChartState,
       chartProps,
       isDualChart,
       supportsTotal,

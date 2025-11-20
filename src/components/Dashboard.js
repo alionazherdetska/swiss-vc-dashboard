@@ -14,13 +14,24 @@ const Dashboard = () => {
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Filters
-  const [filters, setFilters] = useState({
-    industries: [],
-    ceoGenders: [], // Now used for deals filtering
-    cantons: [],
+  // Filters: keep `yearRange` global across tabs, other filters scoped per-chart
+  const [globalFilters, setGlobalFilters] = useState({
     yearRange: [2012, 2025],
+  });
+
+  const defaultChartFilters = {
+    industries: [],
+    ceoGenders: [],
+    cantons: [],
     phases: [],
+  };
+
+  const [chartFilters, setChartFilters] = useState({
+    timeline: { ...defaultChartFilters },
+    quarterly: { ...defaultChartFilters },
+    phase: { ...defaultChartFilters },
+    canton: { ...defaultChartFilters },
+    ceoGender: { ...defaultChartFilters },
   });
 
   const [activeChart, setActiveChart] = useState("timeline"); // default open
@@ -79,44 +90,87 @@ const Dashboard = () => {
     };
   }, [deals]);
 
-  // Apply filters (deals only, now including CEO gender filter)
-  const filteredDeals = useMemo(() => {
+  // Base filtered deals apply only the global yearRange
+  const baseFilteredDeals = useMemo(() => {
+    const yr = globalFilters.yearRange;
     return deals.filter((item) => {
-      if (filters.industries.length && !filters.industries.includes(item.Industry)) return false;
-      // dealTypes filter removed
-      if (filters.phases.length && !filters.phases.includes(item.Phase)) return false;
-      if (filters.cantons.length && !filters.cantons.includes(item.Canton)) return false;
-      if (filters.ceoGenders.length && !filters.ceoGenders.includes(item["Gender CEO"]))
+      if (!item.Year) return false;
+      if (item.Year < yr[0] || item.Year > yr[1]) return false;
+      return true;
+    });
+  }, [deals, globalFilters.yearRange]);
+
+  // Helper to filter by a chart's local filters on top of baseFilteredDeals
+  const applyChartFilters = (dataset, localFilters) => {
+    if (!localFilters) return dataset;
+    return dataset.filter((item) => {
+      if (localFilters.industries?.length && !localFilters.industries.includes(item.Industry))
         return false;
-      if (item.Year && (item.Year < filters.yearRange[0] || item.Year > filters.yearRange[1]))
+      if (localFilters.phases?.length && !localFilters.phases.includes(item.Phase)) return false;
+      if (localFilters.cantons?.length && !localFilters.cantons.includes(item.Canton)) return false;
+      if (
+        localFilters.ceoGenders?.length &&
+        !localFilters.ceoGenders.includes(item["Gender CEO"])
+      )
         return false;
       return true;
     });
-  }, [deals, filters]);
+  };
 
-  // Chart data (deals-only)
+  // Chart-specific filtered datasets
+  const timelineDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.timeline),
+    [baseFilteredDeals, chartFilters.timeline]
+  );
+
+  const quarterlyDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.quarterly),
+    [baseFilteredDeals, chartFilters.quarterly]
+  );
+
+  const phaseDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.phase),
+    [baseFilteredDeals, chartFilters.phase]
+  );
+
+  const cantonDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.canton),
+    [baseFilteredDeals, chartFilters.canton]
+  );
+
+  const genderDeals = useMemo(
+    () => applyChartFilters(baseFilteredDeals, chartFilters.ceoGender),
+    [baseFilteredDeals, chartFilters.ceoGender]
+  );
+
+  // Chart data (deals-only) for timeline
   const chartData = useMemo(() => {
-    return generateChartData("deals", [], filteredDeals);
-  }, [filteredDeals]);
+    return generateChartData("deals", [], timelineDeals);
+  }, [timelineDeals]);
 
-  // Filter helpers
-  const updateFilter = (key, value) => setFilters((prev) => ({ ...prev, [key]: value }));
-  const toggleArrayFilter = (key, value) =>
-    setFilters((prev) => ({
+  // Filter helpers: yearRange is global; other filters are chart-scoped
+  const updateFilter = (key, value) => {
+    if (key === "yearRange") {
+      setGlobalFilters((prev) => ({ ...prev, yearRange: value }));
+      return;
+    }
+    setChartFilters((prev) => ({
       ...prev,
-      [key]: prev[key].includes(value)
-        ? prev[key].filter((item) => item !== value)
-        : [...prev[key], value],
+      [activeChart]: { ...(prev[activeChart] || {}), [key]: value },
     }));
-  const resetFilters = () =>
-    setFilters({
-      industries: [],
-      cantons: [],
-      ceoGenders: [],
-      searchQuery: "",
-      yearRange: [2012, 2025],
-      phases: [],
+  };
+
+  const toggleArrayFilter = (key, value) => {
+    setChartFilters((prev) => {
+      const arr = prev[activeChart]?.[key] || [];
+      const next = arr.includes(value) ? arr.filter((i) => i !== value) : [...arr, value];
+      return { ...prev, [activeChart]: { ...(prev[activeChart] || {}), [key]: next } };
     });
+  };
+
+  const resetFilters = () => {
+    setChartFilters((prev) => ({ ...prev, [activeChart]: { ...defaultChartFilters } }));
+  };
 
   if (loading) {
     return (
@@ -180,8 +234,8 @@ const Dashboard = () => {
             {activeChart === "quarterly" && (
               <ChartErrorBoundary chartName="Quarterly Analysis">
                 <QuarterlyAnalysisChart
-                  deals={filteredDeals}
-                  selectedIndustryCount={filters.industries.length}
+                  deals={quarterlyDeals}
+                  selectedIndustryCount={chartFilters.quarterly.industries.length}
                   totalIndustryCount={filterOptions.industries.length}
                 />
               </ChartErrorBoundary>
@@ -190,8 +244,8 @@ const Dashboard = () => {
             {activeChart === "phase" && (
               <ChartErrorBoundary chartName="Phase Analysis">
                 <PhaseAnalysisChart
-                  deals={filteredDeals}
-                  selectedPhaseCount={filters.phases.length}
+                  deals={phaseDeals}
+                  selectedPhaseCount={chartFilters.phase.phases.length}
                   totalPhaseCount={filterOptions.phases.length}
                 />
               </ChartErrorBoundary>
@@ -200,8 +254,8 @@ const Dashboard = () => {
             {activeChart === "canton" && (
               <ChartErrorBoundary chartName="Canton Analysis">
                 <CantonAnalysisChart
-                  deals={filteredDeals}
-                  selectedCantonCount={filters.cantons.length}
+                  deals={cantonDeals}
+                  selectedCantonCount={chartFilters.canton.cantons.length}
                   totalCantonCount={filterOptions.cantons.length}
                 />
               </ChartErrorBoundary>
@@ -210,8 +264,8 @@ const Dashboard = () => {
             {activeChart === "ceoGender" && (
               <ChartErrorBoundary chartName="Gender Analysis">
                 <GenderAnalysisChart
-                  deals={filteredDeals}
-                  selectedGenderCount={filters.ceoGenders.length}
+                  deals={genderDeals}
+                  selectedGenderCount={chartFilters.ceoGender.ceoGenders.length}
                   totalGenderCount={filterOptions.ceoGenders.length}
                 />
               </ChartErrorBoundary>
@@ -219,7 +273,7 @@ const Dashboard = () => {
 
             <div className={styles.filtersWrap}>
               <FilterPanel
-                filters={filters}
+                filters={{ ...(chartFilters[activeChart] || {}), yearRange: globalFilters.yearRange }}
                 filterOptions={filterOptions}
                 activeTab="deals"
                 activeChart={activeChart}

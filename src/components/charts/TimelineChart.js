@@ -29,7 +29,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
     <SingleChartLayout
       title={headerTitle}
       ChartComponent={(props) => (
-        <InnerArea {...props} data={chartData} dataKey={chartKey} />
+        <InnerArea {...props} data={chartData} dataKey={chartKey} yAxisLabel={defaultY} />
       )}
       onExpand={() => onExpand && onExpand(showVolume ? "volume" : "count")}
     />
@@ -45,7 +45,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       data={data}
       ChartComponent={ChartComponent}
       ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => (
-        <InnerArea data={d} dataKey={chartKey} mode={mode} width={950} height={350} margin={{ top: 50, right: 50, left: 60, bottom: 60 }} isExpanded={true} />
+        <InnerArea data={d} dataKey={chartKey} mode={mode} width={950} height={350} margin={{ top: 50, right: 50, left: 60, bottom: 60 }} isExpanded={true} yAxisLabel={defaultY} />
       )}
       isDualChart={false}
       supportsSingleMode={true}

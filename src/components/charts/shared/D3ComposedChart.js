@@ -294,6 +294,7 @@ const D3ComposedChart = ({
     colorOf,
     dataKeySuffix,
     tooltipFormatter,
+    showDataPoints,
   ]);
 
   return (
