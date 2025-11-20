@@ -1,12 +1,16 @@
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import { SingleChartLayout } from "./shared/ChartLayouts";
 import D3AreaChart from "./shared/D3AreaChart";
+import ResponsiveD3Container from "./shared/ResponsiveD3Container";
+import ChartLegend from "./shared/ChartLegend";
 
 const InnerArea = ({ data, dataKey, mode, width, height, margin, yAxisLabel }) => {
   return (
     <D3AreaChart
       data={data}
       dataKey={dataKey}
+      width={width}
+      height={height}
       margin={margin}
       mode={mode}
       strokeColor="#E84A5F"
@@ -35,24 +39,38 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
     />
   );
 
-  const handleExport = (format, expanded) => {
-    // TODO: implement export
-  };
-
   return (
     <BaseExpandableChart
       title={headerTitle}
       data={data}
       ChartComponent={ChartComponent}
       ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => (
-        <InnerArea data={d} dataKey={chartKey} mode={mode} width={950} height={350} margin={{ top: 50, right: 50, left: 60, bottom: 60 }} isExpanded={true} yAxisLabel={defaultY} />
+        <div className="grid grid-cols-5 gap-6 items-start h-[400px]">
+          <div className="col-span-1 pt-8">
+            <ChartLegend items={[headerTitle]} colorOf={() => "#E84A5F"} title={"Series"} />
+          </div>
+
+          <div className="col-span-4 min-w-0">
+            <div style={{ width: '100%', height: '350px' }}>
+              <InnerArea 
+                data={d} 
+                dataKey={chartKey} 
+                mode={mode} 
+                width={800}  // Use a reasonable fixed width
+                height={350} 
+                margin={{ top: 50, right: 50, left: 60, bottom: 60 }} 
+                isExpanded={true} 
+                yAxisLabel={defaultY} 
+              />
+            </div>
+          </div>
+        </div>
       )}
       isDualChart={false}
       supportsSingleMode={true}
       supportsTotal={false}
       initialSingleMode="line"
       initialShowTotal={false}
-      onExport={handleExport}
     />
   );
 };

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
 import ChartLegend from "./shared/ChartLegend";
+import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
@@ -91,13 +92,19 @@ const QuarterlyAnalysisChart = ({
   const expandedDims = { ...expandedDimsBase };
 
   // Main chart components
-  const VolumeChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded
+  const VolumeChart = ({ data, mode, isExpanded = false, width, height }) => {
+    const computedDims = isExpanded
       ? expandedDims
       : {
           ...dims,
           width: dims.width / 2,
         };
+
+    const currentDims = {
+      ...computedDims,
+      width: typeof width === "number" ? width : computedDims.width,
+      height: typeof height === "number" ? height : computedDims.height,
+    };
 
     return (
       <QuarterlyChart
@@ -112,18 +119,24 @@ const QuarterlyAnalysisChart = ({
         colorOf={colorOf}
         showTotal={false}
         selectedIndustries={selectedIndustries}
-        showDataPoints={true} // Enable data points
+        showDataPoints={true}
       />
     );
   };
 
-  const CountChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded
+  const CountChart = ({ data, mode, isExpanded = false, width, height }) => {
+    const computedDims = isExpanded
       ? expandedDims
       : {
           ...dims,
           width: dims.width / 2,
         };
+
+    const currentDims = {
+      ...computedDims,
+      width: typeof width === "number" ? width : computedDims.width,
+      height: typeof height === "number" ? height : computedDims.height,
+    };
 
     return (
       <QuarterlyChart
@@ -138,7 +151,7 @@ const QuarterlyAnalysisChart = ({
         colorOf={colorOf}
         showTotal={false}
         selectedIndustries={selectedIndustries}
-        showDataPoints={true} // Enable data points
+        showDataPoints={true}
       />
     );
   };
@@ -156,37 +169,37 @@ const QuarterlyAnalysisChart = ({
 
         {/* Chart on the RIGHT - 4/5 */}
         <div className="col-span-4 min-w-0">
-          {isVolumeChart ? (
-            <QuarterlyChart
-              data={data}
-              industries={industries}
-              mode={mode}
-              isExpanded={isExpanded}
-              isVolume={true}
-              width={expandedDims.width}
-              height={expandedDims.height}
-              margin={expandedDims.margin}
-              colorOf={colorOf}
-              showTotal={showTotal}
-              selectedIndustries={selectedIndustries}
-              showDataPoints={true} // Enable data points
-            />
-          ) : (
-            <QuarterlyChart
-              data={data}
-              industries={industries}
-              mode={mode}
-              isExpanded={isExpanded}
-              isVolume={false}
-              width={expandedDims.width}
-              height={expandedDims.height}
-              margin={expandedDims.margin}
-              colorOf={colorOf}
-              showTotal={showTotal}
-              selectedIndustries={selectedIndustries}
-              showDataPoints={true} // Enable data points
-            />
-          )}
+          <ResponsiveD3Container width="100%" height={expandedDims.height}>
+            {isVolumeChart ? (
+              <QuarterlyChart
+                data={data}
+                industries={industries}
+                mode={mode}
+                isExpanded={isExpanded}
+                isVolume={true}
+                height={expandedDims.height}
+                margin={expandedDims.margin}
+                colorOf={colorOf}
+                showTotal={showTotal}
+                selectedIndustries={selectedIndustries}
+                showDataPoints={true}
+              />
+            ) : (
+              <QuarterlyChart
+                data={data}
+                industries={industries}
+                mode={mode}
+                isExpanded={isExpanded}
+                isVolume={false}
+                height={expandedDims.height}
+                margin={expandedDims.margin}
+                colorOf={colorOf}
+                showTotal={showTotal}
+                selectedIndustries={selectedIndustries}
+                showDataPoints={true}
+              />
+            )}
+          </ResponsiveD3Container>
         </div>
       </div>
     );

@@ -4,6 +4,7 @@ import { DualChartLayout } from "./shared/ChartLayouts";
 import D3MultiSeriesChart from "./shared/D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./shared/ChartDataUtils";
 import ChartLegend from "./shared/ChartLegend";
+import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import { getChartDims } from "../../lib/utils";
 import { CHART_MARGIN, EXPANDED_CHART_MARGIN, CEO_GENDER_COLOR_MAP, ENHANCED_COLOR_PALETTE } from "../../lib/constants";
 
@@ -81,13 +82,19 @@ const GenderAnalysisChart = ({ deals }) => {
   const expandedDims = { ...expandedDimsBase };
 
   // Main chart components
-  const VolumeChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded
+  const VolumeChart = ({ data, mode, isExpanded = false, width, height }) => {
+    const computedDims = isExpanded
       ? expandedDims
       : {
           ...dims,
           width: dims.width / 2,
         };
+
+    const currentDims = {
+      ...computedDims,
+      width: typeof width === "number" ? width : computedDims.width,
+      height: typeof height === "number" ? height : computedDims.height,
+    };
 
     return (
       <GenderChart
@@ -105,13 +112,19 @@ const GenderAnalysisChart = ({ deals }) => {
     );
   };
 
-  const CountChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded
+  const CountChart = ({ data, mode, isExpanded = false, width, height }) => {
+    const computedDims = isExpanded
       ? expandedDims
       : {
           ...dims,
           width: dims.width / 2,
         };
+
+    const currentDims = {
+      ...computedDims,
+      width: typeof width === "number" ? width : computedDims.width,
+      height: typeof height === "number" ? height : computedDims.height,
+    };
 
     return (
       <GenderChart
@@ -142,11 +155,13 @@ const GenderAnalysisChart = ({ deals }) => {
 
         {/* Chart on the RIGHT - 4/5 */}
         <div className="col-span-4 min-w-0">
-          {isVolumeChart ? (
-            <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
-          ) : (
-            <CountChart data={data} mode={mode} isExpanded={isExpanded} />
-          )}
+          <ResponsiveD3Container width="100%" height={expandedDims.height}>
+            {isVolumeChart ? (
+              <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
+            ) : (
+              <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+            )}
+          </ResponsiveD3Container>
         </div>
       </div>
     );
