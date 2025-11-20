@@ -68,7 +68,7 @@ const PhaseAnalysisChart = ({ deals }) => {
   }, [deals, phases]);
 
   const dims = getChartDims(false);
-  const expandedDimsBase = getChartDims(true, 450);
+  const expandedDimsBase = getChartDims(true, 440);
   const expandedDims = { ...expandedDimsBase };
 
   const VolumeChart = ({ data, mode, isExpanded = false }) => {
@@ -143,7 +143,7 @@ const PhaseAnalysisChart = ({ deals }) => {
     <BaseExpandableChart
       title="Phase Analysis"
       data={rows}
-      ChartComponent={({ data, leftMode, rightMode, showTotal, onExpand }) => (
+      ChartComponent={({ data, leftMode, rightMode, onExpand }) => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <div className="pl-4">

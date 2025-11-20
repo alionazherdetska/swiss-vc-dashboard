@@ -46,7 +46,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       data={data}
       ChartComponent={ChartComponent}
       ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => {
-        const expandedDims = getChartDims(true, 450);
+        const expandedDims = getChartDims(true, 440);
 
         return (
           <div className="grid grid-cols-5 items-start">

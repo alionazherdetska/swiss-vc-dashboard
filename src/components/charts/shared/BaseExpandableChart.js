@@ -202,32 +202,38 @@ const BaseExpandableChart = ({
         onExport={handleExport}
       >
         {chartState.expanded && (
-          ExpandedChartComponent ? (
-            // If chart provides its own expanded layout, render it as-is
-            <ExpandedChartComponent {...expandedChartProps} />
-          ) : (
-            // Otherwise render a 5-column grid where the chart occupies 4/5
-            // and the controls live in the right 1/5 column
-            <div className="grid grid-cols-5 items-start">
-              <div className="col-span-4 min-w-0">
-                <ChartComponent {...expandedChartProps} />
-              </div>
+            // Wrap expanded content in a flex container so it can grow to
+            // fill the modal body (contentScroll is a flex column).
+            <div>
+              {ExpandedChartComponent ? (
+                // If chart provides its own expanded layout, render it as-is
+                <div className="h-full min-h-0">
+                  <ExpandedChartComponent {...expandedChartProps} />
+                </div>
+              ) : (
+                // Otherwise render a 5-column grid where the chart occupies 4/5
+                // and the controls live in the right 1/5 column
+                <div className="h-full min-h-0 grid grid-cols-5 items-start">
+                  <div className="col-span-4 min-w-0 h-full min-h-0">
+                    <ChartComponent {...expandedChartProps} />
+                  </div>
 
-              <div className="col-span-1 pt-8">
-                <ChartControls
-                  isDualChart={false}
-                  singleMode={chartState.modalMode}
-                  onSingleModeChange={handleModalModeChange}
-                  showTotalControl={supportsTotal}
-                  showTotal={chartState.modalShowTotal}
-                  onShowTotalChange={handleModalShowTotalChange}
-                  showExpandButton={false}
-                  showExportButton={false}
-                />
-              </div>
+                  <div className="col-span-1 pt-8">
+                    <ChartControls
+                      isDualChart={false}
+                      singleMode={chartState.modalMode}
+                      onSingleModeChange={handleModalModeChange}
+                      showTotalControl={supportsTotal}
+                      showTotal={chartState.modalShowTotal}
+                      onShowTotalChange={handleModalShowTotalChange}
+                      showExpandButton={false}
+                      showExportButton={false}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          )
-        )}
+          )}
       </ChartModal>
     </div>
   );
