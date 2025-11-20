@@ -161,7 +161,7 @@ const QuarterlyAnalysisChart = ({
     const isVolumeChart = expandedChart === "volume";
     
     return (
-      <div className="grid grid-cols-5 gap-6 items-start">
+      <div className="grid grid-cols-5 items-start">
         {/* Legend on the LEFT - 1/5 */}
         <div className="col-span-1 pt-8">
           <ChartLegend items={industries} colorOf={colorOf} title="Industries" />

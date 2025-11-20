@@ -32,7 +32,12 @@ const D3AreaChart = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const chartWidth = width - margin.left - margin.right;
+    // Measure the actual rendered width of the SVG. When the parent
+    // `.chartArea` has padding, using the measured SVG width ensures
+    // the drawing area fits the visible content box and prevents
+    // horizontal overflow.
+    const renderedWidth = svgRef.current.getBoundingClientRect().width || width;
+    const chartWidth = renderedWidth - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
     // Create gradient definition
@@ -229,9 +234,9 @@ const D3AreaChart = ({
     onTooltipHide,
   ]);
 
-  return (
+    return (
     <div className={styles.chartArea}>
-      <svg ref={svgRef} width={width} height={height}></svg>
+      <svg ref={svgRef} width={typeof width === 'number' ? width : '100%'} height={height}></svg>
       <div
         ref={tooltipRef}
         className="absolute pointer-events-none opacity-0 transition-opacity z-50 fixed"

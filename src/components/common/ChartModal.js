@@ -33,7 +33,7 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport }) => {
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modalFrame} onClick={stop}>
         <div className={styles.header}>
-          <div className="flex items-start justify-between gap-6">
+          <div className="flex items-start justify-between">
             <div className="flex flex-col">
               <h2 className="text-2xl font-semibold text-gray-900 leading-tight">{title}</h2>
               <p className="text-sm text-gray-500 mt-1">in CHF Mio.</p>

@@ -45,24 +45,22 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       data={data}
       ChartComponent={ChartComponent}
       ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => (
-        <div className="grid grid-cols-5 gap-6 items-start h-[400px]">
+        <div className="grid grid-cols-5 items-start h-[400px]">
           <div className="col-span-1 pt-8">
             <ChartLegend items={[headerTitle]} colorOf={() => "#E84A5F"} title={"Series"} />
           </div>
 
           <div className="col-span-4 min-w-0">
-            <div style={{ width: '100%', height: '350px' }}>
-              <InnerArea 
-                data={d} 
-                dataKey={chartKey} 
-                mode={mode} 
-                width={800}  // Use a reasonable fixed width
-                height={350} 
-                margin={{ top: 50, right: 50, left: 60, bottom: 60 }} 
-                isExpanded={true} 
-                yAxisLabel={defaultY} 
+            <ResponsiveD3Container height={350}>
+              <InnerArea
+                data={d}
+                dataKey={chartKey}
+                mode={mode}
+                height={350}
+                isExpanded={true}
+                yAxisLabel={defaultY}
               />
-            </div>
+            </ResponsiveD3Container>
           </div>
         </div>
       )}

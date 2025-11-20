@@ -208,7 +208,7 @@ const BaseExpandableChart = ({
           ) : (
             // Otherwise render a 5-column grid where the chart occupies 4/5
             // and the controls live in the right 1/5 column
-            <div className="grid grid-cols-5 gap-6 items-start">
+            <div className="grid grid-cols-5 items-start">
               <div className="col-span-4 min-w-0">
                 <ChartComponent {...expandedChartProps} />
               </div>
