@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import BaseExpandableChart from "./BaseExpandableChart";
-import ChartLegend from "./ChartLegend";
 import ResponsiveD3Container from "./ResponsiveD3Container";
+import ExpandedChartLayout from "./ExpandedChartLayout";
 import { DualChartLayout } from "./ChartLayouts";
 import D3MultiSeriesChart from "./D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./ChartDataUtils";
@@ -135,31 +135,29 @@ const createAnalysisChart = (config) => {
     const VolumeChart = renderChart(true);
     const CountChart = renderChart(false);
 
-    // Expanded chart component with legend on the left
+    // Expanded chart component using unified layout
     const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal }) => {
       const isVolumeChart = expandedChart === "volume";
 
       return (
-        <div className="grid grid-cols-5 items-start">
-          <div className="col-span-1 pt-8">
-            <ChartLegend items={categories} colorOf={colorOf} title={legendTitle} />
-          </div>
-          <div className="col-span-4 min-w-0">
-            <ResponsiveD3Container width="100%" height={expandedDims.height}>
-              <CategoryChart
-                data={data}
-                categories={categories}
-                isVolume={isVolumeChart}
-                mode={mode}
-                margin={expandedDims.margin}
-                isExpanded={isExpanded}
-                colorOf={colorOf}
-                showTotal={showTotal}
-                selectedCategories={selectedCategories}
-              />
-            </ResponsiveD3Container>
-          </div>
-        </div>
+        <ExpandedChartLayout
+          legendItems={categories}
+          legendTitle={legendTitle}
+          colorOf={colorOf}
+          height={expandedDims.height}
+        >
+          <CategoryChart
+            data={data}
+            categories={categories}
+            isVolume={isVolumeChart}
+            mode={mode}
+            margin={expandedDims.margin}
+            isExpanded={true}
+            colorOf={colorOf}
+            showTotal={showTotal}
+            selectedCategories={selectedCategories}
+          />
+        </ExpandedChartLayout>
       );
     };
 

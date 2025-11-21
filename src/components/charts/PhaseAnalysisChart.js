@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import BaseExpandableChart from "./shared/BaseExpandableChart";
-import ChartLegend from "./shared/ChartLegend";
 import ChartHeader from "./shared/ChartHeader";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
+import ExpandedChartLayout from "./shared/ExpandedChartLayout";
 import D3ComposedChart from "./shared/D3ComposedChart";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
 import {
@@ -106,23 +106,30 @@ const PhaseAnalysisChart = ({ deals }) => {
     />
   );
 
-  // Expanded chart with legend
+  // Expanded chart using unified layout
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
     const isVolumeChart = expandedChart === "volume";
 
     return (
-      <div className="grid grid-cols-5 items-start">
-        <div className="col-span-1 pt-8">
-          <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
-        </div>
-        <div className="col-span-4 min-w-0">
-          {isVolumeChart ? (
-            <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
-          ) : (
-            <CountChart data={data} mode={mode} isExpanded={isExpanded} />
-          )}
-        </div>
-      </div>
+      <ExpandedChartLayout
+        legendItems={phases}
+        legendTitle="Phases"
+        colorOf={colorOf}
+        height={expandedDims.height}
+      >
+        <D3ComposedChart
+          data={data}
+          categories={phases}
+          mode={mode}
+          margin={expandedDims.margin}
+          strokeWidth={2}
+          gridColor={GRID_STROKE}
+          axisColor={AXIS_STROKE}
+          colorOf={colorOf}
+          dataKeySuffix={isVolumeChart ? "__volume" : "__count"}
+          showDataPoints={true}
+        />
+      </ExpandedChartLayout>
     );
   };
 

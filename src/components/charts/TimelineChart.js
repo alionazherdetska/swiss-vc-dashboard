@@ -2,7 +2,7 @@ import BaseExpandableChart from "./shared/BaseExpandableChart";
 import ChartHeader from "./shared/ChartHeader";
 import D3AreaChart from "./shared/D3AreaChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
-import ChartLegend from "./shared/ChartLegend";
+import ExpandedChartLayout from "./shared/ExpandedChartLayout";
 import { getChartDims } from "../../lib/utils";
 import { CHART_MARGIN, EXPANDED_CHART_MARGIN } from "../../lib/constants";
 import styles from "./Charts.module.css";
@@ -45,16 +45,27 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
     );
   };
 
-  // Expanded chart with legend
+  // Expanded chart using unified layout
   const ExpandedChart = ({ data: chartData }) => (
-    <div className="grid grid-cols-5 items-start">
-      <div className="col-span-1 pt-8">
-        <ChartLegend items={[headerTitle]} colorOf={() => chartColor} title="Series" />
-      </div>
-      <div className="col-span-4 min-w-0">
-        <MainChart data={chartData} isExpanded={true} />
-      </div>
-    </div>
+    <ExpandedChartLayout
+      legendItems={[headerTitle]}
+      legendTitle="Series"
+      colorOf={() => chartColor}
+      height={expandedDims.height}
+    >
+      <D3AreaChart
+        data={chartData}
+        dataKey={chartKey}
+        margin={expandedDims.margin}
+        strokeColor={chartColor}
+        strokeWidth={2}
+        fillColor={chartColor}
+        fillOpacity={0.8}
+        gridColor="#E2E8F0"
+        axisColor="#4A5568"
+        yAxisLabel={defaultY}
+      />
+    </ExpandedChartLayout>
   );
 
   return (
