@@ -1,85 +1,82 @@
 import BaseExpandableChart from "./shared/BaseExpandableChart";
-import { SingleChartLayout } from "./shared/ChartLayouts";
+import ChartHeader from "./shared/ChartHeader";
 import D3AreaChart from "./shared/D3AreaChart";
 import ResponsiveD3Container from "./shared/ResponsiveD3Container";
 import ChartLegend from "./shared/ChartLegend";
 import { getChartDims } from "../../lib/utils";
 import { CHART_MARGIN, EXPANDED_CHART_MARGIN } from "../../lib/constants";
+import styles from "./Charts.module.css";
 
-const InnerArea = ({ data, dataKey, mode, width, height, margin, yAxisLabel }) => {
-  return (
-    <D3AreaChart
-      data={data}
-      dataKey={dataKey}
-      width={width}
-      height={height}
-      margin={margin}
-      mode={mode}
-      strokeColor="#E84A5F"
-      strokeWidth={2}
-      fillColor="#E84A5F"
-      fillOpacity={0.8}
-      gridColor="#E2E8F0"
-      axisColor="#4A5568"
-      yAxisLabel={yAxisLabel}
-    />
-  );
-};
-
+/**
+ * Timeline Chart - Shows investment volume or deal count over time
+ * Uses same pattern as other analysis charts for consistency
+ */
 export const TimelineChart = ({ data, showVolume = false, title }) => {
   const chartKey = showVolume ? "volume" : "count";
   const defaultY = showVolume ? "Volume (CHF M)" : "Count";
   const headerTitle = title || (showVolume ? "Invested capital" : "Number of deals");
+  const chartColor = "#E84A5F";
 
-  // Chart dimensions
+  // Chart dimensions - same as other charts
   const dims = getChartDims(false, undefined, CHART_MARGIN);
   const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
-  const ChartComponent = ({ data: chartData, singleMode, onExpand }) => (
-    <SingleChartLayout
-      title={headerTitle}
-      ChartComponent={(props) => (
-        <ResponsiveD3Container width="100%" height={dims.height}>
-          <InnerArea
-            {...props}
+  // Main chart component - matches pattern from PhaseAnalysisChart
+  const MainChart = ({ data: chartData, isExpanded = false }) => {
+    const currentDims = isExpanded ? expandedDims : dims;
+
+    return (
+      <div className={styles.chartArea}>
+        <ResponsiveD3Container width="100%" height={currentDims.height}>
+          <D3AreaChart
             data={chartData}
             dataKey={chartKey}
-            margin={dims.margin}
+            margin={currentDims.margin}
+            strokeColor={chartColor}
+            strokeWidth={2}
+            fillColor={chartColor}
+            fillOpacity={0.8}
+            gridColor="#E2E8F0"
+            axisColor="#4A5568"
             yAxisLabel={defaultY}
           />
         </ResponsiveD3Container>
-      )}
-      onExpand={() => onExpand && onExpand(showVolume ? "volume" : "count")}
-    />
+      </div>
+    );
+  };
+
+  // Expanded chart with legend
+  const ExpandedChart = ({ data: chartData }) => (
+    <div className="grid grid-cols-5 items-start">
+      <div className="col-span-1 pt-8">
+        <ChartLegend items={[headerTitle]} colorOf={() => chartColor} title="Series" />
+      </div>
+      <div className="col-span-4 min-w-0">
+        <MainChart data={chartData} isExpanded={true} />
+      </div>
+    </div>
   );
 
   return (
     <BaseExpandableChart
       title={headerTitle}
       data={data}
-      ChartComponent={ChartComponent}
-      ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => {
-        return (
-          <div className="grid grid-cols-5 items-start">
-            <div className="col-span-1 pt-8">
-              <ChartLegend items={[headerTitle]} colorOf={() => "#E84A5F"} title={"Series"} />
-            </div>
-
-            <div className="col-span-4 min-w-0">
-              <ResponsiveD3Container width="100%" height={expandedDims.height}>
-                <InnerArea
-                  data={d}
-                  dataKey={chartKey}
-                  mode={mode}
-                  margin={expandedDims.margin}
-                  isExpanded={true}
-                  yAxisLabel={defaultY}
-                />
-              </ResponsiveD3Container>
-            </div>
+      ChartComponent={({ data: chartData, onExpand }) => (
+        <div>
+          <div className="pl-4">
+            <ChartHeader
+              title={headerTitle}
+              showExpandButton={true}
+              onExpand={() => onExpand && onExpand(showVolume ? "volume" : "count")}
+              expandTitle="Expand Chart"
+              className="flex items-start gap-4 mb-2"
+              titleClassName="text-md font-semibold text-gray-800"
+            />
           </div>
-        );
-      }}
+          <MainChart data={chartData} />
+        </div>
+      )}
+      ExpandedChartComponent={ExpandedChart}
       isDualChart={false}
       supportsSingleMode={true}
       supportsTotal={false}

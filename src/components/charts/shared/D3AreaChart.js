@@ -1,10 +1,9 @@
 import { useRef, useEffect } from "react";
 import * as d3 from "d3";
-import styles from "../Charts.module.css";
 
 /**
- * D3-based area chart component that replaces Recharts AreaChart
- * Matches the visual styling and functionality of the original TimelineChart
+ * D3-based area chart component
+ * Matches the responsive pattern of D3ComposedChart
  */
 const D3AreaChart = ({
   data = [],
@@ -32,12 +31,7 @@ const D3AreaChart = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    // Measure the actual rendered width of the SVG. When the parent
-    // `.chartArea` has padding, using the measured SVG width ensures
-    // the drawing area fits the visible content box and prevents
-    // horizontal overflow.
-    const renderedWidth = svgRef.current.getBoundingClientRect().width || width;
-    const chartWidth = renderedWidth - margin.left - margin.right;
+    const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
     // Create gradient definition
@@ -234,9 +228,10 @@ const D3AreaChart = ({
     onTooltipHide,
   ]);
 
-    return (
-    <div className={styles.chartArea}>
-      <svg ref={svgRef} width={typeof width === 'number' ? width : '100%'} height={height}></svg>
+  // Match D3ComposedChart pattern: no fixed wrapper, pass dimensions directly to SVG
+  return (
+    <div className="relative">
+      <svg ref={svgRef} width={width} height={height}></svg>
       <div
         ref={tooltipRef}
         className="absolute pointer-events-none opacity-0 transition-opacity z-50 fixed"
