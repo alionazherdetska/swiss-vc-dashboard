@@ -82,64 +82,46 @@ const CantonAnalysisChart = ({ deals }) => {
   const expandedDimsBase = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
   const expandedDims = { ...expandedDimsBase };
 
-  // Main chart components
+  // Main chart components - wrapped in ResponsiveD3Container for responsive width
   const VolumeChart = ({ data, mode, isExpanded = false, width, height }) => {
-    const computedDims = isExpanded
-      ? expandedDims
-      : {
-          ...dims,
-          width: dims.width / 2,
-        };
-
-    const currentDims = {
-      ...computedDims,
-      width: typeof width === "number" ? width : computedDims.width,
-      height: typeof height === "number" ? height : computedDims.height,
-    };
+    const currentDims = isExpanded ? expandedDims : dims;
+    // Use passed width/height if provided (from ResponsiveD3Container), otherwise use defaults
+    const finalHeight = typeof height === "number" ? height : currentDims.height;
 
     return (
-      <CantonChart
-        data={data}
-        cantons={cantons}
-        isVolume={true}
-        mode={mode}
-        width={currentDims.width}
-        height={currentDims.height}
-        margin={currentDims.margin}
-        isExpanded={isExpanded}
-        colorOf={colorOf}
-        showTotal={false}
-      />
+      <ResponsiveD3Container width="100%" height={finalHeight}>
+        <CantonChart
+          data={data}
+          cantons={cantons}
+          isVolume={true}
+          mode={mode}
+          margin={currentDims.margin}
+          isExpanded={isExpanded}
+          colorOf={colorOf}
+          showTotal={false}
+        />
+      </ResponsiveD3Container>
     );
   };
 
   const CountChart = ({ data, mode, isExpanded = false, width, height }) => {
-    const computedDims = isExpanded
-      ? expandedDims
-      : {
-          ...dims,
-          width: dims.width / 2,
-        };
-
-    const currentDims = {
-      ...computedDims,
-      width: typeof width === "number" ? width : computedDims.width,
-      height: typeof height === "number" ? height : computedDims.height,
-    };
+    const currentDims = isExpanded ? expandedDims : dims;
+    // Use passed width/height if provided (from ResponsiveD3Container), otherwise use defaults
+    const finalHeight = typeof height === "number" ? height : currentDims.height;
 
     return (
-      <CantonChart
-        data={data}
-        cantons={cantons}
-        isVolume={false}
-        mode={mode}
-        width={currentDims.width}
-        height={currentDims.height}
-        margin={currentDims.margin}
-        isExpanded={isExpanded}
-        colorOf={colorOf}
-        showTotal={false}
-      />
+      <ResponsiveD3Container width="100%" height={finalHeight}>
+        <CantonChart
+          data={data}
+          cantons={cantons}
+          isVolume={false}
+          mode={mode}
+          margin={currentDims.margin}
+          isExpanded={isExpanded}
+          colorOf={colorOf}
+          showTotal={false}
+        />
+      </ResponsiveD3Container>
     );
   };
 
@@ -158,9 +140,27 @@ const CantonAnalysisChart = ({ deals }) => {
         <div className="col-span-4 min-w-0">
           <ResponsiveD3Container width="100%" height={expandedDims.height}>
             {isVolumeChart ? (
-              <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
+              <CantonChart
+                data={data}
+                cantons={cantons}
+                isVolume={true}
+                mode={mode}
+                margin={expandedDims.margin}
+                isExpanded={isExpanded}
+                colorOf={colorOf}
+                showTotal={false}
+              />
             ) : (
-              <CountChart data={data} mode={mode} isExpanded={isExpanded} />
+              <CantonChart
+                data={data}
+                cantons={cantons}
+                isVolume={false}
+                mode={mode}
+                margin={expandedDims.margin}
+                isExpanded={isExpanded}
+                colorOf={colorOf}
+                showTotal={false}
+              />
             )}
           </ResponsiveD3Container>
         </div>

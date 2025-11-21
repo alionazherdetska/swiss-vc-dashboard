@@ -256,9 +256,11 @@ const D3MultiSeriesChart = ({
     yAxisLabel,
   ]);
 
+  // Match D3ComposedChart pattern: no fixed width/height on wrapper div,
+  // pass dimensions directly to SVG for responsive behavior
   return (
-    <div className="relative" style={{ width, height }}>
-      <svg ref={svgRef} width="100%" height="100%"></svg>
+    <div className="relative">
+      <svg ref={svgRef} width={width} height={height}></svg>
       <div
         ref={tooltipRef}
         className="absolute pointer-events-none opacity-0 transition-opacity z-50 bg-black/90 text-white px-3 py-2 rounded-md text-[13px] shadow-lg"

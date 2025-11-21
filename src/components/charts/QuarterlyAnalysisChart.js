@@ -91,68 +91,50 @@ const QuarterlyAnalysisChart = ({
   const expandedDimsBase = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
   const expandedDims = { ...expandedDimsBase };
 
-  // Main chart components
+  // Main chart components - wrapped in ResponsiveD3Container for responsive width
   const VolumeChart = ({ data, mode, isExpanded = false, width, height }) => {
-    const computedDims = isExpanded
-      ? expandedDims
-      : {
-          ...dims,
-          width: dims.width / 2,
-        };
-
-    const currentDims = {
-      ...computedDims,
-      width: typeof width === "number" ? width : computedDims.width,
-      height: typeof height === "number" ? height : computedDims.height,
-    };
+    const currentDims = isExpanded ? expandedDims : dims;
+    // Use passed width/height if provided (from ResponsiveD3Container), otherwise use defaults
+    const finalHeight = typeof height === "number" ? height : currentDims.height;
 
     return (
-      <QuarterlyChart
-        data={data}
-        industries={industries}
-        isVolume={true}
-        mode={mode}
-        width={currentDims.width}
-        height={currentDims.height}
-        margin={currentDims.margin}
-        isExpanded={isExpanded}
-        colorOf={colorOf}
-        showTotal={false}
-        selectedIndustries={selectedIndustries}
-        showDataPoints={true}
-      />
+      <ResponsiveD3Container width="100%" height={finalHeight}>
+        <QuarterlyChart
+          data={data}
+          industries={industries}
+          isVolume={true}
+          mode={mode}
+          margin={currentDims.margin}
+          isExpanded={isExpanded}
+          colorOf={colorOf}
+          showTotal={false}
+          selectedIndustries={selectedIndustries}
+          showDataPoints={true}
+        />
+      </ResponsiveD3Container>
     );
   };
 
   const CountChart = ({ data, mode, isExpanded = false, width, height }) => {
-    const computedDims = isExpanded
-      ? expandedDims
-      : {
-          ...dims,
-          width: dims.width / 2,
-        };
-
-    const currentDims = {
-      ...computedDims,
-      width: typeof width === "number" ? width : computedDims.width,
-      height: typeof height === "number" ? height : computedDims.height,
-    };
+    const currentDims = isExpanded ? expandedDims : dims;
+    // Use passed width/height if provided (from ResponsiveD3Container), otherwise use defaults
+    const finalHeight = typeof height === "number" ? height : currentDims.height;
 
     return (
-      <QuarterlyChart
-        data={data}
-        industries={industries}
-        isVolume={false}
-        mode={mode}
-        width={currentDims.width}
-        height={currentDims.height}
-        margin={currentDims.margin}
-        isExpanded={isExpanded}
-        colorOf={colorOf}
-        showTotal={false}
-        selectedIndustries={selectedIndustries}
-        showDataPoints={true}
-      />
+      <ResponsiveD3Container width="100%" height={finalHeight}>
+        <QuarterlyChart
+          data={data}
+          industries={industries}
+          isVolume={false}
+          mode={mode}
+          margin={currentDims.margin}
+          isExpanded={isExpanded}
+          colorOf={colorOf}
+          showTotal={false}
+          selectedIndustries={selectedIndustries}
+          showDataPoints={true}
+        />
+      </ResponsiveD3Container>
     );
   };
 
@@ -177,7 +159,6 @@ const QuarterlyAnalysisChart = ({
                 mode={mode}
                 isExpanded={isExpanded}
                 isVolume={true}
-                height={expandedDims.height}
                 margin={expandedDims.margin}
                 colorOf={colorOf}
                 showTotal={showTotal}
@@ -191,7 +172,6 @@ const QuarterlyAnalysisChart = ({
                 mode={mode}
                 isExpanded={isExpanded}
                 isVolume={false}
-                height={expandedDims.height}
                 margin={expandedDims.margin}
                 colorOf={colorOf}
                 showTotal={showTotal}
