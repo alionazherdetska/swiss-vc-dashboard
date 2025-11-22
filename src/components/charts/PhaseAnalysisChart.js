@@ -19,7 +19,10 @@ import styles from "./Charts.module.css";
  * Phase Analysis Chart
  * Uses D3ComposedChart for rendering (different from other analysis charts)
  */
-const PhaseAnalysisChart = ({ deals }) => {
+const PhaseAnalysisChart = ({ deals, allDeals }) => {
+  // Use allDeals for grand total calculation, fall back to deals if not provided
+  const dealsForTotal = allDeals || deals;
+
   // Extract phases from deals
   const phases = useMemo(() => {
     return Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort();
@@ -32,6 +35,7 @@ const PhaseAnalysisChart = ({ deals }) => {
 
   // Prepare phase/year rows for charting
   const rows = useMemo(() => {
+    // Group filtered deals by year for category breakdown
     const byYear = {};
     deals.forEach((d) => {
       if (!d.Phase || !d.Year) return;
@@ -41,10 +45,33 @@ const PhaseAnalysisChart = ({ deals }) => {
       byYear[year][`${phaseKey}__volume`] =
         (byYear[year][`${phaseKey}__volume`] || 0) + Number(d.Amount || 0);
       byYear[year][`${phaseKey}__count`] = (byYear[year][`${phaseKey}__count`] || 0) + 1;
-      byYear[year]["__grandTotalVolume"] =
-        (byYear[year]["__grandTotalVolume"] || 0) + Number(d.Amount || 0);
-      byYear[year]["__grandTotalCount"] = (byYear[year]["__grandTotalCount"] || 0) + 1;
     });
+
+    // Group ALL deals by year for grand total
+    const allByYear = {};
+    dealsForTotal.forEach((d) => {
+      if (!d.Year) return;
+      const year = d.Year;
+      if (!allByYear[year]) {
+        allByYear[year] = { totalVolume: 0, totalCount: 0 };
+      }
+      allByYear[year].totalVolume += Number(d.Amount || 0);
+      allByYear[year].totalCount += 1;
+    });
+
+    // Merge grand totals into byYear
+    const allYears = new Set([...Object.keys(byYear), ...Object.keys(allByYear)]);
+    allYears.forEach((year) => {
+      if (!byYear[year]) {
+        byYear[year] = { year: parseInt(year) };
+      }
+      const totals = allByYear[year] || { totalVolume: 0, totalCount: 0 };
+      byYear[year].__grandTotalVolume = totals.totalVolume;
+      byYear[year].__grandTotalCount = totals.totalCount;
+      byYear[year].totalVolume = totals.totalVolume;
+      byYear[year].totalCount = totals.totalCount;
+    });
+
     const allRows = Object.values(byYear).sort((a, b) => a.year - b.year);
     // Find first year with any non-zero value
     const firstIdx = allRows.findIndex((row) => {
@@ -55,14 +82,14 @@ const PhaseAnalysisChart = ({ deals }) => {
       });
     });
     return firstIdx >= 0 ? allRows.slice(firstIdx) : allRows;
-  }, [deals, phases]);
+  }, [deals, dealsForTotal, phases]);
 
   // Chart dimensions
   const dims = getChartDims(false, undefined, CHART_MARGIN);
   const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
   // Reusable chart component
-  const PhaseChart = ({ data, isVolume, mode, height, margin, showDataPoints = true }) => {
+  const PhaseChart = ({ data, isVolume, mode, height, margin, showDataPoints = true, showTotal = false }) => {
     const dataKeySuffix = isVolume ? "__volume" : "__count";
 
     return (
@@ -79,6 +106,7 @@ const PhaseAnalysisChart = ({ deals }) => {
             colorOf={colorOf}
             dataKeySuffix={dataKeySuffix}
             showDataPoints={showDataPoints}
+            showTotal={showTotal}
           />
         </ResponsiveD3Container>
       </div>

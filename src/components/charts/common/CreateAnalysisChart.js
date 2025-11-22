@@ -33,7 +33,6 @@ const createAnalysisChart = (config) => {
     selectedCategories = [],
   }) => {
     const metricSuffix = isVolume ? "__volume" : "__count";
-    // intentionally hide the left Y axis label (units shown in UI elsewhere)
     const yAxisLabel = null;
     const displayCategories = selectedCategories.length > 0 ? selectedCategories : categories;
 
@@ -56,14 +55,18 @@ const createAnalysisChart = (config) => {
     );
   };
 
-  const AnalysisChart = ({ deals, selectedCategories = [] }) => {
+  const AnalysisChart = ({ deals, allDeals, selectedCategories = [] }) => {
     const { chartData, categories, colorOf } = useMemo(() => {
       if (!deals?.length) return { chartData: [], categories: [], colorOf: () => "#000" };
 
       const filteredDeals = filterDeals(deals);
+      // Use allDeals for grand total, fall back to deals if not provided
+      const allFilteredDeals = allDeals ? filterDeals(allDeals) : filteredDeals;
 
       const getCategoryValue = (item) => normalizeCategory(item[categoryField]);
       const extractedCategories = extractCategories(filteredDeals, getCategoryValue).sort();
+      // Extract ALL categories from unfiltered data for the color function
+      const allExtractedCategories = extractCategories(allFilteredDeals, getCategoryValue).sort();
 
       const chartConfig = getChartConfig(chartType);
       const yearlyData = calculateYearlyData(filteredDeals, {
@@ -72,19 +75,19 @@ const createAnalysisChart = (config) => {
         getCategoryValue,
         includeTotal: true,
         // Pass unfiltered deals for grand total calculation
-        allData: filterDeals(deals),
+        allData: allFilteredDeals,
       });
 
       const colorFn = (category) =>
         colorMap[category] ||
-        ENHANCED_COLOR_PALETTE[extractedCategories.indexOf(category) % ENHANCED_COLOR_PALETTE.length];
+        ENHANCED_COLOR_PALETTE[allExtractedCategories.indexOf(category) % ENHANCED_COLOR_PALETTE.length];
 
       return {
         chartData: yearlyData,
         categories: extractedCategories,
         colorOf: colorFn,
       };
-    }, [deals]);
+    }, [deals, allDeals]);
 
     const dims = getChartDims(false, undefined, CHART_MARGIN);
     const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
