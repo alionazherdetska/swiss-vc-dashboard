@@ -18,11 +18,8 @@ const D3MultiSeriesChart = ({
   isExpanded = false,
   colorOf,
   showTotal = false,
-  onTooltipShow,
-  onTooltipHide,
 
   // Customization
-  xAxisLabel = "Year",
   yAxisLabel = null,
 
   // Data field configuration
