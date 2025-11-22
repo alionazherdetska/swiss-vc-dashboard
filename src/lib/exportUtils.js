@@ -45,7 +45,9 @@ export function exportPDF(contentHtml, filename = "export.pdf") {
   // Create printable window
   const w = window.open("", "_blank");
   if (!w) return;
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${filename}</title></head><body>${contentHtml}</body></html>`);
+  w.document.write(
+    `<!doctype html><html><head><meta charset="utf-8"><title>${filename}</title></head><body>${contentHtml}</body></html>`
+  );
   w.document.close();
   // Let user print/save as PDF
   w.focus();

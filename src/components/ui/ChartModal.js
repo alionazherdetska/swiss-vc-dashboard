@@ -42,7 +42,7 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport, headerRight = 
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Download</span>
                   <ExportButton
-                    onClick={() => onExport('csv')}
+                    onClick={() => onExport("csv")}
                     label="CSV"
                     iconOnly={false}
                     showIcon={true}
@@ -50,7 +50,7 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport, headerRight = 
                     title="Download as CSV"
                   />
                   <ExportButton
-                    onClick={() => onExport('pdf')}
+                    onClick={() => onExport("pdf")}
                     label="PDF"
                     iconOnly={false}
                     showIcon={true}

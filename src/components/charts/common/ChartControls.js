@@ -246,4 +246,3 @@ const ChartControls = ({
 };
 
 export default ChartControls;
-

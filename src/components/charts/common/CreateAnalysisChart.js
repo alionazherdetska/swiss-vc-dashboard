@@ -6,7 +6,11 @@ import { DualChartLayout } from "./ChartLayouts";
 import D3MultiSeriesChart from "./D3MultiSeriesChart";
 import { calculateYearlyData, extractCategories, getChartConfig } from "./ChartDataUtils";
 import { getChartDims } from "../../../lib/utils";
-import { CHART_MARGIN, EXPANDED_CHART_MARGIN, ENHANCED_COLOR_PALETTE } from "../../../lib/constants";
+import {
+  CHART_MARGIN,
+  EXPANDED_CHART_MARGIN,
+  ENHANCED_COLOR_PALETTE,
+} from "../../../lib/constants";
 
 const createAnalysisChart = (config) => {
   const {
@@ -80,7 +84,9 @@ const createAnalysisChart = (config) => {
 
       const colorFn = (category) =>
         colorMap[category] ||
-        ENHANCED_COLOR_PALETTE[allExtractedCategories.indexOf(category) % ENHANCED_COLOR_PALETTE.length];
+        ENHANCED_COLOR_PALETTE[
+          allExtractedCategories.indexOf(category) % ENHANCED_COLOR_PALETTE.length
+        ];
 
       return {
         chartData: yearlyData,
@@ -92,26 +98,28 @@ const createAnalysisChart = (config) => {
     const dims = getChartDims(false, undefined, CHART_MARGIN);
     const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
-    const renderChart = (isVolume) => ({ data, mode, isExpanded = false, width, height }) => {
-      const currentDims = isExpanded ? expandedDims : dims;
-      const finalHeight = typeof height === "number" ? height : currentDims.height;
+    const renderChart =
+      (isVolume) =>
+      ({ data, mode, isExpanded = false, width, height }) => {
+        const currentDims = isExpanded ? expandedDims : dims;
+        const finalHeight = typeof height === "number" ? height : currentDims.height;
 
-      return (
-        <ResponsiveD3Container width="100%" height={finalHeight}>
-          <CategoryChart
-            data={data}
-            categories={categories}
-            isVolume={isVolume}
-            mode={mode}
-            margin={currentDims.margin}
-            isExpanded={isExpanded}
-            colorOf={colorOf}
-            showTotal={false}
-            selectedCategories={selectedCategories}
-          />
-        </ResponsiveD3Container>
-      );
-    };
+        return (
+          <ResponsiveD3Container width="100%" height={finalHeight}>
+            <CategoryChart
+              data={data}
+              categories={categories}
+              isVolume={isVolume}
+              mode={mode}
+              margin={currentDims.margin}
+              isExpanded={isExpanded}
+              colorOf={colorOf}
+              showTotal={false}
+              selectedCategories={selectedCategories}
+            />
+          </ResponsiveD3Container>
+        );
+      };
 
     const VolumeChart = renderChart(true);
     const CountChart = renderChart(false);

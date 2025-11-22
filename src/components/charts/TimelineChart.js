@@ -53,7 +53,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       height={expandedDims.height}
       controls={controls}
     >
-        <D3AreaChart
+      <D3AreaChart
         data={chartData}
         dataKey={chartKey}
         margin={expandedDims.margin}

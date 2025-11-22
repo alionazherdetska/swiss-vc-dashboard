@@ -61,7 +61,10 @@
   line-height: 0px;
   cursor: pointer;
   /* smoother, matched transition for background/text/border */
-  transition: background 240ms cubic-bezier(.4,0,.2,1), color 240ms cubic-bezier(.4,0,.2,1), border-color 240ms cubic-bezier(.4,0,.2,1);
+  transition:
+    background 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    color 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 240ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .exportBtn:hover {
@@ -72,12 +75,15 @@
 /* Ensure SVG/IMG icons inside modal export buttons invert on hover to become white */
 .exportBtn img {
   /* image icons use filter-based inversion; keep transition in sync */
-  transition: filter 240ms cubic-bezier(.4,0,.2,1);
+  transition: filter 240ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* inline SVGs use currentColor; transition the color/stroke/fill so they change exactly with text */
 .exportBtn svg {
-  transition: color 240ms cubic-bezier(.4,0,.2,1), stroke 240ms cubic-bezier(.4,0,.2,1), fill 240ms cubic-bezier(.4,0,.2,1);
+  transition:
+    color 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 240ms cubic-bezier(0.4, 0, 0.2, 1),
+    fill 240ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .exportBtn:hover img {
@@ -102,7 +108,10 @@
   width: fit-content;
   line-height: 0px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .closeBtn:hover {

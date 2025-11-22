@@ -89,7 +89,15 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
   const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
   // Reusable chart component
-  const PhaseChart = ({ data, isVolume, mode, height, margin, showDataPoints = true, showTotal = false }) => {
+  const PhaseChart = ({
+    data,
+    isVolume,
+    mode,
+    height,
+    margin,
+    showDataPoints = true,
+    showTotal = false,
+  }) => {
     const dataKeySuffix = isVolume ? "__volume" : "__count";
 
     return (

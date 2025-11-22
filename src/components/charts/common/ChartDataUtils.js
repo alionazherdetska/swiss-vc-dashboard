@@ -62,7 +62,10 @@ export const calculateYearlyData = (data, config) => {
         // Grand total from ALL data (unfiltered), not just selected categories
         const allItemsForYear = allGroupedByYear[year] || [];
         const grandTotalCount = allItemsForYear.length;
-        const grandTotalVolume = allItemsForYear.reduce((sum, item) => sum + getVolumeValue(item), 0);
+        const grandTotalVolume = allItemsForYear.reduce(
+          (sum, item) => sum + getVolumeValue(item),
+          0
+        );
 
         yearData.totalCount = grandTotalCount;
         yearData.totalVolume = Math.round(grandTotalVolume * 10) / 10;

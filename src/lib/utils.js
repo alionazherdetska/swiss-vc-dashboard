@@ -79,8 +79,7 @@ export const processCompanies = (companiesData) => {
   return companiesData.map((company) => {
     let normalizedIndustry = null;
     if (company.Industry && company.Industry.trim()) {
-      const cleaned = company.Industry
-        .trim()
+      const cleaned = company.Industry.trim()
         .toLowerCase()
         .replace(/\s*\(.*?\)/g, "")
         .replace(/\s+/g, " ");

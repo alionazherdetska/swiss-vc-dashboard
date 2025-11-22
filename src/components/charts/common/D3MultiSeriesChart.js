@@ -39,57 +39,71 @@ const D3MultiSeriesChart = ({
       .domain(data.map((d) => d.year))
       .range([0, chartWidth])
       .padding(0.1);
-      // For stacked (column) mode compute the stacked data and derive the max from the
-      // stackedY (d[1]) values so we accurately reflect combined bar heights.
-      let stackedDataForDomain = null;
-      if (mode === "column") {
-        const stack = d3.stack().keys(categories.map((cat) => cat.replace(/[^a-zA-Z0-9]/g, "_")));
-        stackedDataForDomain = stack(
-          data.map((d) => {
-            const row = { year: d.year };
-            categories.forEach((cat) => {
-              const key = cat.replace(/[^a-zA-Z0-9]/g, "_");
-              row[key] = getSeriesValue(d, key, metricSuffix);
-            });
-            return row;
-          })
-        );
+    // For stacked (column) mode compute the stacked data and derive the max from the
+    // stackedY (d[1]) values so we accurately reflect combined bar heights.
+    let stackedDataForDomain = null;
+    if (mode === "column") {
+      const stack = d3.stack().keys(categories.map((cat) => cat.replace(/[^a-zA-Z0-9]/g, "_")));
+      stackedDataForDomain = stack(
+        data.map((d) => {
+          const row = { year: d.year };
+          categories.forEach((cat) => {
+            const key = cat.replace(/[^a-zA-Z0-9]/g, "_");
+            row[key] = getSeriesValue(d, key, metricSuffix);
+          });
+          return row;
+        })
+      );
+    }
+
+    const maxValue = (function () {
+      if (mode === "column" && stackedDataForDomain) {
+        // find the max y1 across stacked series
+        const maxStack = d3.max(stackedDataForDomain, (series) => d3.max(series, (d) => d[1]));
+        const totalFieldMax = showTotal
+          ? d3.max(data, (d) => {
+              const pre = isVolume
+                ? (d.__grandTotalVolume ?? d.totalVolume)
+                : (d.__grandTotalCount ?? d.totalCount);
+              if (pre != null) return pre;
+              // Robust fallback: sum all keys that look like series metrics in the row
+              const metricKeys = Object.keys(d).filter((k) => k.endsWith(metricSuffix));
+              if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
+              if (!allCategories || !allCategories.length) return 0;
+              return d3.sum(
+                allCategories.map((cat) =>
+                  getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)
+                )
+              );
+            })
+          : 0;
+        return Math.max(maxStack || 0, totalFieldMax || 0);
       }
 
-      const maxValue = (function () {
-        if (mode === "column" && stackedDataForDomain) {
-              // find the max y1 across stacked series
-              const maxStack = d3.max(stackedDataForDomain, (series) => d3.max(series, (d) => d[1]));
-              const totalFieldMax = showTotal
-                ? d3.max(data, (d) => {
-                    const pre = isVolume ? (d.__grandTotalVolume ?? d.totalVolume) : (d.__grandTotalCount ?? d.totalCount);
-                    if (pre != null) return pre;
-                    // Robust fallback: sum all keys that look like series metrics in the row
-                    const metricKeys = Object.keys(d).filter((k) => k.endsWith(metricSuffix));
-                    if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
-                    if (!allCategories || !allCategories.length) return 0;
-                    return d3.sum(allCategories.map((cat) => getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)));
-                  })
-                : 0;
-              return Math.max(maxStack || 0, totalFieldMax || 0);
-            }
-
-        // non-column mode: max of single-category values or totals when visible
-        const maxCategory = d3.max(data, (d) =>
-          d3.max(categories, (cat) => getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix))
-        );
-          const totalFieldMax = showTotal
-            ? d3.max(data, (d) => {
-                const pre = isVolume ? (d.__grandTotalVolume ?? d.totalVolume) : (d.__grandTotalCount ?? d.totalCount);
-                if (pre != null) return pre;
-                const metricKeys = Object.keys(d).filter((k) => k.endsWith(metricSuffix));
-                if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
-                if (!allCategories || !allCategories.length) return 0;
-                return d3.sum(allCategories.map((cat) => getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)));
-              })
-            : 0;
-          return Math.max(maxCategory || 0, totalFieldMax || 0);
-      })();
+      // non-column mode: max of single-category values or totals when visible
+      const maxCategory = d3.max(data, (d) =>
+        d3.max(categories, (cat) =>
+          getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)
+        )
+      );
+      const totalFieldMax = showTotal
+        ? d3.max(data, (d) => {
+            const pre = isVolume
+              ? (d.__grandTotalVolume ?? d.totalVolume)
+              : (d.__grandTotalCount ?? d.totalCount);
+            if (pre != null) return pre;
+            const metricKeys = Object.keys(d).filter((k) => k.endsWith(metricSuffix));
+            if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
+            if (!allCategories || !allCategories.length) return 0;
+            return d3.sum(
+              allCategories.map((cat) =>
+                getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)
+              )
+            );
+          })
+        : 0;
+      return Math.max(maxCategory || 0, totalFieldMax || 0);
+    })();
 
     const yScale = d3
       .scaleLinear()
@@ -244,21 +258,34 @@ const D3MultiSeriesChart = ({
       });
     }
 
-    if (showTotal && data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)) {
+    if (
+      showTotal &&
+      data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)
+    ) {
       const totalLine = d3
         .line()
         .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
         .y((d) => {
-          const pre = isVolume ? (d.__grandTotalVolume ?? d.totalVolume) : (d.__grandTotalCount ?? d.totalCount);
+          const pre = isVolume
+            ? (d.__grandTotalVolume ?? d.totalVolume)
+            : (d.__grandTotalCount ?? d.totalCount);
           if (pre != null) return yScale(pre);
           if (!allCategories || !allCategories.length) return yScale(0);
-          const computed = d3.sum(allCategories.map((cat) => getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)));
+          const computed = d3.sum(
+            allCategories.map((cat) =>
+              getSeriesValue(d, cat.replace(/[^a-zA-Z0-9]/g, "_"), metricSuffix)
+            )
+          );
           return yScale(computed);
         })
         .curve(d3.curveMonotoneX);
 
       g.append("path")
-        .datum(data.filter((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount))
+        .datum(
+          data.filter(
+            (d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount
+          )
+        )
         .attr("fill", "none")
         .attr("stroke", "#000")
         .attr("stroke-width", 3)
