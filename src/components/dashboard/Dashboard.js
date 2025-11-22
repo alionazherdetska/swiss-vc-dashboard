@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import FilterPanel from "../filters/FilterPanel.js";
 import { TimelineChart } from "../charts/TimelineChart.js";
 import { processCompanies, processDeals, generateChartData } from "../../lib/utils.js";
-import ChartErrorBoundary from "../charts/shared/ChartErrorBoundary.js";
+import ChartErrorBoundary from "../charts/common/ChartErrorBoundary.js";
 import QuarterlyAnalysisChart from "../charts/QuarterlyAnalysisChart.js";
 import PhaseAnalysisChart from "../charts/PhaseAnalysisChart.js";
 import CantonAnalysisChart from "../charts/CantonAnalysisChart.js";
