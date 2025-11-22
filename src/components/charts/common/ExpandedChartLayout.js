@@ -14,9 +14,14 @@ const ExpandedChartLayout = ({
   children,
   // optional controls to render above the legend in the left column
   controls = null,
+  // optional controls to render at the far right (e.g. Show total in modal header)
+  rightControls = null,
 }) => {
   return (
-    <div className="grid grid-cols-5 items-start" style={{ minHeight: height }}>
+    <div>
+      {rightControls && <div className="flex justify-end mb-3">{rightControls}</div>}
+
+      <div className="grid grid-cols-5 items-start" style={{ minHeight: height }}>
       {/* Legend on the LEFT - 1/5 */}
       <div className="col-span-1">
         {controls && <div className="mb-4">{controls}</div>}
@@ -29,6 +34,7 @@ const ExpandedChartLayout = ({
           {children}
         </ResponsiveD3Container>
       </div>
+    </div>
     </div>
   );
 };

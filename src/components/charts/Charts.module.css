@@ -75,21 +75,4 @@
   filter: invert(1) brightness(2);
 }
 
-.controlSelectWrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.controlSelectIcon {
-  position: absolute;
-  right: 10px;
-  pointer-events: none;
-  width: 16px;
-  height: 16px;
-  transition: filter 240ms cubic-bezier(.4,0,.2,1);
-}
-
-.controlButton:hover .controlSelectIcon {
-  filter: invert(1) brightness(2);
-}
+/* (Select-specific customizations removed — using browser default select styling) */

@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import ExportButton from "./ExportButton";
 import styles from "./ChartModal.module.css";
 
-const ChartModal = ({ isOpen, onClose, title, children, onExport }) => {
+const ChartModal = ({ isOpen, onClose, title, children, onExport, headerRight = null }) => {
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -37,7 +37,7 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport }) => {
               <h2 className="text-2xl font-semibold text-gray-900 leading-tight">{title}</h2>
               <p className="text-sm text-gray-500 mt-1">in CHF Mio.</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center ${styles.exportContainer}`}>
               {onExport && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Download</span>
@@ -59,6 +59,7 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport }) => {
                   />
                 </div>
               )}
+              {headerRight}
               <button onClick={onClose} className={styles.closeBtn} aria-label="Close modal">
                 Close
                 <X className="h-5 w-5" />

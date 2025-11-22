@@ -1,3 +1,4 @@
+import { useId } from "react";
 import ExportButton from "../../ui/ExportButton";
 import filterStyles from "../../filters/FilterPanel.module.css";
 import chartStyles from "../Charts.module.css";
@@ -38,6 +39,7 @@ const ChartControls = ({
   // Custom controls
   children,
 }) => {
+  const id = useId();
   return (
     <div style={{ marginTop: "30px", marginBottom: "14px" }}>
       {controlsGrid && !isDualChart ? (
@@ -45,24 +47,44 @@ const ChartControls = ({
           {/* First column: mode select (or placeholder) */}
           <div className="flex items-center gap-2">
             {showModeControls ? (
-              <div className={`relative ${chartStyles.controlSelectWrap}`}>
-                <select
-                  value={singleMode}
-                  onChange={(e) => onSingleModeChange?.(e.target.value)}
-                  className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
-                >
-                  <option value="line">Line</option>
-                  <option value="column">Stacked</option>
-                </select>
-                <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
-              </div>
+              (() => {
+                const uid = id + "-single";
+                return (
+                  <div className="flex items-center gap-3">
+                    <label className={`${filterStyles.itemLabel} items-center`}>
+                      <input
+                        type="radio"
+                        name={uid}
+                        value="line"
+                        checked={singleMode === "line"}
+                        onChange={() => onSingleModeChange?.("line")}
+                        className={filterStyles.radio}
+                      />
+                      <span className={filterStyles.labelText}>Line</span>
+                    </label>
+                    <label className={`${filterStyles.itemLabel} items-center`}>
+                      <input
+                        type="radio"
+                        name={uid}
+                        value="column"
+                        checked={singleMode === "column"}
+                        onChange={() => onSingleModeChange?.("column")}
+                        className={filterStyles.radio}
+                      />
+                      <span className={filterStyles.labelText}>Stacked</span>
+                    </label>
+                  </div>
+                );
+              })()
             ) : (
               <div />
             )}
           </div>
 
-          {/* Second column: Show total and any children */}
-          <div className="flex items-center justify-start gap-4">
+          {/* Second column: children on the left, Show total aligned to the right */}
+          <div className="flex items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-4">{children}</div>
+
             {showTotalControl && (
               <label className="flex items-center gap-2 px-3 h-9 whitespace-nowrap">
                 <input
@@ -74,8 +96,6 @@ const ChartControls = ({
                 <span className="text-gray-700 whitespace-nowrap">Show total</span>
               </label>
             )}
-
-            {children}
           </div>
         </div>
       ) : (
@@ -85,31 +105,67 @@ const ChartControls = ({
             <>
               <div className="flex items-center gap-2">
                 <span className="text-gray-700">Left (Volume):</span>
-                <div className={`relative ${chartStyles.controlSelectWrap}`}>
-                  <select
-                    value={leftMode}
-                    onChange={(e) => onLeftModeChange?.(e.target.value)}
-                    className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
-                  >
-                    <option value="line">Line</option>
-                    <option value="column">Stacked</option>
-                  </select>
-                  <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
-                </div>
+                {(() => {
+                  const uidL = id + "-left";
+                  return (
+                    <div className="flex items-center gap-3">
+                      <label className={`${filterStyles.itemLabel} items-center`}>
+                        <input
+                          type="radio"
+                          name={uidL}
+                          value="line"
+                          checked={leftMode === "line"}
+                          onChange={() => onLeftModeChange?.("line")}
+                          className={filterStyles.radio}
+                        />
+                        <span className={filterStyles.labelText}>Line</span>
+                      </label>
+                      <label className={`${filterStyles.itemLabel} items-center`}>
+                        <input
+                          type="radio"
+                          name={uidL}
+                          value="column"
+                          checked={leftMode === "column"}
+                          onChange={() => onLeftModeChange?.("column")}
+                          className={filterStyles.radio}
+                        />
+                        <span className={filterStyles.labelText}>Stacked</span>
+                      </label>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-700">Right (Count):</span>
-                <div className={`relative ${chartStyles.controlSelectWrap}`}>
-                  <select
-                    value={rightMode}
-                    onChange={(e) => onRightModeChange?.(e.target.value)}
-                    className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
-                  >
-                    <option value="line">Line</option>
-                    <option value="column">Stacked</option>
-                  </select>
-                  <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
-                </div>
+                {(() => {
+                  const uidR = id + "-right";
+                  return (
+                    <div className="flex items-center gap-3">
+                      <label className={`${filterStyles.itemLabel} items-center`}>
+                        <input
+                          type="radio"
+                          name={uidR}
+                          value="line"
+                          checked={rightMode === "line"}
+                          onChange={() => onRightModeChange?.("line")}
+                          className={filterStyles.radio}
+                        />
+                        <span className={filterStyles.labelText}>Line</span>
+                      </label>
+                      <label className={`${filterStyles.itemLabel} items-center`}>
+                        <input
+                          type="radio"
+                          name={uidR}
+                          value="column"
+                          checked={rightMode === "column"}
+                          onChange={() => onRightModeChange?.("column")}
+                          className={filterStyles.radio}
+                        />
+                        <span className={filterStyles.labelText}>Stacked</span>
+                      </label>
+                    </div>
+                  );
+                })()}
               </div>
             </>
           )}
@@ -117,17 +173,35 @@ const ChartControls = ({
           {/* Mode controls for single charts */}
           {showModeControls && !isDualChart && (
             <div className="flex items-center gap-2">
-              <div className={`relative ${chartStyles.controlSelectWrap}`}>
-                <select
-                  value={singleMode}
-                  onChange={(e) => onSingleModeChange?.(e.target.value)}
-                  className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
-                >
-                  <option value="line">Line</option>
-                  <option value="column">Stacked</option>
-                </select>
-                <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
-              </div>
+              {(() => {
+                const uid2 = id + "-single-2";
+                return (
+                  <div className="flex items-center gap-3">
+                    <label className={`${filterStyles.itemLabel} items-center`}>
+                      <input
+                        type="radio"
+                        name={uid2}
+                        value="line"
+                        checked={singleMode === "line"}
+                        onChange={() => onSingleModeChange?.("line")}
+                        className={filterStyles.radio}
+                      />
+                      <span className={filterStyles.labelText}>Line</span>
+                    </label>
+                    <label className={`${filterStyles.itemLabel} items-center`}>
+                      <input
+                        type="radio"
+                        name={uid2}
+                        value="column"
+                        checked={singleMode === "column"}
+                        onChange={() => onSingleModeChange?.("column")}
+                        className={filterStyles.radio}
+                      />
+                      <span className={filterStyles.labelText}>Stacked</span>
+                    </label>
+                  </div>
+                );
+              })()}
             </div>
           )}
 

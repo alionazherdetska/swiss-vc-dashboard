@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import ChartModal from "../../ui/ChartModal";
 import ChartControls from "./ChartControls";
+import filterStyles from "../../filters/FilterPanel.module.css";
 import { exportCSV, exportPDF } from "../../../lib/exportUtils";
 
 const BaseExpandableChart = ({
@@ -177,9 +178,8 @@ const BaseExpandableChart = ({
           showModeControls={true}
           singleMode={chartState.modalMode}
           onSingleModeChange={handleModalModeChange}
-          showTotalControl={supportsTotal}
-          showTotal={chartState.modalShowTotal}
-          onShowTotalChange={handleModalShowTotalChange}
+          // Do not render the showTotal checkbox in the left column for expanded mode
+          showTotalControl={false}
           showExpandButton={false}
           showExportButton={false}
         />
@@ -208,6 +208,17 @@ const BaseExpandableChart = ({
         onClose={handleModalClose}
         title={modalTitle}
         onExport={handleExport}
+        headerRight={supportsTotal ? (
+          <label className="flex items-center gap-2 px-3 h-9 whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={chartState.modalShowTotal}
+              onChange={(e) => handleModalShowTotalChange(e.target.checked)}
+              className={filterStyles.checkbox}
+            />
+            <span className="text-gray-700 whitespace-nowrap">Show total</span>
+          </label>
+        ) : null}
       >
         {chartState.expanded && (
             <div>
