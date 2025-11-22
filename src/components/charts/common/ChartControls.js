@@ -59,13 +59,13 @@ const ChartControls = ({
           {/* Second column: Show total and any children */}
           <div className="flex items-center justify-start gap-4">
             {showTotalControl && (
-              <label className="flex items-center gap-2 px-3 h-9">
+              <label className="flex items-center gap-2 px-3 h-9 whitespace-nowrap">
                 <input
                   type="checkbox"
                   checked={showTotal}
                   onChange={(e) => onShowTotalChange?.(e.target.checked)}
                 />
-                <span className="text-gray-700">Show total</span>
+                <span className="text-gray-700 whitespace-nowrap">Show total</span>
               </label>
             )}
 

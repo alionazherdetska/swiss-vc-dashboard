@@ -8,7 +8,7 @@ const ChartLegend = ({ items = [], colorOf, title = "Legend" }) => {
       {items.map((item) => (
         <span key={item} className="flex items-center gap-2">
           <span
-            className="inline-block w-4 h-4 rounded"
+            className="inline-block w-5 h-5 rounded"
             style={{ backgroundColor: colorOf(item) }}
           ></span>
           <span className="text-sm text-gray-800">{item}</span>

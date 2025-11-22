@@ -158,6 +158,25 @@ const D3ComposedChart = ({
           })
           .on("mouseout", () => tooltip.style("opacity", 0));
       });
+
+      // Draw total line on top of stacked bars if requested and totals exist
+      if (showTotal && data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)) {
+        const totalKey = dataKeySuffix === "__volume" ? (d => d.totalVolume ?? d.__grandTotalVolume ?? 0) : (d => d.totalCount ?? d.__grandTotalCount ?? 0);
+
+        const totalLine = d3
+          .line()
+          .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .y((d) => yScale(totalKey(d)))
+          .curve(d3.curveMonotoneX);
+
+        g.append("path")
+          .datum(data.filter((d) => totalKey(d) != null))
+          .attr("fill", "none")
+          .attr("stroke", "#000")
+          .attr("stroke-width", 2)
+          .attr("stroke-dasharray", "5,5")
+          .attr("d", totalLine);
+      }
     } else {
       categories.forEach((category, i) => {
         const color = colorOf
@@ -279,6 +298,7 @@ const D3ComposedChart = ({
     data,
     categories,
     mode,
+    showTotal,
     width,
     height,
     margin,

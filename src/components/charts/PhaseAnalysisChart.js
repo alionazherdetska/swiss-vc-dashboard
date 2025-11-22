@@ -107,7 +107,7 @@ const PhaseAnalysisChart = ({ deals }) => {
   );
 
   // Expanded chart using unified layout
-  const ExpandedChart = ({ data, mode, expandedChart, isExpanded, controls }) => {
+  const ExpandedChart = ({ data, mode, expandedChart, isExpanded, controls, showTotal }) => {
     const isVolumeChart = expandedChart === "volume";
 
     return (
@@ -129,6 +129,7 @@ const PhaseAnalysisChart = ({ deals }) => {
           colorOf={colorOf}
           dataKeySuffix={isVolumeChart ? "__volume" : "__count"}
           showDataPoints={true}
+          showTotal={showTotal}
         />
       </ExpandedChartLayout>
     );
