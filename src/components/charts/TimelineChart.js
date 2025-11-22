@@ -1,8 +1,8 @@
-import BaseExpandableChart from "./shared/BaseExpandableChart";
-import ChartHeader from "./shared/ChartHeader";
-import D3AreaChart from "./shared/D3AreaChart";
-import ResponsiveD3Container from "./shared/ResponsiveD3Container";
-import ExpandedChartLayout from "./shared/ExpandedChartLayout";
+import BaseExpandableChart from "./common/BaseExpandableChart";
+import ChartHeader from "./common/ChartHeader";
+import D3AreaChart from "./common/D3AreaChart";
+import ResponsiveD3Container from "./common/ResponsiveD3Container";
+import ExpandedChartLayout from "./common/ExpandedChartLayout";
 import { getChartDims } from "../../lib/utils";
 import { CHART_MARGIN, EXPANDED_CHART_MARGIN } from "../../lib/constants";
 import styles from "./Charts.module.css";

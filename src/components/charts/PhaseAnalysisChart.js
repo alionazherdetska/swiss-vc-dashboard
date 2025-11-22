@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import BaseExpandableChart from "./shared/BaseExpandableChart";
-import ChartHeader from "./shared/ChartHeader";
-import ResponsiveD3Container from "./shared/ResponsiveD3Container";
-import ExpandedChartLayout from "./shared/ExpandedChartLayout";
-import D3ComposedChart from "./shared/D3ComposedChart";
+import BaseExpandableChart from "./common/BaseExpandableChart";
+import ChartHeader from "./common/ChartHeader";
+import ResponsiveD3Container from "./common/ResponsiveD3Container";
+import ExpandedChartLayout from "./common/ExpandedChartLayout";
+import D3ComposedChart from "./common/D3ComposedChart";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
 import {
   AXIS_STROKE,

@@ -1,4 +1,4 @@
-import createAnalysisChart from "./shared/CreateAnalysisChart";
+import createAnalysisChart from "./common/CreateAnalysisChart";
 import { INDUSTRY_COLOR_MAP } from "../../lib/constants";
 
 /**

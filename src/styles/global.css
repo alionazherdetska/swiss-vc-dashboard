@@ -1,0 +1,137 @@
+/* src/styles/global.css - moved from src/styles.css */
+@import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
+/* Load Roboto so typography renders consistently across machines */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+
+/* Additional custom styles if needed */
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: #1f2937;
+  background-color: #f9fafb;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* D3 Chart styles */
+.d3-chart-container {
+  font-family: inherit;
+}
+
+.app-container {
+  max-width: 1020px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 30px 30px 54px 30px;
+  border-radius: 18px;
+  background-color: #4a4a4a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.inner-panel {
+  background: #fff;
+  border-radius: 20px;
+}
+
+.d3-chart-container .axis text {
+  fill: #374151;
+  font-size: 12px;
+}
+
+.d3-chart-container .axis line,
+.d3-chart-container .axis path {
+  stroke: #374151;
+}
+
+.d3-chart-container .grid-line {
+  stroke: #e5e7eb;
+  stroke-dasharray: 3, 3;
+  opacity: 0.7;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Animation for theme transition */
+* {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Loading spinner */
+.animate-spin {
+  border-color: #e5e7eb !important;
+  border-top-color: #3b82f6 !important;
+}
+
+/* Custom card shadows */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Insights panel */
+.bg-blue-50 {
+  background-color: #eff6ff !important;
+}
+
+.border-blue-200 {
+  border-color: #bfdbfe !important;
+}
+
+.text-blue-900 {
+  color: #1e3a8a !important;
+}
+
+/* Metrics cards */
+.metrics-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%) !important;
+  border: 1px solid #e5e7eb !important;
+}
+
+/* Enhanced focus states for accessibility */
+*:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease-out;
+}

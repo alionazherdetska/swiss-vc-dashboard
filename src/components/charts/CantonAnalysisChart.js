@@ -1,4 +1,4 @@
-import createAnalysisChart from "./shared/CreateAnalysisChart";
+import createAnalysisChart from "./common/CreateAnalysisChart";
 import { normalizeCanton } from "../../lib/utils";
 import { CANTON_COLOR_MAP } from "../../lib/constants";
 
