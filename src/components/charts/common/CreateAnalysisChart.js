@@ -85,7 +85,7 @@ const createAnalysisChart = (config) => {
     }, [deals]);
 
     const dims = getChartDims(false, undefined, CHART_MARGIN);
-    const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
+    const expandedDims = getChartDims(true, 400, EXPANDED_CHART_MARGIN);
 
     const renderChart = (isVolume) => ({ data, mode, isExpanded = false, width, height }) => {
       const currentDims = isExpanded ? expandedDims : dims;
@@ -111,7 +111,7 @@ const createAnalysisChart = (config) => {
     const VolumeChart = renderChart(true);
     const CountChart = renderChart(false);
 
-    const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal }) => {
+    const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal, controls }) => {
       const isVolumeChart = expandedChart === "volume";
 
       return (
@@ -120,6 +120,7 @@ const createAnalysisChart = (config) => {
           legendTitle={legendTitle}
           colorOf={colorOf}
           height={expandedDims.height}
+          controls={controls}
         >
           <CategoryChart
             data={data}

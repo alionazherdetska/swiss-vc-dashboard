@@ -7,24 +7,24 @@ import ResponsiveD3Container from "./ResponsiveD3Container";
  * No background styling - modal provides the container
  */
 const ExpandedChartLayout = ({
-  // Legend configuration
   legendItems = [],
   legendTitle = "Legend",
   colorOf,
-
-  // Chart configuration
-  height = 440,
-  children, // The chart component to render
+  height = 420,
+  children,
+  // optional controls to render above the legend in the left column
+  controls = null,
 }) => {
   return (
-    <div className="grid grid-cols-5 items-start">
+    <div className="grid grid-cols-5 items-start" style={{ minHeight: height }}>
       {/* Legend on the LEFT - 1/5 */}
-      <div className="col-span-1 pt-8">
+      <div className="col-span-1">
+        {controls && <div className="mb-4">{controls}</div>}
         <ChartLegend items={legendItems} colorOf={colorOf} title={legendTitle} />
       </div>
 
       {/* Chart on the RIGHT - 4/5 */}
-      <div className="col-span-4 min-w-0">
+      <div className="col-span-4 min-w-0" style={{ height: height }}>
         <ResponsiveD3Container width="100%" height={height}>
           {children}
         </ResponsiveD3Container>

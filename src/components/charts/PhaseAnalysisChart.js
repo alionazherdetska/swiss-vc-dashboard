@@ -59,7 +59,7 @@ const PhaseAnalysisChart = ({ deals }) => {
 
   // Chart dimensions
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 400, EXPANDED_CHART_MARGIN);
 
   // Reusable chart component
   const PhaseChart = ({ data, isVolume, mode, height, margin, showDataPoints = true }) => {
@@ -107,7 +107,7 @@ const PhaseAnalysisChart = ({ deals }) => {
   );
 
   // Expanded chart using unified layout
-  const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
+  const ExpandedChart = ({ data, mode, expandedChart, isExpanded, controls }) => {
     const isVolumeChart = expandedChart === "volume";
 
     return (
@@ -116,6 +116,7 @@ const PhaseAnalysisChart = ({ deals }) => {
         legendTitle="Phases"
         colorOf={colorOf}
         height={expandedDims.height}
+        controls={controls}
       >
         <D3ComposedChart
           data={data}

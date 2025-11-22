@@ -169,6 +169,21 @@ const BaseExpandableChart = ({
       showTotal: chartState.modalShowTotal,
       isExpanded: true,
       expandedChart: chartState.expanded,
+      // pass controls into expanded chart layout so they render in left column
+      controls: (
+        <ChartControls
+          isDualChart={false}
+          controlsGrid={true}
+          showModeControls={true}
+          singleMode={chartState.modalMode}
+          onSingleModeChange={handleModalModeChange}
+          showTotalControl={supportsTotal}
+          showTotal={chartState.modalShowTotal}
+          onShowTotalChange={handleModalShowTotalChange}
+          showExpandButton={false}
+          showExportButton={false}
+        />
+      ),
       ...chartProps,
     }),
     [processedData, chartState, chartProps]
@@ -201,22 +216,9 @@ const BaseExpandableChart = ({
                   <ExpandedChartComponent {...expandedChartProps} />
                 </div>
               ) : (
-                <div className="h-full min-h-0 grid grid-cols-5 items-start">
-                  <div className="col-span-4 min-w-0 h-full min-h-0">
+                <div className="h-full min-h-0">
+                  <div className="min-w-0 h-full min-h-0">
                     <ChartComponent {...expandedChartProps} />
-                  </div>
-
-                  <div className="col-span-1 pt-8">
-                    <ChartControls
-                      isDualChart={false}
-                      singleMode={chartState.modalMode}
-                      onSingleModeChange={handleModalModeChange}
-                      showTotalControl={supportsTotal}
-                      showTotal={chartState.modalShowTotal}
-                      onShowTotalChange={handleModalShowTotalChange}
-                      showExpandButton={false}
-                      showExportButton={false}
-                    />
                   </div>
                 </div>
               )}

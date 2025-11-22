@@ -19,7 +19,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
 
   // Chart dimensions - same as other charts
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 400, EXPANDED_CHART_MARGIN);
 
   // Main chart component - matches pattern from PhaseAnalysisChart
   const MainChart = ({ data: chartData, isExpanded = false }) => {
@@ -46,12 +46,13 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
   };
 
   // Expanded chart using unified layout
-  const ExpandedChart = ({ data: chartData }) => (
+  const ExpandedChart = ({ data: chartData, controls }) => (
     <ExpandedChartLayout
       legendItems={[headerTitle]}
       legendTitle="Series"
       colorOf={() => chartColor}
       height={expandedDims.height}
+      controls={controls}
     >
       <D3AreaChart
         data={chartData}
