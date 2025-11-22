@@ -20,9 +20,9 @@
     "tailwind-css"
   ],
   "dependencies": {
-    "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "d3": "^7.9.0",
     "lucide-react": "^0.263.1",
     "react": "^18.2.0",
@@ -33,10 +33,10 @@
   "devDependencies": {
     "autoprefixer": "^10.4.14",
     "gh-pages": "^4.0.0",
+    "identity-obj-proxy": "^3.0.0",
     "postcss": "^8.4.24",
     "prettier": "^3.6.2",
-    "tailwindcss": "^3.3.0",
-    "identity-obj-proxy": "^3.0.0"
+    "tailwindcss": "^3.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -67,9 +67,7 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "pnpm@10.14.0-0+sha512.2cd47a0cbf5f1d1de7693a88307a0ede5be94e0d3b34853d800ee775efbea0650cb562b77605ec80bc8d925f5cd27c4dfe8bb04d3a0b76090784c664450d32d6"
-
-  ,
+  "packageManager": "pnpm@10.14.0-0+sha512.2cd47a0cbf5f1d1de7693a88307a0ede5be94e0d3b34853d800ee775efbea0650cb562b77605ec80bc8d925f5cd27c4dfe8bb04d3a0b76090784c664450d32d6",
   "jest": {
     "moduleNameMapper": {
       "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
