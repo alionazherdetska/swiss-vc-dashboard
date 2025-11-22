@@ -59,6 +59,9 @@
   font-weight: 700;
   line-height: normal;
 }
+.tabButton.active {
+  border-bottom: none !important;
+}
 
 .tabButton.inactive {
   background: #4a4a4a;
@@ -80,9 +83,31 @@
 }
 
 .tabButton:focus {
-  outline: 2px solid rgba(59, 130, 246, 0.6);
-  outline-offset: 2px;
+    /* High-contrast focus for tabs on dark background
+      Restore white inner border: inset 2px white + subtle outer glow
+    */
+    outline: none;
+    /* draw inner borders on top, left and right only (no bottom edge) */
+    box-shadow: inset 0 2px 0 0 #ffffff, inset 2px 0 0 0 #ffffff, inset -2px 0 0 0 #ffffff, 0 0 0 3px rgba(255,255,255,0.04);
 }
+
+/* High-contrast mode: make inner borders transparent and boost outer glow
+   Apply when a high-contrast class is present on an ancestor or directly on the button.
+*/
+.hcm .tabButton:focus,
+.tabButton.hcm:focus {
+  outline: none;
+  box-shadow: inset 0 2px 0 0 rgba(255,255,255,0), inset 2px 0 0 0 rgba(255,255,255,0), inset -2px 0 0 0 rgba(255,255,255,0), 0 0 0 5px rgba(255,255,255,0.12);
+}
+
+/* Active tab keyboard focus: inner offset outline matching requested color */
+.tabButton.active:focus {
+  outline: 1px solid #4a4a4a;
+  outline-offset: -1px;
+  box-shadow: none !important;
+}
+
+/* Active tab focus styles removed per preference — keep active appearance unchanged */
 
 .tabButton.inactive:hover {
   color: #ffffff;

@@ -115,10 +115,19 @@ body {
   border: 1px solid #e5e7eb !important;
 }
 
-/* Enhanced focus states for accessibility */
-*:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+/* Unified focus styles for interactive elements
+   - color: #4A4A4A
+   - outline width: 2px
+   - outline-offset: 1px
+*/
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus {
+  outline: 2px solid #4A4A4A;
+  outline-offset: 1px;
 }
 
 @keyframes scaleIn {
