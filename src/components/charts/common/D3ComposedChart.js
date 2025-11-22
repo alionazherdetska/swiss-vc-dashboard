@@ -38,12 +38,39 @@ const D3ComposedChart = ({
       .range([0, chartWidth])
       .padding(mode === "column" ? 0.1 : 0);
 
-    const maxValue = d3.max(data, (d) =>
-      d3.max(categories, (cat) => {
-        const key = `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`;
-        return d[key] || 0;
-      })
-    );
+    // Determine the maximum value to scale the Y axis.
+    // For stacked mode, compute the D3 stack and take the max y1 across stacked series;
+    // only include explicit total fields if showTotal is true so the axis shrinks back
+    // when totals are hidden.
+    let stackedForDomain = null;
+    if (mode === "column") {
+      const stack = d3
+        .stack()
+        .keys(categories.map((cat) => `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`))
+        .order(d3.stackOrderNone)
+        .offset(d3.stackOffsetNone);
+
+      stackedForDomain = stack(data);
+    }
+
+    const maxValue = (function () {
+      if (mode === "column" && stackedForDomain) {
+        const maxStack = d3.max(stackedForDomain, (series) => d3.max(series, (d) => d[1]));
+        const totalFieldMax = showTotal ? d3.max(data, (d) => (dataKeySuffix === "__volume" ? (d.totalVolume ?? d.__grandTotalVolume ?? 0) : (d.totalCount ?? d.__grandTotalCount ?? 0))) : 0;
+        return Math.max(maxStack || 0, totalFieldMax || 0);
+      }
+
+      const maxCategory = d3.max(data, (d) =>
+        d3.max(categories, (cat) => {
+          const key = `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`;
+          return d[key] || 0;
+        })
+      );
+
+      const totalFieldMax = showTotal ? d3.max(data, (d) => (dataKeySuffix === "__volume" ? (d.totalVolume ?? d.__grandTotalVolume ?? 0) : (d.totalCount ?? d.__grandTotalCount ?? 0))) : 0;
+
+      return Math.max(maxCategory || 0, totalFieldMax || 0);
+    })();
 
     const yScale = d3
       .scaleLinear()
