@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./styles/global.css";
-import Dashboard from "./components/Dashboard.js";
+import Dashboard from "./components/dashboard/Dashboard.js";
 
 export function App() {
   const [loading, setLoading] = useState(true);

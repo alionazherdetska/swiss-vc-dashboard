@@ -1,18 +1,20 @@
 import { useState, useEffect, useMemo } from "react";
 import FilterPanel from "../filters/FilterPanel.js";
 import { TimelineChart } from "../charts/TimelineChart.js";
-import { processCompanies, processDeals, generateChartData } from "../../lib/utils";
-import ChartErrorBoundary from "../charts/common/ChartErrorBoundary.js";
+import { processCompanies, processDeals, generateChartData } from "../../lib/utils.js";
+import ChartErrorBoundary from "../charts/shared/ChartErrorBoundary.js";
 import QuarterlyAnalysisChart from "../charts/QuarterlyAnalysisChart.js";
 import PhaseAnalysisChart from "../charts/PhaseAnalysisChart.js";
 import CantonAnalysisChart from "../charts/CantonAnalysisChart.js";
 import GenderAnalysisChart from "../charts/GenderAnalysisChart.js";
-import styles from "./dashboard.module.css";
+import styles from "./Dashboard.module.css";
 
 const Dashboard = () => {
+  // Companies only for mapping; UI is deals-only
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Filters: keep `yearRange` global across tabs, other filters scoped per-chart
   const [globalFilters, setGlobalFilters] = useState({
     yearRange: [2012, 2025],
   });
@@ -32,7 +34,7 @@ const Dashboard = () => {
     ceoGender: { ...defaultChartFilters },
   });
 
-  const [activeChart, setActiveChart] = useState("timeline");
+  const [activeChart, setActiveChart] = useState("timeline"); // default open
   const chartTabs = [
     { key: "timeline", label: "Total Investments/Deals" },
     { key: "quarterly", label: "Sectors" },
@@ -41,6 +43,7 @@ const Dashboard = () => {
     { key: "ceoGender", label: "Gender" },
   ];
 
+  // Load & process data (from window.startupData prepared in App)
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -57,6 +60,7 @@ const Dashboard = () => {
           setDeals(processedDeals);
         }
       } catch (e) {
+        // swallow and proceed to hide loader
       } finally {
         setLoading(false);
       }
@@ -64,6 +68,9 @@ const Dashboard = () => {
     loadData();
   }, []);
 
+  // Removed dynamic width measurement logic; CSS handles layout
+
+  // Filter options: deals-only, include phases, years, industries, cantons, CEO genders
   const filterOptions = useMemo(() => {
     if (!deals.length) {
       return {
@@ -83,6 +90,7 @@ const Dashboard = () => {
     };
   }, [deals]);
 
+  // Base filtered deals apply only the global yearRange
   const baseFilteredDeals = useMemo(() => {
     const yr = globalFilters.yearRange;
     return deals.filter((item) => {
@@ -92,6 +100,7 @@ const Dashboard = () => {
     });
   }, [deals, globalFilters.yearRange]);
 
+  // Helper to filter by a chart's local filters on top of baseFilteredDeals
   const applyChartFilters = (dataset, localFilters) => {
     if (!localFilters) return dataset;
     return dataset.filter((item) => {
@@ -108,6 +117,7 @@ const Dashboard = () => {
     });
   };
 
+  // Chart-specific filtered datasets
   const timelineDeals = useMemo(
     () => applyChartFilters(baseFilteredDeals, chartFilters.timeline),
     [baseFilteredDeals, chartFilters.timeline]
@@ -133,10 +143,12 @@ const Dashboard = () => {
     [baseFilteredDeals, chartFilters.ceoGender]
   );
 
+  // Chart data (deals-only) for timeline
   const chartData = useMemo(() => {
     return generateChartData("deals", [], timelineDeals);
   }, [timelineDeals]);
 
+  // Filter helpers: yearRange is global; other filters are chart-scoped
   const updateFilter = (key, value) => {
     if (key === "yearRange") {
       setGlobalFilters((prev) => ({ ...prev, yearRange: value }));
@@ -174,7 +186,9 @@ const Dashboard = () => {
   return (
     <div className={`grid grid-cols-1 ${styles.dashboardContainer}`}>
       <div className="inner-panel">
+        {/* Charts Panel with tab-like chart selector */}
         <section className={styles.tabPanel + " " + styles.innerContainer}>
+          {/* Tab bar */}
           <div className={styles.tabBarWrap}>
             <div className={styles.tabBar}>
               {chartTabs.map((tab) => {
@@ -194,6 +208,7 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Active chart rendered by tab selection */}
           <div className={styles.chartsArea}>
             {activeChart === "timeline" && (
               <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.timelineGrid || ""}`}>
