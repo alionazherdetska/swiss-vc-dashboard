@@ -1,4 +1,5 @@
 import ExportButton from "../../ui/ExportButton";
+import filterStyles from "../../filters/FilterPanel.module.css";
 
 /*
  * Reusable chart controls component
@@ -64,6 +65,7 @@ const ChartControls = ({
                   type="checkbox"
                   checked={showTotal}
                   onChange={(e) => onShowTotalChange?.(e.target.checked)}
+                  className={filterStyles.checkbox}
                 />
                 <span className="text-gray-700 whitespace-nowrap">Show total</span>
               </label>
@@ -123,6 +125,7 @@ const ChartControls = ({
                 type="checkbox"
                 checked={showTotal}
                 onChange={(e) => onShowTotalChange?.(e.target.checked)}
+                className={filterStyles.checkbox}
               />
               <span className="text-gray-700">Show total</span>
             </label>
