@@ -1,58 +1,100 @@
-import BaseExpandableChart from "./shared/BaseExpandableChart";
-import { SingleChartLayout } from "./shared/ChartLayouts";
-import D3AreaChart from "./shared/D3AreaChart";
+import BaseExpandableChart from "./common/BaseExpandableChart";
+import ChartHeader from "./common/ChartHeader";
+import D3AreaChart from "./common/D3AreaChart";
+import ResponsiveD3Container from "./common/ResponsiveD3Container";
+import ExpandedChartLayout from "./common/ExpandedChartLayout";
+import { getChartDims } from "../../lib/utils";
+import { CHART_MARGIN, EXPANDED_CHART_MARGIN } from "../../lib/constants";
+import styles from "./Charts.module.css";
 
-const InnerArea = ({ data, dataKey, mode, width, height, margin, yAxisLabel }) => {
-  return (
-    <D3AreaChart
-      data={data}
-      dataKey={dataKey}
-      margin={margin}
-      mode={mode}
-      strokeColor="#E84A5F"
-      strokeWidth={2}
-      fillColor="#E84A5F"
-      fillOpacity={0.8}
-      gridColor="#E2E8F0"
-      axisColor="#4A5568"
-      yAxisLabel={yAxisLabel}
-    />
-  );
-};
-
+/**
+ * Timeline Chart - Shows investment volume or deal count over time
+ * Uses same pattern as other analysis charts for consistency
+ */
 export const TimelineChart = ({ data, showVolume = false, title }) => {
   const chartKey = showVolume ? "volume" : "count";
   const defaultY = showVolume ? "Volume (CHF M)" : "Count";
   const headerTitle = title || (showVolume ? "Invested capital" : "Number of deals");
+  const chartColor = "#E84A5F";
 
-  const ChartComponent = ({ data: chartData, singleMode, onExpand }) => (
-    <SingleChartLayout
-      title={headerTitle}
-      ChartComponent={(props) => (
-        <InnerArea {...props} data={chartData} dataKey={chartKey} yAxisLabel={defaultY} />
-      )}
-      onExpand={() => onExpand && onExpand(showVolume ? "volume" : "count")}
-    />
-  );
+  // Chart dimensions - same as other charts
+  const dims = getChartDims(false, undefined, CHART_MARGIN);
+  const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
-  const handleExport = (format, expanded) => {
-    // TODO: implement export
+  // Main chart component - matches pattern from PhaseAnalysisChart
+  const MainChart = ({ data: chartData, isExpanded = false }) => {
+    const currentDims = isExpanded ? expandedDims : dims;
+
+    return (
+      <div className={styles.chartArea}>
+        <ResponsiveD3Container width="100%" height={currentDims.height}>
+          <D3AreaChart
+            data={chartData}
+            dataKey={chartKey}
+            margin={currentDims.margin}
+            strokeColor={chartColor}
+            strokeWidth={2}
+            fillColor={chartColor}
+            fillOpacity={0.8}
+            gridColor="#E2E8F0"
+            axisColor="#4A5568"
+            yAxisLabel={defaultY}
+          />
+        </ResponsiveD3Container>
+      </div>
+    );
   };
+
+  // Expanded chart using unified layout
+  const ExpandedChart = ({ data: chartData }) => (
+    <ExpandedChartLayout
+      legendItems={[headerTitle]}
+      legendTitle="Series"
+      colorOf={() => chartColor}
+      height={expandedDims.height}
+    >
+      <D3AreaChart
+        data={chartData}
+        dataKey={chartKey}
+        margin={expandedDims.margin}
+        strokeColor={chartColor}
+        strokeWidth={2}
+        fillColor={chartColor}
+        fillOpacity={0.8}
+        gridColor="#E2E8F0"
+        axisColor="#4A5568"
+        yAxisLabel={defaultY}
+      />
+    </ExpandedChartLayout>
+  );
 
   return (
     <BaseExpandableChart
       title={headerTitle}
       data={data}
-      ChartComponent={ChartComponent}
-      ExpandedChartComponent={({ data: d, mode, expandedChart, isExpanded }) => (
-        <InnerArea data={d} dataKey={chartKey} mode={mode} width={950} height={350} margin={{ top: 50, right: 50, left: 60, bottom: 60 }} isExpanded={true} yAxisLabel={defaultY} />
+      ChartComponent={({ data: chartData, onExpand }) => (
+        <div>
+          <div className="pl-4">
+            <ChartHeader
+              title={headerTitle}
+              showExpandButton={true}
+              onExpand={() => onExpand && onExpand(showVolume ? "volume" : "count")}
+              expandTitle="Expand Chart"
+              className="flex items-start gap-4 mb-2"
+              titleClassName="text-md font-semibold text-gray-800"
+            />
+          </div>
+          <MainChart data={chartData} />
+        </div>
       )}
+      ExpandedChartComponent={ExpandedChart}
       isDualChart={false}
       supportsSingleMode={true}
       supportsTotal={false}
       initialSingleMode="line"
       initialShowTotal={false}
-      onExport={handleExport}
     />
   );
 };
+
+export default TimelineChart;

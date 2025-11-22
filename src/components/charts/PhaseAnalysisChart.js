@@ -1,44 +1,34 @@
 import { useMemo } from "react";
-import BaseExpandableChart from "./shared/BaseExpandableChart";
-import D3ComposedChart from "./shared/D3ComposedChart";
-import ChartLegend from "./shared/ChartLegend";
-import ChartHeader from "./shared/ChartHeader";
-import ResponsiveD3Container from "./shared/ResponsiveD3Container";
-import { AXIS_STROKE, GRID_STROKE, ENHANCED_COLOR_PALETTE, STAGE_COLOR_MAP } from "../../lib/constants";
+import BaseExpandableChart from "./common/BaseExpandableChart";
+import ChartHeader from "./common/ChartHeader";
+import ResponsiveD3Container from "./common/ResponsiveD3Container";
+import ExpandedChartLayout from "./common/ExpandedChartLayout";
+import D3ComposedChart from "./common/D3ComposedChart";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
+import {
+  AXIS_STROKE,
+  GRID_STROKE,
+  ENHANCED_COLOR_PALETTE,
+  STAGE_COLOR_MAP,
+  CHART_MARGIN,
+  EXPANDED_CHART_MARGIN,
+} from "../../lib/constants";
 import styles from "./Charts.module.css";
 
-const PhaseChart = ({ data, phases, isVolume, mode, width, height, margin, isExpanded = false, colorOf, showDataPoints = true }) => {
-  const dataKeySuffix = isVolume ? "__volume" : "__count";
-
-  return (
-    <div className={styles.chartArea}>
-      <ResponsiveD3Container width="100%" height={height}>
-        <D3ComposedChart
-          data={data}
-          categories={phases}
-          mode={mode}
-          margin={margin}
-          strokeWidth={2}
-          gridColor={GRID_STROKE}
-          axisColor={AXIS_STROKE}
-          colorOf={colorOf}
-          dataKeySuffix={dataKeySuffix}
-          showDataPoints={showDataPoints}
-        />
-      </ResponsiveD3Container>
-    </div>
-  );
-};
-
+/**
+ * Phase Analysis Chart
+ * Uses D3ComposedChart for rendering (different from other analysis charts)
+ */
 const PhaseAnalysisChart = ({ deals }) => {
   // Extract phases from deals
   const phases = useMemo(() => {
     return Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort();
   }, [deals]);
 
-  // Color palette for phases (use STAGE_COLOR_MAP for consistency with legend)
-  const colorOf = (phase) => STAGE_COLOR_MAP[phase] || ENHANCED_COLOR_PALETTE[phases.indexOf(phase) % ENHANCED_COLOR_PALETTE.length];
+  // Color function for phases
+  const colorOf = (phase) =>
+    STAGE_COLOR_MAP[phase] ||
+    ENHANCED_COLOR_PALETTE[phases.indexOf(phase) % ENHANCED_COLOR_PALETTE.length];
 
   // Prepare phase/year rows for charting
   const rows = useMemo(() => {
@@ -67,75 +57,79 @@ const PhaseAnalysisChart = ({ deals }) => {
     return firstIdx >= 0 ? allRows.slice(firstIdx) : allRows;
   }, [deals, phases]);
 
-  const dims = getChartDims(false);
-  const expandedDimsBase = getChartDims(true, 450);
-  const expandedDims = { ...expandedDimsBase };
+  // Chart dimensions
+  const dims = getChartDims(false, undefined, CHART_MARGIN);
+  const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
-  const VolumeChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded
-      ? expandedDims
-      : {
-          ...dims,
-          width: dims.width / 2,
-        };
+  // Reusable chart component
+  const PhaseChart = ({ data, isVolume, mode, height, margin, showDataPoints = true }) => {
+    const dataKeySuffix = isVolume ? "__volume" : "__count";
 
     return (
-      <PhaseChart
-        data={data}
-        phases={phases}
-        isVolume={true}
-        mode={mode}
-        width={currentDims.width}
-        height={currentDims.height}
-        margin={currentDims.margin}
-        isExpanded={isExpanded}
-        colorOf={colorOf}
-      />
+      <div className={styles.chartArea}>
+        <ResponsiveD3Container width="100%" height={height}>
+          <D3ComposedChart
+            data={data}
+            categories={phases}
+            mode={mode}
+            margin={margin}
+            strokeWidth={2}
+            gridColor={GRID_STROKE}
+            axisColor={AXIS_STROKE}
+            colorOf={colorOf}
+            dataKeySuffix={dataKeySuffix}
+            showDataPoints={showDataPoints}
+          />
+        </ResponsiveD3Container>
+      </div>
     );
   };
 
-  const CountChart = ({ data, mode, isExpanded = false }) => {
-    const currentDims = isExpanded
-      ? expandedDims
-      : {
-          ...dims,
-          width: dims.width / 2,
-        };
+  // Chart renderers
+  const VolumeChart = ({ data, mode, isExpanded = false }) => (
+    <PhaseChart
+      data={data}
+      isVolume={true}
+      mode={mode}
+      height={isExpanded ? expandedDims.height : dims.height}
+      margin={isExpanded ? expandedDims.margin : dims.margin}
+    />
+  );
 
-    return (
-      <PhaseChart
-        data={data}
-        phases={phases}
-        isVolume={false}
-        mode={mode}
-        width={currentDims.width}
-        height={currentDims.height}
-        margin={currentDims.margin}
-        isExpanded={isExpanded}
-        colorOf={colorOf}
-      />
-    );
-  };
+  const CountChart = ({ data, mode, isExpanded = false }) => (
+    <PhaseChart
+      data={data}
+      isVolume={false}
+      mode={mode}
+      height={isExpanded ? expandedDims.height : dims.height}
+      margin={isExpanded ? expandedDims.margin : dims.margin}
+    />
+  );
 
+  // Expanded chart using unified layout
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded }) => {
     const isVolumeChart = expandedChart === "volume";
 
     return (
-      <div className="grid grid-cols-5 gap-6 items-start">
-        {/* Legend on the LEFT - 1/5 */}
-        <div className="col-span-1 pt-8">
-          <ChartLegend items={phases} colorOf={colorOf} title="Phases" />
-        </div>
-
-        {/* Chart on the RIGHT - 4/5 */}
-        <div className="col-span-4 min-w-0">
-          {isVolumeChart ? (
-            <VolumeChart data={data} mode={mode} isExpanded={isExpanded} />
-          ) : (
-            <CountChart data={data} mode={mode} isExpanded={isExpanded} />
-          )}
-        </div>
-      </div>
+      <ExpandedChartLayout
+        legendItems={phases}
+        legendTitle="Phases"
+        colorOf={colorOf}
+        height={expandedDims.height}
+      >
+        <D3ComposedChart
+          data={data}
+          categories={phases}
+          mode={mode}
+          margin={expandedDims.margin}
+          strokeWidth={2}
+          gridColor={GRID_STROKE}
+          axisColor={AXIS_STROKE}
+          colorOf={colorOf}
+          dataKeySuffix={isVolumeChart ? "__volume" : "__count"}
+          showDataPoints={true}
+        />
+      </ExpandedChartLayout>
     );
   };
 
@@ -143,13 +137,13 @@ const PhaseAnalysisChart = ({ deals }) => {
     <BaseExpandableChart
       title="Phase Analysis"
       data={rows}
-      ChartComponent={({ data, leftMode, rightMode, showTotal, onExpand }) => (
+      ChartComponent={({ data, leftMode, rightMode, onExpand }) => (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <div className="pl-4">
               <ChartHeader
-                title={"Investment Volume vs Year"}
-                subtitle={"by Phase"}
+                title="Investment Volume vs Year"
+                subtitle="by Phase"
                 showExpandButton={true}
                 onExpand={() => onExpand && onExpand("volume")}
                 expandTitle="Expand Volume Chart"
@@ -160,12 +154,11 @@ const PhaseAnalysisChart = ({ deals }) => {
             </div>
             <VolumeChart data={data} mode={leftMode} />
           </div>
-
           <div>
             <div className="pl-4">
               <ChartHeader
-                title={"Number of Deals vs Year"}
-                subtitle={"by Phase"}
+                title="Number of Deals vs Year"
+                subtitle="by Phase"
                 showExpandButton={true}
                 onExpand={() => onExpand && onExpand("count")}
                 expandTitle="Expand Count Chart"

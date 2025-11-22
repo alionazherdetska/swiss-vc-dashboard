@@ -11,7 +11,6 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport }) => {
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
 
-  // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";

@@ -1,5 +1,41 @@
 .chartArea {
   border-radius: 20px;
-  padding: 21px 21px 31px;
   background: var(--D9D9D9, linear-gradient(180deg, #fffefe 0%, #d9d9d9 100%));
+}
+
+.expandButton {
+  padding: 6px 14px;
+  border-radius: 15px;
+  border: 1px solid #4a4a4a;
+  background: #ffffff;
+  color: #4a4a4a;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: 0px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.expandButton:hover {
+  background: #4a4a4a;
+  color: #ffffff;
+  border-color: #4a4a4a;
+}
+
+.expandIcon {
+  width: 20px;
+  height: 20px;
+  margin-left: 4px;
+  transform: rotate(135deg);
+  transform-origin: center;
+  display: inline-block;
+  vertical-align: middle;
+  transition: filter 0.2s;
+}
+
+.expandButton:hover .expandIcon {
+  filter: invert(1) brightness(2);
 }

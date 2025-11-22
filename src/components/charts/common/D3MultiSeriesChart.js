@@ -2,10 +2,6 @@ import { useRef, useEffect } from "react";
 import * as d3 from "d3";
 import { AXIS_STROKE, GRID_STROKE } from "../../../lib/constants";
 
-/**
- * Reusable D3 chart component for multi-series data
- * Supports both line and column modes with consistent styling
- */
 const D3MultiSeriesChart = ({
   data = [],
   categories = [],
@@ -13,16 +9,13 @@ const D3MultiSeriesChart = ({
   mode = "line",
   width = 400,
   height = 300,
-  // Increased bottom margin for rotated year labels
   margin = { top: 20, right: 30, bottom: 60, left: 60 },
   isExpanded = false,
   colorOf,
   showTotal = false,
 
-  // Customization
   yAxisLabel = null,
 
-  // Data field configuration
   getSeriesValue = (d, category, suffix) => d[`${category}${suffix}`] || 0,
   metricSuffix = "__volume",
 }) => {
@@ -40,14 +33,12 @@ const D3MultiSeriesChart = ({
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Scales
     const xScale = d3
       .scaleBand()
       .domain(data.map((d) => d.year))
       .range([0, chartWidth])
       .padding(0.1);
 
-    // Calculate max value including totals if shown
     let maxValue = 0;
     if (showTotal) {
       maxValue = d3.max(data, (d) => d.totalVolume || d.totalCount || 0);
@@ -64,7 +55,6 @@ const D3MultiSeriesChart = ({
       .domain([0, maxValue * 1.1])
       .range([chartHeight, 0]);
 
-    // Grid lines
     g.selectAll(".grid-x")
       .data(xScale.domain())
       .enter()
@@ -91,7 +81,6 @@ const D3MultiSeriesChart = ({
       .style("stroke-width", 0.5)
       .style("opacity", 0.5);
 
-    // X Axis
     const xAxis = g
       .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
@@ -106,7 +95,6 @@ const D3MultiSeriesChart = ({
       .attr("dx", "-0.8em")
       .attr("dy", "0.15em");
 
-    // Y Axis
     const yAxis = g.append("g").call(d3.axisLeft(yScale));
 
     yAxis
@@ -114,7 +102,6 @@ const D3MultiSeriesChart = ({
       .style("font-size", isExpanded ? "14px" : "12px")
       .style("fill", AXIS_STROKE);
 
-    // Y axis label
     if (yAxisLabel) {
       g.append("text")
         .attr("transform", "rotate(-90)")
@@ -127,11 +114,9 @@ const D3MultiSeriesChart = ({
         .text(yAxisLabel);
     }
 
-    // Tooltip
     const tooltip = d3.select(tooltipRef.current);
 
     if (mode === "column") {
-      // Stacked bar chart
       const stack = d3.stack().keys(categories.map((cat) => cat.replace(/[^a-zA-Z0-9]/g, "_")));
 
       const stackedData = stack(
@@ -174,7 +159,6 @@ const D3MultiSeriesChart = ({
         })
         .on("mouseout", () => tooltip.style("opacity", 0));
     } else {
-      // Line chart
       const line = d3
         .line()
         .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
@@ -188,7 +172,6 @@ const D3MultiSeriesChart = ({
           value: getSeriesValue(d, categoryKey, metricSuffix),
         }));
 
-        // Line path
         g.append("path")
           .datum(lineData)
           .attr("fill", "none")
@@ -196,7 +179,6 @@ const D3MultiSeriesChart = ({
           .attr("stroke-width", 2)
           .attr("d", line);
 
-        // Data points
         g.selectAll(`.dot-${categoryKey}`)
           .data(lineData)
           .enter()
@@ -221,7 +203,6 @@ const D3MultiSeriesChart = ({
       });
     }
 
-    // Total line if enabled
     if (showTotal && data.some((d) => d.totalVolume || d.totalCount)) {
       const totalLine = d3
         .line()
@@ -253,8 +234,6 @@ const D3MultiSeriesChart = ({
     yAxisLabel,
   ]);
 
-  // Match D3ComposedChart pattern: no fixed width/height on wrapper div,
-  // pass dimensions directly to SVG for responsive behavior
   return (
     <div className="relative">
       <svg ref={svgRef} width={width} height={height}></svg>

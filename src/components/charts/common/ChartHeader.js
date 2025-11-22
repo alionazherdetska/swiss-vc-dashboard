@@ -28,7 +28,7 @@ const ChartHeader = ({
               aria-label={expandTitle}
             >
               expand
-                <img src="/expand.svg" className={styles.expandIcon} alt="" />
+                <img src="/assets/icons/expand.svg" className={styles.expandIcon} alt="" />
             </button>
           )}
           {children}

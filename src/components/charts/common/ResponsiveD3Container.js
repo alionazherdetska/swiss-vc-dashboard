@@ -5,9 +5,6 @@ const ResponsiveD3Container = ({ children, width = "100%", height = 400, debounc
   const timeoutRef = useRef(null);
   const resizeObserverRef = useRef(null);
 
-  // Start with unknown width so we don't render children until we have
-  // a reliable measurement. This avoids a flash where charts render
-  // with a fallback width then resize (causing the 'growing' effect).
   const [dimensions, setDimensions] = useState({
     width: null,
     height: typeof height === "number" ? height : 400,
@@ -18,10 +15,6 @@ const ResponsiveD3Container = ({ children, width = "100%", height = 400, debounc
 
     const { width: containerWidth } = containerRef.current.getBoundingClientRect();
     const newHeight = typeof height === "number" ? height : 400;
-
-    // Only set a measured width when we have a positive value. Avoid
-    // falling back to arbitrary defaults because that causes an extra
-    // render with the wrong size.
     const measuredWidth = containerWidth ? Math.round(containerWidth) : null;
 
     setDimensions((prevDims) => {
@@ -39,9 +32,6 @@ const ResponsiveD3Container = ({ children, width = "100%", height = 400, debounc
     timeoutRef.current = setTimeout(updateDimensions, debounceTime);
   }, [debounceTime, updateDimensions]);
 
-  // Use useLayoutEffect so we measure synchronously before the browser
-  // paints. This prevents the initial paint with an incorrect size that
-  // later changes and appears to 'grow'.
   useLayoutEffect(() => {
     updateDimensions();
     window.addEventListener("resize", handleResize);
@@ -70,10 +60,6 @@ const ResponsiveD3Container = ({ children, width = "100%", height = 400, debounc
     minHeight: typeof height === "number" ? `${height}px` : height,
   };
 
-  // If we haven't measured the container width yet, render the wrapper
-  // element only (keeps layout stable) and wait for measurement before
-  // rendering the chart children. This avoids an initial render with a
-  // fallback size that jumps immediately after measuring.
   return (
     <div ref={containerRef} className="d3-chart-container" style={containerStyle}>
       {dimensions.width == null

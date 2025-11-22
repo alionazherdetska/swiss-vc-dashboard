@@ -111,12 +111,24 @@
 }
 
 .sectionReset {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  border-radius: 0.375rem;
-  border: 1px solid #e6e6e6;
+  padding: 3px 10px; /* top/right/bottom/left */
+  font-size: 0.875rem;
+  border-radius: 15px;
+  border: 1px solid #4a4a4a;
   background: #ffffff;
-  color: #374151;
+  color: #4a4a4a;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.sectionReset:hover {
+  background: #4a4a4a;
+  color: #ffffff;
+  border-color: #4a4a4a;
 }
 
 .listScroll {
@@ -288,13 +300,59 @@
 }
 
 .radio {
-  width: 1rem;
-  height: 1rem;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 1px solid #d1d5db;
+  border: 1px solid #4a4a4a;
+  background-color: #fefefe;
   flex-shrink: 0;
-  accent-color: #e53935;
   cursor: pointer;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  vertical-align: top;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.radio::after {
+  content: "";
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: transparent;
+  transition: background-color 150ms ease;
+}
+
+.radio:checked::after {
+  background-color: #4a4a4a;
+}
+
+.radio:not(:disabled):hover {
+  border-color: #333333;
+  background-color: #f5f5f5;
+}
+
+.radio:not(:disabled):hover:checked::after {
+  background-color: #333333;
+}
+
+.radio:disabled {
+  cursor: not-allowed;
+  background-color: #f0f0f0;
+  border-color: #c7c7c7;
+}
+
+.radio:disabled:checked::after {
+  background-color: #c7c7c7;
 }
 
 .colorIndicator {

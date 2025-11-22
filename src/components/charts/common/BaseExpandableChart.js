@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from "react";
-import ChartModal from "../../common/ChartModal";
+import ChartModal from "../../ui/ChartModal";
 import ChartControls from "./ChartControls";
 import { exportCSV, exportPDF } from "../../../lib/exportUtils";
 
@@ -72,7 +72,6 @@ const BaseExpandableChart = ({
     }
 
     if (format === "pdf") {
-      // Build simple HTML table for printable PDF
       const keys = Object.keys(processedData[0]);
       const header = keys.map((k) => `<th style="padding:6px;border:1px solid #ddd;text-align:left">${k}</th>`).join("");
       const rows = processedData
@@ -88,7 +87,6 @@ const BaseExpandableChart = ({
       return;
     }
 
-    // Unknown format: fallback to CSV
     exportCSV(processedData, `chart-export.csv`);
   }, [processedData]);
 
@@ -106,9 +104,6 @@ const BaseExpandableChart = ({
 
   const baseChartProps = useMemo(
     () => {
-      // Controls element to be rendered inside Chart layouts (they typically
-      // render children at the top of the chart area). We include the
-      // shared ChartControls here so all charts get consistent controls.
       const controls = (
         <ChartControls
           isDualChart={isDualChart}
@@ -127,12 +122,10 @@ const BaseExpandableChart = ({
           showExportButton={true}
           onExport={(format) => handleExport(format)}
 
-          // Keep expand buttons on per-chart headers; don't show here.
           showExpandButton={false}
         />
       );
 
-      // If consumer provided children in chartProps, preserve them after controls
       const mergedChildren = chartProps.children ? (
         <>
           {controls}
@@ -202,17 +195,12 @@ const BaseExpandableChart = ({
         onExport={handleExport}
       >
         {chartState.expanded && (
-            // Wrap expanded content in a flex container so it can grow to
-            // fill the modal body (contentScroll is a flex column).
             <div>
               {ExpandedChartComponent ? (
-                // If chart provides its own expanded layout, render it as-is
                 <div className="h-full min-h-0">
                   <ExpandedChartComponent {...expandedChartProps} />
                 </div>
               ) : (
-                // Otherwise render a 5-column grid where the chart occupies 4/5
-                // and the controls live in the right 1/5 column
                 <div className="h-full min-h-0 grid grid-cols-5 items-start">
                   <div className="col-span-4 min-w-0 h-full min-h-0">
                     <ChartComponent {...expandedChartProps} />

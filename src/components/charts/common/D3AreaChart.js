@@ -1,10 +1,6 @@
 import { useRef, useEffect } from "react";
 import * as d3 from "d3";
 
-/**
- * D3-based area chart component
- * Matches the responsive pattern of D3ComposedChart
- */
 const D3AreaChart = ({
   data = [],
   dataKey = "value",
@@ -34,7 +30,6 @@ const D3AreaChart = ({
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
-    // Create gradient definition
     const defs = svg.append("defs");
     const gradient = defs
       .append("linearGradient")
@@ -58,7 +53,6 @@ const D3AreaChart = ({
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Scales
     const xScale = d3
       .scaleLinear()
       .domain(d3.extent(data, (d) => d.year))
@@ -69,11 +63,9 @@ const D3AreaChart = ({
       .domain([0, d3.max(data, (d) => d[dataKey]) * 1.05])
       .range([chartHeight, 0]);
 
-    // Grid lines
     const xTicks = xScale.ticks();
     const yTicks = yScale.ticks();
 
-    // Vertical grid lines
     g.selectAll(".grid-x")
       .data(xTicks)
       .enter()
@@ -88,7 +80,6 @@ const D3AreaChart = ({
       .style("stroke-dasharray", "3,3")
       .style("opacity", 0.7);
 
-    // Horizontal grid lines
     g.selectAll(".grid-y")
       .data(yTicks)
       .enter()
@@ -103,7 +94,6 @@ const D3AreaChart = ({
       .style("stroke-dasharray", "3,3")
       .style("opacity", 0.7);
 
-    // Create area generator
     const area = d3
       .area()
       .x((d) => xScale(d.year))
@@ -111,17 +101,14 @@ const D3AreaChart = ({
       .y1((d) => yScale(d[dataKey]))
       .curve(d3.curveMonotoneX);
 
-    // Create line generator for the stroke
     const line = d3
       .line()
       .x((d) => xScale(d.year))
       .y((d) => yScale(d[dataKey]))
       .curve(d3.curveMonotoneX);
 
-    // Draw area
     g.append("path").datum(data).attr("fill", `url(#area-gradient-${dataKey})`).attr("d", area);
 
-    // Draw line stroke
     g.append("path")
       .datum(data)
       .attr("fill", "none")
@@ -129,7 +116,6 @@ const D3AreaChart = ({
       .attr("stroke-width", strokeWidth)
       .attr("d", line);
 
-    // X Axis
     const xAxis = g
       .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
@@ -146,14 +132,11 @@ const D3AreaChart = ({
 
     xAxis.selectAll("line, path").style("stroke", axisColor);
 
-    // Y Axis
     const yAxis = g.append("g").call(d3.axisLeft(yScale));
 
     yAxis.selectAll("text").style("font-size", "12px").style("fill", axisColor);
-
     yAxis.selectAll("line, path").style("stroke", axisColor);
 
-    // Y Axis Label
     if (yAxisLabel) {
       g.append("text")
         .attr("transform", "rotate(-90)")
@@ -166,10 +149,8 @@ const D3AreaChart = ({
         .text(yAxisLabel);
     }
 
-    // Tooltip functionality
     const tooltip = d3.select(tooltipRef.current);
 
-    // Create invisible overlay for mouse events
     g.append("rect")
       .attr("width", chartWidth)
       .attr("height", chartHeight)
@@ -228,7 +209,6 @@ const D3AreaChart = ({
     onTooltipHide,
   ]);
 
-  // Match D3ComposedChart pattern: no fixed wrapper, pass dimensions directly to SVG
   return (
     <div className="relative">
       <svg ref={svgRef} width={width} height={height}></svg>

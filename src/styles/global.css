@@ -1,4 +1,4 @@
-/* src/styles.css */
+/* src/styles/global.css - moved from src/styles.css */
 @import "https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css";
 /* Load Roboto so typography renders consistently across machines */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
@@ -115,10 +115,19 @@ body {
   border: 1px solid #e5e7eb !important;
 }
 
-/* Enhanced focus states for accessibility */
-*:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
+/* Unified focus styles for interactive elements
+   - color: #4A4A4A
+   - outline width: 2px
+   - outline-offset: 1px
+*/
+button:focus,
+a:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus {
+  outline: 2px solid #4A4A4A;
+  outline-offset: 1px;
 }
 
 @keyframes scaleIn {
