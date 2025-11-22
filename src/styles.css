@@ -3,7 +3,8 @@
 /* Load Roboto so typography renders consistently across machines */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
 
-/* Ad margin: 0;
+* {
+  margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
@@ -18,7 +19,7 @@ body {
     color 0.3s ease;
 }
 
-/* D3 Chart styles *
+.d3-chart-container {
   font-family: inherit;
 }
 
@@ -53,10 +54,12 @@ body {
   opacity: 0.7;
 }
 
-/* Scrollbar styles */
 ::-webkit-scrollbar {
   width: 8px;
-kit-scrollbar-track {
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
   background: #f3f4f6;
   border-radius: 4px;
 }
@@ -102,16 +105,19 @@ kit-scrollbar-track {
   color: #1e3a8a !important;
 }
 
-/* Metrics cards */
 .metrics-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%) !importlid #e5e7eb !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%) !important;
+  border: 1px solid #e5e7eb !important;
 }
 
-/* Enhanced focus states for accessibility */
 *:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
     transform: scale(0.95);
   }
   to {
