@@ -1,24 +1,5 @@
 import ExportButton from "../../common/ExportButton";
 
-// Custom expand icon (16x16) with corner arrows for consistency
-const ExpandIcon = ({ className = "", style = {} }) => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 16 16"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-    style={style}
-    aria-hidden="true"
-    focusable="false"
-  >
-    <path d="M10 3.5H13.5V7" stroke="#4A4A4A" strokeWidth="1.5" strokeLinecap="square" />
-    <path d="M13.5 3.5L9.5 7.5" stroke="#4A4A4A" strokeWidth="1.5" />
-    <path d="M3 9V12.5H6.5" stroke="#4A4A4A" strokeWidth="1.5" strokeLinecap="square" />
-    <path d="M6.5 12.5L2.5 8.5" stroke="#4A4A4A" strokeWidth="1.5" />
-  </svg>
-);
 
 /**
  * Reusable chart controls component
@@ -45,13 +26,8 @@ const ChartControls = ({
   showExportButton = true,
   onExport,
 
-  // Expand functionality
-  showExpandButton = true,
-  onExpand,
-  expandButtonColor = "bg-blue-600",
   expandTitle = "Expand chart",
 
-  // Custom controls
   children,
 
   // Styling
@@ -135,16 +111,6 @@ const ChartControls = ({
           </div>
         )}
 
-        {showExpandButton && (
-          <button
-            onClick={onExpand}
-            title={expandTitle}
-            aria-label={expandTitle}
-            className="w-9 h-9 inline-flex items-center justify-center rounded-full border border-gray-400 bg-white hover:bg-gray-50 transition-colors"
-          >
-            <ExpandIcon />
-          </button>
-        )}
       </div>
     </div>
   );
