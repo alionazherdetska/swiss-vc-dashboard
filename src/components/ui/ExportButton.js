@@ -1,3 +1,5 @@
+import styles from "./ChartModal.module.css";
+
 const ExportButton = ({
   title = "Export chart",
   onClick = () => window.print(),
@@ -13,19 +15,41 @@ const ExportButton = ({
         title={title}
         onClick={onClick}
       >
-        <img src="/assets/icons/download.svg" alt="Download" className="h-4 w-4" />
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 20 17"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path fillRule="evenodd" clipRule="evenodd" d="M14.7485 4.89011L16.0531 6.14089L10.0731 11.8988L4.05309 6.14525L5.31592 4.90761L10.0499 9.44615L14.7485 4.89011Z" fill="currentColor" />
+          <line x1="10.1152" y1="10" x2="10.1152" y2="0" stroke="currentColor" strokeWidth="2" />
+          <path d="M19 6.91016V15.9102H1V6.91016" stroke="currentColor" strokeWidth="2" />
+        </svg>
       </button>
     );
   }
 
   return (
     <button
-      className={`h-10 px-4 flex items-center gap-2 text-sm font-medium rounded-full bg-white text-gray-800 hover:bg-gray-50 border border-gray-300 transition-colors ${className}`}
+      className={styles.exportBtn}
       title={title}
       onClick={onClick}
     >
       {label && <span>{label}</span>}
-      {showIcon && <img src="/assets/icons/download.svg" alt="Download" className="h-4 w-4" />}
+      {showIcon && (
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 20 17"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path fillRule="evenodd" clipRule="evenodd" d="M14.7485 4.89011L16.0531 6.14089L10.0731 11.8988L4.05309 6.14525L5.31592 4.90761L10.0499 9.44615L14.7485 4.89011Z" fill="currentColor" />
+          <line x1="10.1152" y1="10" x2="10.1152" y2="0" stroke="currentColor" strokeWidth="2" />
+          <path d="M19 6.91016V15.9102H1V6.91016" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      )}
     </button>
   );
 };

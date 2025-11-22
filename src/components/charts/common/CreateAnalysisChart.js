@@ -17,8 +17,6 @@ const createAnalysisChart = (config) => {
     colorMap,
     normalizeCategory = (v) => v,
     filterDeals = (deals) => deals,
-    volumeLabel = "Investment Volume CHF (M)",
-    countLabel = "Number of Deals",
   } = config;
 
   const CategoryChart = ({
@@ -35,7 +33,8 @@ const createAnalysisChart = (config) => {
     selectedCategories = [],
   }) => {
     const metricSuffix = isVolume ? "__volume" : "__count";
-    const yAxisLabel = isVolume ? volumeLabel : countLabel;
+    // intentionally hide the left Y axis label (units shown in UI elsewhere)
+    const yAxisLabel = null;
     const displayCategories = selectedCategories.length > 0 ? selectedCategories : categories;
 
     return (
@@ -85,7 +84,7 @@ const createAnalysisChart = (config) => {
     }, [deals]);
 
     const dims = getChartDims(false, undefined, CHART_MARGIN);
-    const expandedDims = getChartDims(true, 400, EXPANDED_CHART_MARGIN);
+    const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
     const renderChart = (isVolume) => ({ data, mode, isExpanded = false, width, height }) => {
       const currentDims = isExpanded ? expandedDims : dims;

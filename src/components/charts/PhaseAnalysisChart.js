@@ -59,7 +59,7 @@ const PhaseAnalysisChart = ({ deals }) => {
 
   // Chart dimensions
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 400, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
   // Reusable chart component
   const PhaseChart = ({ data, isVolume, mode, height, margin, showDataPoints = true }) => {

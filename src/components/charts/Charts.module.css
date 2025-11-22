@@ -16,7 +16,7 @@
   overflow: hidden;
   line-height: 0px;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  transition: background 240ms cubic-bezier(.4,0,.2,1), color 240ms cubic-bezier(.4,0,.2,1), border-color 240ms cubic-bezier(.4,0,.2,1);
 }
 
 .expandButton:hover {
@@ -33,9 +33,63 @@
   transform-origin: center;
   display: inline-block;
   vertical-align: middle;
-  transition: filter 0.2s;
+  transition: filter 240ms cubic-bezier(.4,0,.2,1);
 }
 
 .expandButton:hover .expandIcon {
+  filter: invert(1) brightness(2);
+}
+
+/* Control button variant and icons used by ChartControls */
+.controlButton {
+  padding: 6px 14px;
+  border-radius: 15px;
+  border: 1px solid #4a4a4a;
+  background: #ffffff;
+  color: #4a4a4a;
+  max-width: 100%;
+  overflow: hidden;
+  line-height: normal;
+  cursor: pointer;
+  transition: background 240ms cubic-bezier(.4,0,.2,1), color 240ms cubic-bezier(.4,0,.2,1), border-color 240ms cubic-bezier(.4,0,.2,1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.controlButton:hover {
+  background: #4a4a4a;
+  color: #ffffff;
+  border-color: #4a4a4a;
+}
+
+.controlIcon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  transition: filter 240ms cubic-bezier(.4,0,.2,1);
+}
+
+.controlButton:hover .controlIcon {
+  filter: invert(1) brightness(2);
+}
+
+.controlSelectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.controlSelectIcon {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  width: 16px;
+  height: 16px;
+  transition: filter 240ms cubic-bezier(.4,0,.2,1);
+}
+
+.controlButton:hover .controlSelectIcon {
   filter: invert(1) brightness(2);
 }

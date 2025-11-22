@@ -13,13 +13,12 @@ import styles from "./Charts.module.css";
  */
 export const TimelineChart = ({ data, showVolume = false, title }) => {
   const chartKey = showVolume ? "volume" : "count";
-  const defaultY = showVolume ? "Volume (CHF M)" : "Count";
   const headerTitle = title || (showVolume ? "Invested capital" : "Number of deals");
   const chartColor = "#E84A5F";
 
   // Chart dimensions - same as other charts
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 400, EXPANDED_CHART_MARGIN);
+  const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
   // Main chart component - matches pattern from PhaseAnalysisChart
   const MainChart = ({ data: chartData, isExpanded = false }) => {
@@ -38,7 +37,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
             fillOpacity={0.8}
             gridColor="#E2E8F0"
             axisColor="#4A5568"
-            yAxisLabel={defaultY}
+            /* hide left Y axis label (visual units handled elsewhere) */
           />
         </ResponsiveD3Container>
       </div>
@@ -54,7 +53,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       height={expandedDims.height}
       controls={controls}
     >
-      <D3AreaChart
+        <D3AreaChart
         data={chartData}
         dataKey={chartKey}
         margin={expandedDims.margin}
@@ -64,7 +63,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
         fillOpacity={0.8}
         gridColor="#E2E8F0"
         axisColor="#4A5568"
-        yAxisLabel={defaultY}
+        /* hide left Y axis label in expanded view as well */
       />
     </ExpandedChartLayout>
   );

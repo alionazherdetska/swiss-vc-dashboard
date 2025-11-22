@@ -46,24 +46,63 @@
   flex-direction: column; /* Add this */
 }
 
-.closeBtn {
+.exportBtn {
+  padding: 6px 14px;
+  border-radius: 15px;
+  border: 1px solid #4a4a4a;
+  color: #020202;
+  background-color: #ffffff;
+  gap: 6px;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 16px;
-  height: 40px;
-  border-radius: 9999px;
-  background: #1f2937; /* gray-800 */
-  color: #ffffff;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: background 0.15s ease-in-out;
-  border: none;
+  width: fit-content;
+  line-height: 0px;
   cursor: pointer;
+  /* smoother, matched transition for background/text/border */
+  transition: background 240ms cubic-bezier(.4,0,.2,1), color 240ms cubic-bezier(.4,0,.2,1), border-color 240ms cubic-bezier(.4,0,.2,1);
+}
+
+.exportBtn:hover {
+  background: #4a4a4a;
+  color: white;
+}
+
+/* Ensure SVG/IMG icons inside modal export buttons invert on hover to become white */
+.exportBtn img {
+  /* image icons use filter-based inversion; keep transition in sync */
+  transition: filter 240ms cubic-bezier(.4,0,.2,1);
+}
+
+/* inline SVGs use currentColor; transition the color/stroke/fill so they change exactly with text */
+.exportBtn svg {
+  transition: color 240ms cubic-bezier(.4,0,.2,1), stroke 240ms cubic-bezier(.4,0,.2,1), fill 240ms cubic-bezier(.4,0,.2,1);
+}
+
+.exportBtn:hover img {
+  filter: invert(1) brightness(2);
+}
+
+.closeBtn {
+  padding: 6px 14px;
+  border-radius: 15px;
+  border: 1px solid #4a4a4a;
+  color: #ffffff;
+  background-color: #4a4a4a;
+  gap: 6px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  line-height: 0px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .closeBtn:hover {
-  background: #111827;
+  background: #000000;
 }
 
 .closeBtn:focus {

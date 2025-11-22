@@ -1,5 +1,6 @@
 import ExportButton from "../../ui/ExportButton";
 import filterStyles from "../../filters/FilterPanel.module.css";
+import chartStyles from "../Charts.module.css";
 
 /*
  * Reusable chart controls component
@@ -44,14 +45,17 @@ const ChartControls = ({
           {/* First column: mode select (or placeholder) */}
           <div className="flex items-center gap-2">
             {showModeControls ? (
-              <select
-                value={singleMode}
-                onChange={(e) => onSingleModeChange?.(e.target.value)}
-                className="px-3 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
-              >
-                <option value="line">Line</option>
-                <option value="column">Stacked</option>
-              </select>
+              <div className={`relative ${chartStyles.controlSelectWrap}`}>
+                <select
+                  value={singleMode}
+                  onChange={(e) => onSingleModeChange?.(e.target.value)}
+                  className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
+                >
+                  <option value="line">Line</option>
+                  <option value="column">Stacked</option>
+                </select>
+                <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
+              </div>
             ) : (
               <div />
             )}
@@ -81,25 +85,31 @@ const ChartControls = ({
             <>
               <div className="flex items-center gap-2">
                 <span className="text-gray-700">Left (Volume):</span>
-                <select
-                  value={leftMode}
-                  onChange={(e) => onLeftModeChange?.(e.target.value)}
-                  className="px-3 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
-                >
-                  <option value="line">Line</option>
-                  <option value="column">Stacked</option>
-                </select>
+                <div className={`relative ${chartStyles.controlSelectWrap}`}>
+                  <select
+                    value={leftMode}
+                    onChange={(e) => onLeftModeChange?.(e.target.value)}
+                    className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
+                  >
+                    <option value="line">Line</option>
+                    <option value="column">Stacked</option>
+                  </select>
+                  <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-gray-700">Right (Count):</span>
-                <select
-                  value={rightMode}
-                  onChange={(e) => onRightModeChange?.(e.target.value)}
-                  className="px-3 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
-                >
-                  <option value="line">Line</option>
-                  <option value="column">Stacked</option>
-                </select>
+                <div className={`relative ${chartStyles.controlSelectWrap}`}>
+                  <select
+                    value={rightMode}
+                    onChange={(e) => onRightModeChange?.(e.target.value)}
+                    className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
+                  >
+                    <option value="line">Line</option>
+                    <option value="column">Stacked</option>
+                  </select>
+                  <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
+                </div>
               </div>
             </>
           )}
@@ -107,14 +117,17 @@ const ChartControls = ({
           {/* Mode controls for single charts */}
           {showModeControls && !isDualChart && (
             <div className="flex items-center gap-2">
-              <select
-                value={singleMode}
-                onChange={(e) => onSingleModeChange?.(e.target.value)}
-                className="px-3 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none"
-              >
-                <option value="line">Line</option>
-                <option value="column">Stacked</option>
-              </select>
+              <div className={`relative ${chartStyles.controlSelectWrap}`}>
+                <select
+                  value={singleMode}
+                  onChange={(e) => onSingleModeChange?.(e.target.value)}
+                  className={`px-3 pr-10 h-9 border rounded-full text-sm bg-white border-gray-300 text-gray-700 focus:outline-none ${chartStyles.controlButton}`}
+                >
+                  <option value="line">Line</option>
+                  <option value="column">Stacked</option>
+                </select>
+                <img src="/assets/icons/chevron-down.svg" alt="" className={chartStyles.controlSelectIcon} />
+              </div>
             </div>
           )}
 
@@ -143,13 +156,13 @@ const ChartControls = ({
             <ExportButton
               label="CSV"
               onClick={() => onExport?.("csv")}
-              className="!px-4 !h-9 !rounded-full !border !border-gray-400 !bg-white !text-gray-700 hover:!bg-gray-50"
+              className={`${chartStyles.controlButton} px-4 h-9 rounded-full border border-gray-300 text-gray-700`}
             />
 
             <ExportButton
               label="PDF"
               onClick={() => onExport?.("pdf")}
-              className="!px-4 !h-9 !rounded-full !border !border-gray-400 !bg-white !text-gray-700 hover:!bg-gray-50"
+              className={`${chartStyles.controlButton} px-4 h-9 rounded-full border border-gray-300 text-gray-700`}
             />
           </div>
         )}
