@@ -27,16 +27,26 @@ export const calculateYearlyData = (data, config) => {
     getCategoryValue = (item) => item.Industry,
     getVolumeValue = (item) => item.VolumeMChf || 0,
     includeTotal = false,
+    // Pass all data for grand total calculation (optional, falls back to data)
+    allData = null,
   } = config;
 
   const groupedByYear = groupDataByYear(data, groupByField);
+  // Group all data separately for grand total calculation
+  const allGroupedByYear = allData ? groupDataByYear(allData, groupByField) : groupedByYear;
 
-  return Object.entries(groupedByYear)
-    .map(([year, items]) => {
+  // Get all years from both datasets to ensure we don't miss any
+  const allYears = new Set([
+    ...Object.keys(groupedByYear),
+    ...(allData ? Object.keys(allGroupedByYear) : []),
+  ]);
+
+  return Array.from(allYears)
+    .map((year) => {
+      const items = groupedByYear[year] || [];
       const yearData = { year: parseInt(year) };
-      let totalCount = 0;
-      let totalVolume = 0;
 
+      // Calculate per-category values
       categories.forEach((category) => {
         const categoryItems = items.filter((item) => getCategoryValue(item) === category);
 
@@ -46,16 +56,18 @@ export const calculateYearlyData = (data, config) => {
         const sanitizedKey = sanitizeKey(category);
         yearData[`${sanitizedKey}__count`] = count;
         yearData[`${sanitizedKey}__volume`] = Math.round(volume * 10) / 10;
-
-        totalCount += count;
-        totalVolume += volume;
       });
 
       if (includeTotal) {
-        yearData.totalCount = totalCount;
-        yearData.totalVolume = Math.round(totalVolume * 10) / 10;
-        yearData.__grandTotalCount = totalCount;
-        yearData.__grandTotalVolume = Math.round(totalVolume * 10) / 10;
+        // Grand total from ALL data (unfiltered), not just selected categories
+        const allItemsForYear = allGroupedByYear[year] || [];
+        const grandTotalCount = allItemsForYear.length;
+        const grandTotalVolume = allItemsForYear.reduce((sum, item) => sum + getVolumeValue(item), 0);
+
+        yearData.totalCount = grandTotalCount;
+        yearData.totalVolume = Math.round(grandTotalVolume * 10) / 10;
+        yearData.__grandTotalCount = grandTotalCount;
+        yearData.__grandTotalVolume = Math.round(grandTotalVolume * 10) / 10;
       }
 
       return yearData;

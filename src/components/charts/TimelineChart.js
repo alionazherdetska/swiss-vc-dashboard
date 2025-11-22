@@ -89,7 +89,8 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       )}
       ExpandedChartComponent={ExpandedChart}
       isDualChart={false}
-      supportsSingleMode={true}
+      // Timeline is single-series (overall totals) — stacked mode is unsupported
+      supportsSingleMode={false}
       supportsTotal={false}
       initialSingleMode="line"
       initialShowTotal={false}

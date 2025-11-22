@@ -41,6 +41,7 @@ const createAnalysisChart = (config) => {
       <D3MultiSeriesChart
         data={data}
         categories={displayCategories}
+        allCategories={categories}
         isVolume={isVolume}
         mode={mode}
         width={width}
@@ -70,6 +71,8 @@ const createAnalysisChart = (config) => {
         categories: extractedCategories,
         getCategoryValue,
         includeTotal: true,
+        // Pass unfiltered deals for grand total calculation
+        allData: filterDeals(deals),
       });
 
       const colorFn = (category) =>

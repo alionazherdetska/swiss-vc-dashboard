@@ -216,7 +216,7 @@ const Dashboard = () => {
                     <TimelineChart
                       data={chartData.timeline}
                       showVolume={true}
-                      title="Invested Capital by Year"
+                      title="Invested Capital"
                       yLabel="Invested Capital CHF (M)"
                     />
                   </ChartErrorBoundary>

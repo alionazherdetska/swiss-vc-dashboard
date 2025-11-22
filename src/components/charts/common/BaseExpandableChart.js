@@ -9,6 +9,8 @@ const BaseExpandableChart = ({
   ChartComponent,
   ExpandedChartComponent,
   supportsTotal = false,
+  // whether single-chart controls (Line / Stacked) are supported
+  supportsSingleMode = true,
   initialLeftMode = "line",
   initialRightMode = "line",
   initialSingleMode = "line",
@@ -108,7 +110,7 @@ const BaseExpandableChart = ({
       const controls = (
         <ChartControls
           isDualChart={isDualChart}
-          showModeControls={true}
+          showModeControls={supportsSingleMode}
           leftMode={chartState.leftMode}
           rightMode={chartState.rightMode}
           singleMode={chartState.singleMode}
@@ -150,16 +152,17 @@ const BaseExpandableChart = ({
     },
     [
       processedData,
-      chartState.leftMode,
-      chartState.rightMode,
-      chartState.singleMode,
-      chartState.showTotal,
-      handleExpand,
-      handleExport,
-      updateChartState,
-      chartProps,
-      isDualChart,
-      supportsTotal,
+        chartState.leftMode,
+        chartState.rightMode,
+        chartState.singleMode,
+        chartState.showTotal,
+        handleExpand,
+        handleExport,
+        updateChartState,
+        chartProps,
+        isDualChart,
+        supportsTotal,
+        supportsSingleMode,
     ]
   );
 
@@ -175,7 +178,7 @@ const BaseExpandableChart = ({
         <ChartControls
           isDualChart={false}
           controlsGrid={true}
-          showModeControls={true}
+          showModeControls={supportsSingleMode}
           singleMode={chartState.modalMode}
           onSingleModeChange={handleModalModeChange}
           // Do not render the showTotal checkbox in the left column for expanded mode
@@ -186,7 +189,7 @@ const BaseExpandableChart = ({
       ),
       ...chartProps,
     }),
-    [processedData, chartState, chartProps]
+    [processedData, chartState, chartProps, handleModalModeChange, supportsSingleMode]
   );
 
   const modalTitle = useMemo(() => {

@@ -4,6 +4,7 @@ import * as d3 from "d3";
 const D3ComposedChart = ({
   data = [],
   categories = [],
+  allCategories = null,
   mode = "line",
   showTotal = false,
   width = 400,
@@ -56,7 +57,16 @@ const D3ComposedChart = ({
     const maxValue = (function () {
       if (mode === "column" && stackedForDomain) {
         const maxStack = d3.max(stackedForDomain, (series) => d3.max(series, (d) => d[1]));
-        const totalFieldMax = showTotal ? d3.max(data, (d) => (dataKeySuffix === "__volume" ? (d.totalVolume ?? d.__grandTotalVolume ?? 0) : (d.totalCount ?? d.__grandTotalCount ?? 0))) : 0;
+        const totalFieldMax = showTotal
+          ? d3.max(data, (d) => {
+              const pre = dataKeySuffix === "__volume" ? (d.__grandTotalVolume ?? d.totalVolume) : (d.__grandTotalCount ?? d.totalCount);
+              if (pre != null) return pre;
+              const metricKeys = Object.keys(d).filter((k) => k.endsWith(dataKeySuffix));
+              if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
+              if (!allCategories || !allCategories.length) return 0;
+              return d3.sum(allCategories.map((cat) => d[`${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`] || 0));
+            })
+          : 0;
         return Math.max(maxStack || 0, totalFieldMax || 0);
       }
 
@@ -67,7 +77,16 @@ const D3ComposedChart = ({
         })
       );
 
-      const totalFieldMax = showTotal ? d3.max(data, (d) => (dataKeySuffix === "__volume" ? (d.totalVolume ?? d.__grandTotalVolume ?? 0) : (d.totalCount ?? d.__grandTotalCount ?? 0))) : 0;
+      const totalFieldMax = showTotal
+        ? d3.max(data, (d) => {
+            const pre = dataKeySuffix === "__volume" ? (d.__grandTotalVolume ?? d.totalVolume) : (d.__grandTotalCount ?? d.totalCount);
+            if (pre != null) return pre;
+            const metricKeys = Object.keys(d).filter((k) => k.endsWith(dataKeySuffix));
+            if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
+            if (!allCategories || !allCategories.length) return 0;
+            return d3.sum(allCategories.map((cat) => d[`${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`] || 0));
+          })
+        : 0;
 
       return Math.max(maxCategory || 0, totalFieldMax || 0);
     })();
@@ -188,7 +207,7 @@ const D3ComposedChart = ({
 
       // Draw total line on top of stacked bars if requested and totals exist
       if (showTotal && data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)) {
-        const totalKey = dataKeySuffix === "__volume" ? (d => d.totalVolume ?? d.__grandTotalVolume ?? 0) : (d => d.totalCount ?? d.__grandTotalCount ?? 0);
+        const totalKey = dataKeySuffix === "__volume" ? (d => d.__grandTotalVolume ?? d.totalVolume ?? 0) : (d => d.__grandTotalCount ?? d.totalCount ?? 0);
 
         const totalLine = d3
           .line()
@@ -260,7 +279,7 @@ const D3ComposedChart = ({
 
       // Draw total line if requested and data contains total fields
       if (showTotal && data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)) {
-        const totalKey = dataKeySuffix === "__volume" ? (d => d.totalVolume ?? d.__grandTotalVolume ?? 0) : (d => d.totalCount ?? d.__grandTotalCount ?? 0);
+        const totalKey = dataKeySuffix === "__volume" ? (d => d.__grandTotalVolume ?? d.totalVolume ?? 0) : (d => d.__grandTotalCount ?? d.totalCount ?? 0);
 
         const totalLine = d3
           .line()
@@ -337,6 +356,7 @@ const D3ComposedChart = ({
     dataKeySuffix,
     tooltipFormatter,
     showDataPoints,
+    allCategories,
   ]);
 
   return (
