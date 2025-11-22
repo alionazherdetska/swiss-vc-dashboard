@@ -7,7 +7,7 @@ import QuarterlyAnalysisChart from "./charts/QuarterlyAnalysisChart.js";
 import PhaseAnalysisChart from "./charts/PhaseAnalysisChart.js";
 import CantonAnalysisChart from "./charts/CantonAnalysisChart.js";
 import GenderAnalysisChart from "./charts/GenderAnalysisChart.js";
-import styles from "./dashboard/dashboard.module.css";
+import styles from "./dashboard/Dashboard.module.css";
 
 const Dashboard = () => {
   // Companies only for mapping; UI is deals-only

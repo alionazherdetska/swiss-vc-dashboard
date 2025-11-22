@@ -46,6 +46,7 @@
   justify-content: center;
   white-space: nowrap;
   position: relative;
+  cursor: pointer;
 }
 
 .tabButton.active {
@@ -67,6 +68,20 @@
   border-radius: 20px 20px 0 0;
   font-weight: 300;
   text-decoration-line: underline;
+}
+
+.tabBar .tabButton:not(.active):hover,
+.tabButton:not(.active):hover {
+  /* stronger hover for non-active tabs only: higher contrast so label is clearly visible
+     Do NOT change font-weight to avoid layout reflow on hover */
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 1px rgba(0,0,0,0.6);
+}
+
+.tabButton:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.6);
+  outline-offset: 2px;
 }
 
 .tabButton.inactive:hover {
