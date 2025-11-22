@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./styles/global.css";
+import "./styles.css";
 import Dashboard from "./components/dashboard/Dashboard.js";
 
 export function App() {
