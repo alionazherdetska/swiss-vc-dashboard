@@ -90,33 +90,62 @@ const FilterPanel = ({
           {/* Removed onReset to hide reset button for Years */}
           <Section title="Years" plain>
             <div className={styles.inputGroup}>
-              <input
-                type="number"
-                min="2012"
-                max={filters.yearRange[1] - 1}
-                value={filters.yearRange[0]}
-                onChange={(e) =>
-                  updateFilter("yearRange", [
-                    Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
-                    filters.yearRange[1],
-                  ])
-                }
-                className={styles.inputSmall}
-              />
-              <span className={styles.textMuted}>to</span>
-              <input
-                type="number"
-                min={filters.yearRange[0] + 1}
-                max="2025"
-                value={filters.yearRange[1]}
-                onChange={(e) =>
-                  updateFilter("yearRange", [
-                    filters.yearRange[0],
-                    Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
-                  ])
-                }
-                className={styles.inputSmall}
-              />
+              {(() => {
+                const years =
+                  filterOptions?.dealYears && filterOptions.dealYears.length
+                    ? Array.from(new Set(filterOptions.dealYears))
+                        .map((v) => parseInt(v, 10))
+                        .filter((y) => !Number.isNaN(y) && y >= 2012 && y <= 2025)
+                        .sort((a, b) => a - b)
+                    : [];
+                const startOptions = years.filter((y) => y < filters.yearRange[1]);
+                const endOptions = years.filter((y) => y > filters.yearRange[0]);
+                const startValue = startOptions.includes(filters.yearRange[0])
+                  ? filters.yearRange[0]
+                  : startOptions[0] ?? filters.yearRange[0];
+                const endValue = endOptions.includes(filters.yearRange[1])
+                  ? filters.yearRange[1]
+                  : endOptions[endOptions.length - 1] ?? filters.yearRange[1];
+                return (
+                  <>
+                    <select
+                      value={startValue}
+                      onChange={(e) =>
+                        updateFilter("yearRange", [
+                          Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
+                          filters.yearRange[1],
+                        ])
+                      }
+                      className={styles.inputSmall}
+                      disabled={startOptions.length === 0}
+                    >
+                      {startOptions.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                    <span className={styles.textMuted}>to</span>
+                    <select
+                      value={endValue}
+                      onChange={(e) =>
+                        updateFilter("yearRange", [
+                          filters.yearRange[0],
+                          Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
+                        ])
+                      }
+                      className={styles.inputSmall}
+                      disabled={endOptions.length === 0}
+                    >
+                      {endOptions.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                );
+              })()}
             </div>
           </Section>
 
@@ -165,33 +194,62 @@ const FilterPanel = ({
           {/* Removed onReset to hide reset button for Years */}
           <Section title="Years" minHeight={filterHeights} plain>
             <div className={styles.inputGroup}>
-              <input
-                type="number"
-                min="2012"
-                max={filters.yearRange[1] - 1}
-                value={filters.yearRange[0]}
-                onChange={(e) =>
-                  updateFilter("yearRange", [
-                    Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
-                    filters.yearRange[1],
-                  ])
-                }
-                className={styles.inputSmall}
-              />
-              <span className={styles.textMuted}>to</span>
-              <input
-                type="number"
-                min={filters.yearRange[0] + 1}
-                max="2025"
-                value={filters.yearRange[1]}
-                onChange={(e) =>
-                  updateFilter("yearRange", [
-                    filters.yearRange[0],
-                    Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
-                  ])
-                }
-                className={styles.inputSmall}
-              />
+              {(() => {
+                const years =
+                  filterOptions?.dealYears && filterOptions.dealYears.length
+                    ? Array.from(new Set(filterOptions.dealYears))
+                        .map((v) => parseInt(v, 10))
+                        .filter((y) => !Number.isNaN(y) && y >= 2012 && y <= 2025)
+                        .sort((a, b) => a - b)
+                    : [];
+                const startOptions = years.filter((y) => y < filters.yearRange[1]);
+                const endOptions = years.filter((y) => y > filters.yearRange[0]);
+                const startValue = startOptions.includes(filters.yearRange[0])
+                  ? filters.yearRange[0]
+                  : startOptions[0] ?? filters.yearRange[0];
+                const endValue = endOptions.includes(filters.yearRange[1])
+                  ? filters.yearRange[1]
+                  : endOptions[endOptions.length - 1] ?? filters.yearRange[1];
+                return (
+                  <>
+                    <select
+                      value={startValue}
+                      onChange={(e) =>
+                        updateFilter("yearRange", [
+                          Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
+                          filters.yearRange[1],
+                        ])
+                      }
+                      className={styles.inputSmall}
+                      disabled={startOptions.length === 0}
+                    >
+                      {startOptions.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                    <span className={styles.textMuted}>to</span>
+                    <select
+                      value={endValue}
+                      onChange={(e) =>
+                        updateFilter("yearRange", [
+                          filters.yearRange[0],
+                          Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
+                        ])
+                      }
+                      className={styles.inputSmall}
+                      disabled={endOptions.length === 0}
+                    >
+                      {endOptions.map((y) => (
+                        <option key={y} value={y}>
+                          {y}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                );
+              })()}
             </div>
           </Section>
 

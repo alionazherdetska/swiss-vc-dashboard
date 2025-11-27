@@ -151,38 +151,60 @@ const D3AreaChart = ({
 
     const tooltip = d3.select(tooltipRef.current);
 
-    g.append("rect")
+    // Capture mouse and show tooltip when within a tolerance (pixels) of a data point
+    const overlay = g
+      .append("rect")
       .attr("width", chartWidth)
       .attr("height", chartHeight)
       .attr("fill", "transparent")
+      .style("pointer-events", "all")
       .on("mousemove", function (event) {
         const [mouseX] = d3.pointer(event);
-        const year = Math.round(xScale.invert(mouseX));
-        const closestData =
-          data.find((d) => d.year === year) ||
-          data.reduce((prev, curr) =>
-            Math.abs(curr.year - year) < Math.abs(prev.year - year) ? curr : prev
-          );
 
-        if (closestData) {
+        // Compute pixel positions for each data point on x-axis
+        const xPositions = data.map((d) => xScale(d.year));
+        let minIndex = -1;
+        let minDist = Infinity;
+        xPositions.forEach((xp, i) => {
+          const dist = Math.abs(mouseX - xp);
+          if (dist < minDist) {
+            minDist = dist;
+            minIndex = i;
+          }
+        });
+
+        const HIT_THRESHOLD_PX = 15; // px tolerance around point
+
+        if (minIndex >= 0 && minDist <= HIT_THRESHOLD_PX) {
+          const closestData = data[minIndex];
           const value = closestData[dataKey];
           const formattedValue = showVolume
             ? `${Number(value).toFixed(1)}M CHF`
             : d3.format(",")(value);
 
+          // Position tooltip over the actual data point (relative to chart container)
+          const xPos = margin.left + xScale(closestData.year);
+          const yPos = margin.top + yScale(closestData[dataKey]);
+
           tooltip
             .style("opacity", 1)
-            .style("left", `${event.pageX + 10}px`)
-            .style("top", `${event.pageY - 10}px`).html(`
-              <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; color: #1F2937; font-size: 13px;">
-                <strong>${closestData.year}</strong><br/>
-                ${yAxisLabel}: ${formattedValue}
-              </div>
-            `);
+            .style("left", `${xPos}px`)
+            .style("top", `${yPos}px`)
+            .style("transform", "translate(-50%, -120%)")
+            .style("background", "#ffffff")
+            .style("border", "1px solid #E2E8F0")
+            .style("padding", "8px")
+            .style("border-radius", "8px")
+            .style("color", "#1F2937")
+            .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+            .html(`<strong>${closestData.year}</strong><br/>${yAxisLabel}: ${formattedValue}`);
 
-          if (onTooltipShow) {
-            onTooltipShow(closestData, event);
-          }
+          if (onTooltipShow) onTooltipShow(closestData, event);
+          overlay.style("cursor", "pointer");
+        } else {
+          tooltip.style("opacity", 0);
+          if (onTooltipHide) onTooltipHide();
+          overlay.style("cursor", "default");
         }
       })
       .on("mouseleave", function () {
@@ -212,10 +234,7 @@ const D3AreaChart = ({
   return (
     <div className="relative">
       <svg ref={svgRef} width={width} height={height}></svg>
-      <div
-        ref={tooltipRef}
-        className="absolute pointer-events-none opacity-0 transition-opacity z-50 fixed"
-      />
+      <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50" />
     </div>
   );
 };

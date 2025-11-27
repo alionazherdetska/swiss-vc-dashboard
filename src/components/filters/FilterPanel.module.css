@@ -20,6 +20,26 @@
   color: #111827; /* gray-900 */
 }
 
+/* Style selects so the dropdown arrow appears inside the control */
+select.inputSmall {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M5 8l5 5 5-5' stroke='%234a4a4a' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  /* leave a bit more space between the text and the arrow */
+  padding-right: 1rem;
+
+  /* move arrow closer to the right edge so there's a larger gap from the text */
+  background-position: right 0.45rem center;
+  background-size: 0.95rem 0.95rem;
+}
+
+/* Hide IE/Edge default arrow */
+select.inputSmall::-ms-expand {
+  display: none;
+}
+
 .textMuted {
   color: #6b7280; /* gray-600 */
   font-size: 0.875rem;

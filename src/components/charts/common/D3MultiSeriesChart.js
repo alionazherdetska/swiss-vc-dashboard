@@ -199,19 +199,31 @@ const D3MultiSeriesChart = ({
         .attr("y", (d) => yScale(d[1]))
         .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
         .attr("width", xScale.bandwidth())
-        .on("mouseover", function (event, d) {
-          const category = categories[stackedData.findIndex((s) => s.includes(d))];
-          const value = d[1] - d[0];
-          const formattedValue = isVolume
-            ? `CHF ${d3.format(",.1f")(value)}M`
-            : d3.format(",")(value);
+          .style("cursor", "pointer")
+          .on("mouseover", function (event, d) {
+            const category = categories[stackedData.findIndex((s) => s.includes(d))];
+            const value = d[1] - d[0];
+            const formattedValue = isVolume
+              ? `CHF ${d3.format(",.1f")(value)}M`
+              : d3.format(",")(value);
 
-          tooltip
-            .style("opacity", 1)
-            .html(`<strong>${category}</strong><br/>${d.data.year}: ${formattedValue}`)
-            .style("left", `${event.pageX + 10}px`)
-            .style("top", `${event.pageY - 10}px`);
-        })
+            // position tooltip above top of stacked segment
+            const xPos = margin.left + (xScale(d.data.year) + xScale.bandwidth() / 2);
+            const yPos = margin.top + yScale(d[1]);
+
+            tooltip
+              .style("opacity", 1)
+              .style("left", `${xPos}px`)
+              .style("top", `${yPos}px`)
+              .style("transform", "translate(-50%, -120%)")
+              .style("background", "#ffffff")
+              .style("border", "1px solid #E2E8F0")
+              .style("padding", "8px")
+              .style("border-radius", "8px")
+              .style("color", "#1F2937")
+              .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+              .html(`<strong>${category}</strong><br/>${d.data.year}: ${formattedValue}`);
+          })
         .on("mouseout", () => tooltip.style("opacity", 0));
     } else {
       const line = d3
@@ -243,16 +255,61 @@ const D3MultiSeriesChart = ({
           .attr("cy", (d) => yScale(d.value))
           .attr("r", 4)
           .attr("fill", colorOf(category))
+          .style("cursor", "pointer")
           .on("mouseover", function (event, d) {
             const formattedValue = isVolume
               ? `CHF ${d3.format(",.1f")(d.value)}M`
               : d3.format(",")(d.value);
 
+            const xPos = margin.left + (xScale(d.year) + xScale.bandwidth() / 2);
+            const yPos = margin.top + yScale(d.value);
+
             tooltip
               .style("opacity", 1)
-              .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`)
-              .style("left", `${event.pageX + 10}px`)
-              .style("top", `${event.pageY - 10}px`);
+              .style("left", `${xPos}px`)
+              .style("top", `${yPos}px`)
+              .style("transform", "translate(-50%, -120%)")
+              .style("background", "#ffffff")
+              .style("border", "1px solid #E2E8F0")
+              .style("padding", "8px")
+              .style("border-radius", "8px")
+              .style("color", "#1F2937")
+              .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+              .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
+          })
+          .on("mouseout", () => tooltip.style("opacity", 0));
+
+        // Add larger invisible hit targets so hovering near points still triggers tooltips
+        g.selectAll(`.dot-hit-${categoryKey}`)
+          .data(lineData)
+          .enter()
+          .append("circle")
+          .attr("class", `dot-hit-${categoryKey}`)
+          .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
+          .attr("cy", (d) => yScale(d.value))
+          .attr("r", 10)
+          .attr("fill", "transparent")
+          .style("pointer-events", "all")
+          .style("cursor", "pointer")
+          .on("mouseover", function (event, d) {
+            // reuse same handler logic as visible point
+            const formattedValue = isVolume
+              ? `CHF ${d3.format(",.1f")(d.value)}M`
+              : d3.format(",")(d.value);
+            const xPos = margin.left + (xScale(d.year) + xScale.bandwidth() / 2);
+            const yPos = margin.top + yScale(d.value);
+            tooltip
+              .style("opacity", 1)
+              .style("left", `${xPos}px`)
+              .style("top", `${yPos}px`)
+              .style("transform", "translate(-50%, -120%)")
+              .style("background", "#ffffff")
+              .style("border", "1px solid #E2E8F0")
+              .style("padding", "8px")
+              .style("border-radius", "8px")
+              .style("color", "#1F2937")
+              .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+              .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
           })
           .on("mouseout", () => tooltip.style("opacity", 0));
       });
@@ -314,7 +371,7 @@ const D3MultiSeriesChart = ({
       <svg ref={svgRef} width={width} height={height}></svg>
       <div
         ref={tooltipRef}
-        className="absolute pointer-events-none opacity-0 transition-opacity z-50 bg-black/90 text-white px-3 py-2 rounded-md text-[13px] shadow-lg"
+        className="absolute pointer-events-none opacity-0 transition-opacity z-50"
       />
     </div>
   );

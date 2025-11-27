@@ -39,10 +39,6 @@ const D3ComposedChart = ({
       .range([0, chartWidth])
       .padding(mode === "column" ? 0.1 : 0);
 
-    // Determine the maximum value to scale the Y axis.
-    // For stacked mode, compute the D3 stack and take the max y1 across stacked series;
-    // only include explicit total fields if showTotal is true so the axis shrinks back
-    // when totals are hidden.
     let stackedForDomain = null;
     if (mode === "column") {
       const stack = d3
@@ -50,7 +46,6 @@ const D3ComposedChart = ({
         .keys(categories.map((cat) => `${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`))
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
-
       stackedForDomain = stack(data);
     }
 
@@ -61,8 +56,8 @@ const D3ComposedChart = ({
           ? d3.max(data, (d) => {
               const pre =
                 dataKeySuffix === "__volume"
-                  ? (d.__grandTotalVolume ?? d.totalVolume)
-                  : (d.__grandTotalCount ?? d.totalCount);
+                  ? d.__grandTotalVolume ?? d.totalVolume
+                  : d.__grandTotalCount ?? d.totalCount;
               if (pre != null) return pre;
               const metricKeys = Object.keys(d).filter((k) => k.endsWith(dataKeySuffix));
               if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
@@ -88,8 +83,8 @@ const D3ComposedChart = ({
         ? d3.max(data, (d) => {
             const pre =
               dataKeySuffix === "__volume"
-                ? (d.__grandTotalVolume ?? d.totalVolume)
-                : (d.__grandTotalCount ?? d.totalCount);
+                ? d.__grandTotalVolume ?? d.totalVolume
+                : d.__grandTotalCount ?? d.totalCount;
             if (pre != null) return pre;
             const metricKeys = Object.keys(d).filter((k) => k.endsWith(dataKeySuffix));
             if (metricKeys.length) return d3.sum(metricKeys.map((k) => d[k] || 0));
@@ -105,10 +100,7 @@ const D3ComposedChart = ({
       return Math.max(maxCategory || 0, totalFieldMax || 0);
     })();
 
-    const yScale = d3
-      .scaleLinear()
-      .domain([0, maxValue * 1.1])
-      .range([chartHeight, 0]);
+    const yScale = d3.scaleLinear().domain([0, (maxValue || 0) * 1.1]).range([chartHeight, 0]);
 
     const xTicks = data.map((d) => d.year);
     const yTicks = yScale.ticks();
@@ -141,10 +133,7 @@ const D3ComposedChart = ({
       .style("stroke-dasharray", "3,3")
       .style("opacity", 0.7);
 
-    const xAxis = g
-      .append("g")
-      .attr("transform", `translate(0,${chartHeight})`)
-      .call(d3.axisBottom(xScale));
+    const xAxis = g.append("g").attr("transform", `translate(0,${chartHeight})`).call(d3.axisBottom(xScale));
 
     xAxis
       .selectAll("text")
@@ -158,7 +147,6 @@ const D3ComposedChart = ({
     xAxis.selectAll("line, path").style("stroke", axisColor);
 
     const yAxis = g.append("g").call(d3.axisLeft(yScale));
-
     yAxis.selectAll("text").style("font-size", "12px").style("fill", axisColor);
     yAxis.selectAll("line, path").style("stroke", axisColor);
 
@@ -188,9 +176,7 @@ const D3ComposedChart = ({
 
       stackedData.forEach((series, i) => {
         const category = categories[i];
-        const color = colorOf
-          ? colorOf(category)
-          : `hsl(${(i * 360) / categories.length}, 70%, 50%)`;
+        const color = colorOf ? colorOf(category) : `hsl(${(i * 360) / categories.length}, 70%, 50%)`;
 
         g.selectAll(`.bar-${i}`)
           .data(series)
@@ -202,31 +188,33 @@ const D3ComposedChart = ({
           .attr("width", barWidth)
           .attr("height", (d) => yScale(d[0]) - yScale(d[1]))
           .attr("fill", color)
+          .style("cursor", "pointer")
           .on("mouseover", function (event, d) {
             const value = d[1] - d[0];
-            const formattedValue = tooltipFormatter
-              ? tooltipFormatter(value, category)[0]
-              : Math.round(value * 100) / 100;
+            const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
+
+            const xPos = margin.left + (xScale(d.data.year) + xScale.bandwidth() / 2);
+            const yPos = margin.top + yScale(d[1]);
 
             tooltip
               .style("opacity", 1)
-              .style("left", `${event.pageX + 10}px`)
-              .style("top", `${event.pageY - 10}px`).html(`
-                <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; color: #1F2937; font-size: 13px;">
-                  <strong>${category}</strong><br/>
-                  ${d.data.year}: ${formattedValue}
-                </div>
-              `);
+              .style("left", `${xPos}px`)
+              .style("top", `${yPos}px`)
+              .style("transform", "translate(-50%, -120%)")
+              .style("background", "#ffffff")
+              .style("border", "1px solid #E2E8F0")
+              .style("padding", "8px")
+              .style("border-radius", "8px")
+              .style("color", "#1F2937")
+              .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+              .html(`<strong>${category}</strong><br/>${d.data.year}: ${formattedValue}`);
           })
           .on("mouseout", () => tooltip.style("opacity", 0));
       });
 
-      // Draw total line on top of stacked bars if requested and totals exist
       if (
         showTotal &&
-        data.some(
-          (d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount
-        )
+        data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)
       ) {
         const totalKey =
           dataKeySuffix === "__volume"
@@ -249,9 +237,7 @@ const D3ComposedChart = ({
       }
     } else {
       categories.forEach((category, i) => {
-        const color = colorOf
-          ? colorOf(category)
-          : `hsl(${(i * 360) / categories.length}, 70%, 50%)`;
+        const color = colorOf ? colorOf(category) : `hsl(${(i * 360) / categories.length}, 70%, 50%)`;
         const dataKey = `${category.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`;
 
         const lineData = data.filter((d) => (d[dataKey] || 0) > 0);
@@ -278,35 +264,69 @@ const D3ComposedChart = ({
             .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
             .attr("cy", (d) => yScale(d[dataKey] || 0))
             .attr("r", showDataPoints ? 4 : 0)
+            .style("cursor", showDataPoints ? "pointer" : "default")
             .attr("fill", color)
             .attr("stroke", "none")
             .attr("stroke-width", 0)
             .on("mouseover", function (event, d) {
               const value = d[dataKey] || 0;
-              const formattedValue = tooltipFormatter
-                ? tooltipFormatter(value, category)[0]
-                : Math.round(value * 100) / 100;
+              const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
+
+              const xPos = margin.left + (xScale(d.year) + xScale.bandwidth() / 2);
+              const yPos = margin.top + yScale(d[dataKey] || 0);
 
               tooltip
                 .style("opacity", 1)
-                .style("left", `${event.pageX + 10}px`)
-                .style("top", `${event.pageY - 10}px`).html(`
-                  <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; color: #1F2937; font-size: 13px;">
-                    <strong>${category}</strong><br/>
-                    ${d.year}: ${formattedValue}
-                  </div>
-                `);
+                .style("left", `${xPos}px`)
+                .style("top", `${yPos}px`)
+                .style("transform", "translate(-50%, -120%)")
+                .style("background", "#ffffff")
+                .style("border", "1px solid #E2E8F0")
+                .style("padding", "8px")
+                .style("border-radius", "8px")
+                .style("color", "#1F2937")
+                .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+                .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
+            })
+            .on("mouseout", () => tooltip.style("opacity", 0));
+
+          // invisible larger hit targets on top of the visible points
+          g.selectAll(`.dot-hit-${i}`)
+            .data(lineData)
+            .enter()
+            .append("circle")
+            .attr("class", `dot-hit-${i}`)
+            .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
+            .attr("cy", (d) => yScale(d[dataKey] || 0))
+            .attr("r", 10)
+            .attr("fill", "transparent")
+            .style("pointer-events", "all")
+            .style("cursor", "pointer")
+            .on("mouseover", function (event, d) {
+              const value = d[dataKey] || 0;
+              const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
+              const xPos = margin.left + (xScale(d.year) + xScale.bandwidth() / 2);
+              const yPos = margin.top + yScale(d[dataKey] || 0);
+              tooltip
+                .style("opacity", 1)
+                .style("left", `${xPos}px`)
+                .style("top", `${yPos}px`)
+                .style("transform", "translate(-50%, -120%)")
+                .style("background", "#ffffff")
+                .style("border", "1px solid #E2E8F0")
+                .style("padding", "8px")
+                .style("border-radius", "8px")
+                .style("color", "#1F2937")
+                .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+                .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
             })
             .on("mouseout", () => tooltip.style("opacity", 0));
         }
       });
 
-      // Draw total line if requested and data contains total fields
       if (
         showTotal &&
-        data.some(
-          (d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount
-        )
+        data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)
       ) {
         const totalKey =
           dataKeySuffix === "__volume"
@@ -316,32 +336,46 @@ const D3ComposedChart = ({
         const totalLine = d3
           .line()
           .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
-          .y((d) => yScale(totalKey(d)))
+          .y((d) => {
+            const pre = dataKeySuffix === "__volume" ? d.__grandTotalVolume ?? d.totalVolume : d.__grandTotalCount ?? d.totalCount;
+            if (pre != null) return yScale(pre);
+            if (!allCategories || !allCategories.length) return yScale(0);
+            const computed = d3.sum(allCategories.map((cat) => d[`${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`] || 0));
+            return yScale(computed);
+          })
           .curve(d3.curveMonotoneX);
 
         g.append("path")
-          .datum(data.filter((d) => totalKey(d) != null))
+          .datum(data.filter((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount))
           .attr("fill", "none")
           .attr("stroke", "#000")
-          .attr("stroke-width", 2)
+          .attr("stroke-width", 3)
           .attr("stroke-dasharray", "5,5")
           .attr("d", totalLine);
       }
 
-      g.append("rect")
+      // overlay for per-year aggregated tooltip — compute closest center robustly
+      const overlay = g
+        .append("rect")
         .attr("width", chartWidth)
         .attr("height", chartHeight)
         .attr("fill", "transparent")
+        .style("pointer-events", "all")
         .on("mousemove", function (event) {
           const [mouseX] = d3.pointer(event);
-          const year = Math.round(
-            xScale.invert
-              ? xScale.invert(mouseX)
-              : data[Math.floor(mouseX / (chartWidth / data.length))]?.year
-          );
+          const centers = data.map((d) => xScale(d.year) + xScale.bandwidth() / 2);
+          let closestIdx = -1;
+          let minDist = Infinity;
+          centers.forEach((cx, i) => {
+            const dist = Math.abs(mouseX - cx);
+            if (dist < minDist) {
+              minDist = dist;
+              closestIdx = i;
+            }
+          });
 
-          const closestData = data.find((d) => d.year === year);
-          if (closestData) {
+          if (closestIdx >= 0) {
+            const closestData = data[closestIdx];
             const categoryValues = categories
               .map((cat) => ({
                 category: cat,
@@ -350,27 +384,33 @@ const D3ComposedChart = ({
               .filter((cv) => cv.value > 0);
 
             if (categoryValues.length > 0) {
-              const maxCategory = categoryValues.reduce((max, curr) =>
-                curr.value > max.value ? curr : max
-              );
-
-              const formattedValue = tooltipFormatter
-                ? tooltipFormatter(maxCategory.value, maxCategory.category)[0]
-                : Math.round(maxCategory.value * 100) / 100;
-
+              const maxCategory = categoryValues.reduce((max, curr) => (curr.value > max.value ? curr : max));
+              const formattedValue = tooltipFormatter ? tooltipFormatter(maxCategory.value, maxCategory.category)[0] : Math.round(maxCategory.value * 100) / 100;
+              const xPos = margin.left + centers[closestIdx];
+              const yPos = margin.top + yScale(maxCategory.value);
               tooltip
                 .style("opacity", 1)
-                .style("left", `${event.pageX + 10}px`)
-                .style("top", `${event.pageY - 10}px`).html(`
-                  <div style="background: white; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px; color: #1F2937; font-size: 13px;">
-                    <strong>${maxCategory.category}</strong><br/>
-                    ${closestData.year}: ${formattedValue}
-                  </div>
-                `);
+                .style("left", `${xPos}px`)
+                .style("top", `${yPos}px`)
+                .style("transform", "translate(-50%, -120%)")
+                .style("background", "#ffffff")
+                .style("border", "1px solid #E2E8F0")
+                .style("padding", "8px")
+                .style("border-radius", "8px")
+                .style("color", "#1F2937")
+                .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+                .html(`<strong>${maxCategory.category}</strong><br/>${closestData.year}: ${formattedValue}`);
+
+              overlay.style("cursor", "pointer");
+            } else {
+              overlay.style("cursor", "default");
+              tooltip.style("opacity", 0);
             }
           }
         })
         .on("mouseleave", () => tooltip.style("opacity", 0));
+
+      if (overlay && overlay.lower) overlay.lower();
     }
   }, [
     data,
@@ -392,12 +432,9 @@ const D3ComposedChart = ({
   ]);
 
   return (
-    <div>
+    <div className="relative">
       <svg ref={svgRef} width={width} height={height}></svg>
-      <div
-        ref={tooltipRef}
-        className="pointer-events-none opacity-0 transition-opacity z-50 fixed"
-      />
+      <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50" />
     </div>
   );
 };
