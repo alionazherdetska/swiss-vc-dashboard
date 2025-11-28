@@ -163,6 +163,9 @@ const D3ComposedChart = ({
     }
 
     const tooltip = d3.select(tooltipRef.current);
+    const HOVER_SUPPRESSION_MS = 150;
+    const HIT_PROX_PX = 12; // vertical proximity threshold in px to prefer per-series points
+    let lastSeriesHoverTime = 0;
 
     if (mode === "column") {
       const stack = d3
@@ -190,6 +193,7 @@ const D3ComposedChart = ({
           .attr("fill", color)
           .style("cursor", "pointer")
           .on("mouseover", function (event, d) {
+            lastSeriesHoverTime = Date.now();
             const value = d[1] - d[0];
             const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
 
@@ -269,6 +273,7 @@ const D3ComposedChart = ({
             .attr("stroke", "none")
             .attr("stroke-width", 0)
             .on("mouseover", function (event, d) {
+              lastSeriesHoverTime = Date.now();
               const value = d[dataKey] || 0;
               const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
 
@@ -303,6 +308,7 @@ const D3ComposedChart = ({
             .style("pointer-events", "all")
             .style("cursor", "pointer")
             .on("mouseover", function (event, d) {
+              lastSeriesHoverTime = Date.now();
               const value = d[dataKey] || 0;
               const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
               const xPos = margin.left + (xScale(d.year) + xScale.bandwidth() / 2);
@@ -328,11 +334,6 @@ const D3ComposedChart = ({
         showTotal &&
         data.some((d) => d.totalVolume || d.totalCount || d.__grandTotalVolume || d.__grandTotalCount)
       ) {
-        const totalKey =
-          dataKeySuffix === "__volume"
-            ? (d) => d.__grandTotalVolume ?? d.totalVolume ?? 0
-            : (d) => d.__grandTotalCount ?? d.totalCount ?? 0;
-
         const totalLine = d3
           .line()
           .x((d) => xScale(d.year) + xScale.bandwidth() / 2)
@@ -362,7 +363,26 @@ const D3ComposedChart = ({
         .attr("fill", "transparent")
         .style("pointer-events", "all")
         .on("mousemove", function (event) {
-          const [mouseX] = d3.pointer(event);
+          // If we recently hovered a series point/bar, suppress overlay for a short window
+          // to avoid flicker when moving quickly between nearby points.
+          const [mouseX, mouseY] = d3.pointer(event);
+          if (Date.now() - lastSeriesHoverTime < HOVER_SUPPRESSION_MS) return;
+
+          // If the mouse is directly over a per-series hit element (dot-hit, dot or bar),
+          // do not run the overlay logic so that the specific element's tooltip takes precedence.
+          const tgt = event.target;
+          if (tgt && tgt.classList) {
+            for (let i = 0; i < tgt.classList.length; i++) {
+              const cls = tgt.classList[i];
+              if (cls.indexOf("dot-hit-") === 0 || cls.indexOf("dot-") === 0 || cls.indexOf("bar-") === 0) {
+                return;
+              }
+            }
+          }
+
+          // Compute centers and determine closest year index (by X). Then check vertical
+          // proximity to any per-series point for that year — if close, prefer that series
+          // tooltip instead of the aggregated overlay.
           const centers = data.map((d) => xScale(d.year) + xScale.bandwidth() / 2);
           let closestIdx = -1;
           let minDist = Infinity;
@@ -376,6 +396,37 @@ const D3ComposedChart = ({
 
           if (closestIdx >= 0) {
             const closestData = data[closestIdx];
+
+            // Check per-series vertical proximity first — prefer specific series
+            for (let i = 0; i < categories.length; i++) {
+              const cat = categories[i];
+              const val = closestData[`${cat.replace(/[^a-zA-Z0-9]/g, "_")}${dataKeySuffix}`] || 0;
+              if (!val) continue;
+              const py = yScale(val); // chart-space Y
+              if (Math.abs(mouseY - py) <= HIT_PROX_PX) {
+                // Show that series' tooltip (point-level)
+                const formattedValue = tooltipFormatter ? tooltipFormatter(val, cat)[0] : Math.round(val * 100) / 100;
+                const xPos = margin.left + centers[closestIdx];
+                const yPos = margin.top + py;
+                tooltip
+                  .style("opacity", 1)
+                  .style("left", `${xPos}px`)
+                  .style("top", `${yPos}px`)
+                  .style("transform", "translate(-50%, -120%)")
+                  .style("background", "#ffffff")
+                  .style("border", "1px solid #E2E8F0")
+                  .style("padding", "8px")
+                  .style("border-radius", "8px")
+                  .style("color", "#1F2937")
+                  .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+                  .html(`<strong>${cat}</strong><br/>${closestData.year}: ${formattedValue}`);
+                overlay.style("cursor", "pointer");
+                lastSeriesHoverTime = Date.now();
+                return;
+              }
+            }
+
+            // No close per-series point found — fallback to aggregated maxCategory as before
             const categoryValues = categories
               .map((cat) => ({
                 category: cat,
