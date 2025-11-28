@@ -12,9 +12,7 @@ const ExpandedChartLayout = ({
   colorOf,
   height = 420,
   children,
-  // optional controls to render above the legend in the left column
   controls = null,
-  // optional controls to render at the far right (e.g. Show total in modal header)
   rightControls = null,
 }) => {
   return (

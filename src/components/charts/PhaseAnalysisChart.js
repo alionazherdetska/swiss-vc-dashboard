@@ -6,36 +6,28 @@ import ExpandedChartLayout from "./common/ExpandedChartLayout";
 import D3ComposedChart from "./common/D3ComposedChart";
 import { sanitizeKey, getChartDims } from "../../lib/utils";
 import {
-  AXIS_STROKE,
-  GRID_STROKE,
-  ENHANCED_COLOR_PALETTE,
-  STAGE_COLOR_MAP,
   CHART_MARGIN,
   EXPANDED_CHART_MARGIN,
+  STAGE_COLOR_MAP,
 } from "../../lib/constants";
 import styles from "./Charts.module.css";
 
 /**
  * Phase Analysis Chart
- * Uses D3ComposedChart for rendering (different from other analysis charts)
+ * Uses the unified D3Chart component for rendering
  */
 const PhaseAnalysisChart = ({ deals, allDeals }) => {
-  // Use allDeals for grand total calculation, fall back to deals if not provided
   const dealsForTotal = allDeals || deals;
 
-  // Extract phases from deals
   const phases = useMemo(() => {
     return Array.from(new Set(deals.map((d) => d.Phase).filter((p) => p && p.trim()))).sort();
   }, [deals]);
 
-  // Color function for phases
   const colorOf = (phase) =>
     STAGE_COLOR_MAP[phase] ||
-    ENHANCED_COLOR_PALETTE[phases.indexOf(phase) % ENHANCED_COLOR_PALETTE.length];
+    "#999";
 
-  // Prepare phase/year rows for charting
   const rows = useMemo(() => {
-    // Group filtered deals by year for category breakdown
     const byYear = {};
     deals.forEach((d) => {
       if (!d.Phase || !d.Year) return;
@@ -47,7 +39,6 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
       byYear[year][`${phaseKey}__count`] = (byYear[year][`${phaseKey}__count`] || 0) + 1;
     });
 
-    // Group ALL deals by year for grand total
     const allByYear = {};
     dealsForTotal.forEach((d) => {
       if (!d.Year) return;
@@ -59,7 +50,6 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
       allByYear[year].totalCount += 1;
     });
 
-    // Merge grand totals into byYear
     const allYears = new Set([...Object.keys(byYear), ...Object.keys(allByYear)]);
     allYears.forEach((year) => {
       if (!byYear[year]) {
@@ -73,7 +63,6 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
     });
 
     const allRows = Object.values(byYear).sort((a, b) => a.year - b.year);
-    // Find first year with any non-zero value
     const firstIdx = allRows.findIndex((row) => {
       return phases.some((phase) => {
         const v = row[`${sanitizeKey(phase)}__volume`] || 0;
@@ -84,11 +73,9 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
     return firstIdx >= 0 ? allRows.slice(firstIdx) : allRows;
   }, [deals, dealsForTotal, phases]);
 
-  // Chart dimensions
   const dims = getChartDims(false, undefined, CHART_MARGIN);
   const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
-  // Reusable chart component
   const PhaseChart = ({
     data,
     isVolume,
@@ -98,7 +85,7 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
     showDataPoints = true,
     showTotal = false,
   }) => {
-    const dataKeySuffix = isVolume ? "__volume" : "__count";
+    const metricSuffix = isVolume ? "__volume" : "__count";
 
     return (
       <div className={styles.chartArea}>
@@ -106,13 +93,13 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
           <D3ComposedChart
             data={data}
             categories={phases}
+            allCategories={phases}
+            isVolume={isVolume}
             mode={mode}
             margin={margin}
             strokeWidth={2}
-            gridColor={GRID_STROKE}
-            axisColor={AXIS_STROKE}
             colorOf={colorOf}
-            dataKeySuffix={dataKeySuffix}
+            metricSuffix={metricSuffix}
             showDataPoints={showDataPoints}
             showTotal={showTotal}
           />
@@ -121,7 +108,6 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
     );
   };
 
-  // Chart renderers
   const VolumeChart = ({ data, mode, isExpanded = false }) => (
     <PhaseChart
       data={data}
@@ -142,7 +128,6 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
     />
   );
 
-  // Expanded chart using unified layout
   const ExpandedChart = ({ data, mode, expandedChart, isExpanded, controls, showTotal }) => {
     const isVolumeChart = expandedChart === "volume";
 
@@ -157,13 +142,13 @@ const PhaseAnalysisChart = ({ deals, allDeals }) => {
         <D3ComposedChart
           data={data}
           categories={phases}
+          allCategories={phases}
+          isVolume={isVolumeChart}
           mode={mode}
           margin={expandedDims.margin}
           strokeWidth={2}
-          gridColor={GRID_STROKE}
-          axisColor={AXIS_STROKE}
           colorOf={colorOf}
-          dataKeySuffix={isVolumeChart ? "__volume" : "__count"}
+          metricSuffix={isVolumeChart ? "__volume" : "__count"}
           showDataPoints={true}
           showTotal={showTotal}
         />

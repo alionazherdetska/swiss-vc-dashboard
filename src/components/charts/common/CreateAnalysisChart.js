@@ -37,7 +37,6 @@ const createAnalysisChart = (config) => {
     selectedCategories = [],
   }) => {
     const metricSuffix = isVolume ? "__volume" : "__count";
-    const yAxisLabel = null;
     const displayCategories = selectedCategories.length > 0 ? selectedCategories : categories;
 
     return (
@@ -53,7 +52,7 @@ const createAnalysisChart = (config) => {
         isExpanded={isExpanded}
         colorOf={colorOf}
         showTotal={showTotal}
-        yAxisLabel={yAxisLabel}
+        yAxisLabel={null}
         metricSuffix={metricSuffix}
       />
     );
@@ -64,12 +63,10 @@ const createAnalysisChart = (config) => {
       if (!deals?.length) return { chartData: [], categories: [], colorOf: () => "#000" };
 
       const filteredDeals = filterDeals(deals);
-      // Use allDeals for grand total, fall back to deals if not provided
       const allFilteredDeals = allDeals ? filterDeals(allDeals) : filteredDeals;
 
       const getCategoryValue = (item) => normalizeCategory(item[categoryField]);
       const extractedCategories = extractCategories(filteredDeals, getCategoryValue).sort();
-      // Extract ALL categories from unfiltered data for the color function
       const allExtractedCategories = extractCategories(allFilteredDeals, getCategoryValue).sort();
 
       const chartConfig = getChartConfig(chartType);
@@ -78,7 +75,6 @@ const createAnalysisChart = (config) => {
         categories: extractedCategories,
         getCategoryValue,
         includeTotal: true,
-        // Pass unfiltered deals for grand total calculation
         allData: allFilteredDeals,
       });
 

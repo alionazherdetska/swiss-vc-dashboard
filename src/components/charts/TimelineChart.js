@@ -16,11 +16,9 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
   const headerTitle = title || (showVolume ? "Invested capital" : "Number of deals");
   const chartColor = "#E84A5F";
 
-  // Chart dimensions - same as other charts
   const dims = getChartDims(false, undefined, CHART_MARGIN);
   const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
-  // Main chart component - matches pattern from PhaseAnalysisChart
   const MainChart = ({ data: chartData, isExpanded = false }) => {
     const currentDims = isExpanded ? expandedDims : dims;
 
@@ -37,14 +35,12 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
             fillOpacity={0.8}
             gridColor="#E2E8F0"
             axisColor="#4A5568"
-            /* hide left Y axis label (visual units handled elsewhere) */
           />
         </ResponsiveD3Container>
       </div>
     );
   };
 
-  // Expanded chart using unified layout
   const ExpandedChart = ({ data: chartData, controls }) => (
     <ExpandedChartLayout
       legendItems={[headerTitle]}
@@ -63,7 +59,6 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
         fillOpacity={0.8}
         gridColor="#E2E8F0"
         axisColor="#4A5568"
-        /* hide left Y axis label in expanded view as well */
       />
     </ExpandedChartLayout>
   );
@@ -89,7 +84,6 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       )}
       ExpandedChartComponent={ExpandedChart}
       isDualChart={false}
-      // Timeline is single-series (overall totals) — stacked mode is unsupported
       supportsSingleMode={false}
       supportsTotal={false}
       initialSingleMode="line"

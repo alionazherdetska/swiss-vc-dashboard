@@ -1,5 +1,9 @@
 import React, { useState, useLayoutEffect, useRef, useCallback } from "react";
 
+/**
+ * Responsive container for D3 charts
+ * Measures container width and passes dimensions to children
+ */
 const ResponsiveD3Container = ({ children, width = "100%", height = 400, debounceTime = 100 }) => {
   const containerRef = useRef(null);
   const timeoutRef = useRef(null);

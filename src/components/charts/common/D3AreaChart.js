@@ -30,6 +30,7 @@ const D3AreaChart = ({
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
+    // Gradient definition
     const defs = svg.append("defs");
     const gradient = defs
       .append("linearGradient")
@@ -53,6 +54,7 @@ const D3AreaChart = ({
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
+    // Scales
     const xScale = d3
       .scaleLinear()
       .domain(d3.extent(data, (d) => d.year))
@@ -66,6 +68,7 @@ const D3AreaChart = ({
     const xTicks = xScale.ticks();
     const yTicks = yScale.ticks();
 
+    // Grid lines
     g.selectAll(".grid-x")
       .data(xTicks)
       .enter()
@@ -94,6 +97,7 @@ const D3AreaChart = ({
       .style("stroke-dasharray", "3,3")
       .style("opacity", 0.7);
 
+    // Area and line
     const area = d3
       .area()
       .x((d) => xScale(d.year))
@@ -116,6 +120,7 @@ const D3AreaChart = ({
       .attr("stroke-width", strokeWidth)
       .attr("d", line);
 
+    // Axes
     const xAxis = g
       .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
@@ -151,7 +156,7 @@ const D3AreaChart = ({
 
     const tooltip = d3.select(tooltipRef.current);
 
-    // Capture mouse and show tooltip when within a tolerance (pixels) of a data point
+    // Tooltip interaction
     const overlay = g
       .append("rect")
       .attr("width", chartWidth)
@@ -161,7 +166,6 @@ const D3AreaChart = ({
       .on("mousemove", function (event) {
         const [mouseX] = d3.pointer(event);
 
-        // Compute pixel positions for each data point on x-axis
         const xPositions = data.map((d) => xScale(d.year));
         let minIndex = -1;
         let minDist = Infinity;
@@ -173,7 +177,7 @@ const D3AreaChart = ({
           }
         });
 
-        const HIT_THRESHOLD_PX = 15; // px tolerance around point
+        const HIT_THRESHOLD_PX = 15;
 
         if (minIndex >= 0 && minDist <= HIT_THRESHOLD_PX) {
           const closestData = data[minIndex];
@@ -182,7 +186,6 @@ const D3AreaChart = ({
             ? `${Number(value).toFixed(1)}M CHF`
             : d3.format(",")(value);
 
-          // Position tooltip over the actual data point (relative to chart container)
           const xPos = margin.left + xScale(closestData.year);
           const yPos = margin.top + yScale(closestData[dataKey]);
 

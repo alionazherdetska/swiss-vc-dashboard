@@ -623,7 +623,6 @@ const FilterPanel = ({
             </div>
           </Section>
 
-          {/* Deal types filter removed intentionally */}
         </div>
       )}
     </div>
