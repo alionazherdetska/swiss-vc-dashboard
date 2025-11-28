@@ -168,7 +168,7 @@ const createAnalysisChart = (config) => {
         )}
         ExpandedChartComponent={ExpandedChart}
         isDualChart={true}
-        supportsSingleMode={false}
+        supportsSingleMode={true}
         supportsTotal={true}
         initialLeftMode="line"
         initialRightMode="line"
