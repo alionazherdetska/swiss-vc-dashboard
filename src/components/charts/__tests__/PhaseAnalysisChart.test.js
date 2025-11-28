@@ -2,17 +2,16 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-// Mock the D3ComposedChart to inspect props passed from the expanded chart
-jest.mock("../common/D3ComposedChart", () => (props) => {
-  // render a simple marker that includes showTotal and mode
-  return (
-    <div
-      data-testid="mock-d3"
-      data-showtotal={props.showTotal ? "true" : "false"}
-      data-mode={props.mode}
-    />
-  );
-});
+// Mock D3-dependent chart components so Jest doesn't try to parse ESM d3 in node_modules
+jest.mock("../common/D3ComposedChart", () => (props) => (
+  <div data-testid="mock-d3" data-showtotal={props.showTotal ? "true" : "false"} data-mode={props.mode} />
+));
+jest.mock("../common/D3MultiSeriesChart", () => (props) => (
+  <div data-testid="mock-d3" data-showtotal={props.showTotal ? "true" : "false"} data-mode={props.mode} />
+));
+jest.mock("../common/D3AreaChart", () => (props) => (
+  <div data-testid="mock-area" data-mode={props.mode ?? "line"} />
+));
 
 import PhaseAnalysisChart from "../PhaseAnalysisChart";
 
@@ -58,13 +57,10 @@ describe("PhaseAnalysisChart expanded behavior", () => {
     expect(modalMockAfter).toBeDefined();
     expect(modalMockAfter).toHaveAttribute("data-showtotal", "false");
 
-    // The mode dropdown should exist in the modal (single mode control)
-    const select = screen.getByRole("combobox");
-    expect(select).toBeInTheDocument();
-
-    // Change to stacked/column mode
-    await userEvent.selectOptions(select, "column");
-    expect(select).toHaveValue("column");
+    // Mode controls should be radios in the modal; click Stacked
+    const stackedRadio = within(modalFrame).getByRole("radio", { name: /Stacked/i });
+    await userEvent.click(stackedRadio);
+    expect(stackedRadio).toBeChecked();
 
     // Mocked D3 should reflect mode change (find modal instance)
     const allMocksMode = await screen.findAllByTestId("mock-d3");

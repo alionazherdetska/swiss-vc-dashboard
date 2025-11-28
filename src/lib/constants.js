@@ -74,7 +74,7 @@ export const CANTON_COLOR_MAP = {
   "Appenzell Innerrhoden": "#E84A5F",
   "St. Gallen": "#D8F443",
   Graubünden: "#3498DB",
-  Aargau: "#FFFC4B",
+  Aargau: "#6B8E23",
   Thurgau: "#E8676C",
   Ticino: "#98E5FD",
   Vaud: "#CAC7B0",
@@ -82,6 +82,7 @@ export const CANTON_COLOR_MAP = {
   Neuchâtel: "#77E05A",
   Genève: "#B0C8DE",
   Jura: "#B67CE5",
+    "Other": "#6B7280",
 };
 
 export const CEO_GENDER_COLOR_MAP = {
@@ -123,6 +124,32 @@ export const OFFICIAL_CANTONS = [
   { name: "Neuchâtel", code: "NE" },
   { name: "Genève", code: "GE" },
   { name: "Jura", code: "JU" },
+];
+
+// Expose commonly used canton groupings for UI and charts
+export const PRIMARY_CANTON_ORDER_CODES = ["ZH", "VD", "ZG", "GE", "BS", "BE"];
+
+export const OTHER_CANTON_CODES = [
+  "SG",
+  "TI",
+  "LU",
+  "AG",
+  "SZ",
+  "VS",
+  "FR",
+  "BL",
+  "NE",
+  "SO",
+  "SH",
+  "TG",
+  "JU",
+  "GR",
+  "AR",
+  "OW",
+  "NW",
+  "UR",
+  "GL",
+  "AI",
 ];
 
 // Mapping for variant names and cities to official cantons

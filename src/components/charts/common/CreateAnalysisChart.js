@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import BaseExpandableChart from "./BaseExpandableChart";
 import ResponsiveD3Container from "./ResponsiveD3Container";
 import ExpandedChartLayout from "./ExpandedChartLayout";
@@ -10,6 +10,9 @@ import {
   CHART_MARGIN,
   EXPANDED_CHART_MARGIN,
   ENHANCED_COLOR_PALETTE,
+  OFFICIAL_CANTONS,
+  PRIMARY_CANTON_ORDER_CODES,
+  OTHER_CANTON_CODES,
 } from "../../../lib/constants";
 
 const createAnalysisChart = (config) => {
@@ -59,13 +62,96 @@ const createAnalysisChart = (config) => {
   };
 
   const AnalysisChart = ({ deals, allDeals, selectedCategories = [] }) => {
-    const { chartData, categories, colorOf } = useMemo(() => {
+    const { chartData, categories, colorOf, expandedCategories } = useMemo(() => {
       if (!deals?.length) return { chartData: [], categories: [], colorOf: () => "#000" };
 
       const filteredDeals = filterDeals(deals);
       const allFilteredDeals = allDeals ? filterDeals(allDeals) : filteredDeals;
 
-      const getCategoryValue = (item) => normalizeCategory(item[categoryField]);
+      // Base getter maps raw item -> normalized category name
+      const baseGetCategoryValue = (item) => normalizeCategory(item[categoryField]);
+
+      // Special handling for canton charts: compact view collapses many cantons into a single 'Other' series,
+      // expanded view exposes a larger selectable set (primary + many others) and groups the rest as 'Other'.
+      if (chartType === "canton") {
+        const codeToName = OFFICIAL_CANTONS.reduce((acc, c) => {
+          acc[c.code] = c.name;
+          return acc;
+        }, {});
+
+        const primaryNames = PRIMARY_CANTON_ORDER_CODES.map((code) => codeToName[code]).filter(Boolean);
+        const otherNamesCompact = OTHER_CANTON_CODES.map((code) => codeToName[code]).filter(Boolean);
+
+        // Define the expanded selection order (explicit list requested)
+        const EXPANDED_ORDER_CODES = [
+          ...PRIMARY_CANTON_ORDER_CODES,
+          "SG",
+          "TI",
+          "LU",
+          "AG",
+          "SZ",
+          "VS",
+          "FR",
+          "BL",
+          "NE",
+          "SO",
+          "SH",
+          "TG",
+          "JU",
+        ];
+        const expandedNames = EXPANDED_ORDER_CODES.map((code) => codeToName[code]).filter(Boolean);
+
+        // Names that are NOT explicitly exposed in expandedNames will be grouped into 'Other' in expanded view
+        const otherNamesForExpanded = OFFICIAL_CANTONS.map((c) => c.name).filter((n) => !expandedNames.includes(n));
+
+        // Build category mapping for expanded data: map anything not in expandedNames -> 'Other'
+        const getCategoryValueExpanded = (item) => {
+          const val = baseGetCategoryValue(item);
+          if (!val) return val;
+          return expandedNames.includes(val) ? val : "Other";
+        };
+
+        // Expanded categories always in this order
+        const expandedExtractedCategories = [...expandedNames, "Other"];
+
+        // Compute the yearly data for expanded categories (this dataset will include all series fields)
+        const chartConfig = getChartConfig(chartType);
+        const yearlyDataExpanded = calculateYearlyData(filteredDeals, {
+          ...chartConfig,
+          categories: expandedExtractedCategories,
+          getCategoryValue: getCategoryValueExpanded,
+          includeTotal: true,
+          allData: allFilteredDeals,
+        });
+
+        // Now compute compact categories (for the small view): primary + Other only when present
+        const presentNames = extractCategories(filteredDeals, baseGetCategoryValue);
+        const presentSet = new Set();
+        presentNames.forEach((name) => {
+          if (otherNamesCompact.includes(name)) presentSet.add("Other");
+          else if (primaryNames.includes(name)) presentSet.add(name);
+          else presentSet.add(name);
+        });
+        const compactExtractedCategories = [
+          ...primaryNames.filter((n) => presentSet.has(n)),
+          ...(presentSet.has("Other") ? ["Other"] : []),
+        ];
+
+        // Color mapping uses presence in the expanded dataset (so indices align)
+        const allPresentNames = extractCategories(allFilteredDeals, getCategoryValueExpanded).sort();
+        const colorFn = (category) =>
+          colorMap[category] ||
+          ENHANCED_COLOR_PALETTE[allPresentNames.indexOf(category) % ENHANCED_COLOR_PALETTE.length];
+
+        return {
+          chartData: yearlyDataExpanded,
+          categories: compactExtractedCategories,
+          expandedCategories: expandedExtractedCategories,
+          colorOf: colorFn,
+        };
+      }
+
+      const getCategoryValue = (item) => baseGetCategoryValue(item);
       const extractedCategories = extractCategories(filteredDeals, getCategoryValue).sort();
       const allExtractedCategories = extractCategories(allFilteredDeals, getCategoryValue).sort();
 
@@ -122,25 +208,45 @@ const createAnalysisChart = (config) => {
 
     const ExpandedChart = ({ data, mode, expandedChart, isExpanded, showTotal, controls }) => {
       const isVolumeChart = expandedChart === "volume";
+      // local selection state for expanded legend (allows checkboxes in expanded view)
+      const [modalSelectedCategories, setModalSelectedCategories] = useState(
+        expandedCategories || categories
+      );
+
+      useEffect(() => {
+        setModalSelectedCategories(expandedCategories || categories);
+      }, [expandedCategories, categories]);
+
+      const toggleModalCategory = (cat) => {
+        setModalSelectedCategories((prev) => {
+          if (!prev) return [cat];
+          if (prev.includes(cat)) return prev.filter((c) => c !== cat);
+          return [...prev, cat];
+        });
+      };
 
       return (
         <ExpandedChartLayout
-          legendItems={categories}
+          legendItems={expandedCategories || categories}
           legendTitle={legendTitle}
           colorOf={colorOf}
           height={expandedDims.height}
           controls={controls}
+          // Enable checkboxes for canton expanded view
+          legendSelectable={chartType === "canton"}
+          selectedLegendItems={modalSelectedCategories}
+          onToggleLegend={toggleModalCategory}
         >
           <CategoryChart
             data={data}
-            categories={categories}
+            categories={expandedCategories || categories}
             isVolume={isVolumeChart}
             mode={mode}
             margin={expandedDims.margin}
             isExpanded={true}
             colorOf={colorOf}
             showTotal={showTotal}
-            selectedCategories={selectedCategories}
+            selectedCategories={modalSelectedCategories}
           />
         </ExpandedChartLayout>
       );

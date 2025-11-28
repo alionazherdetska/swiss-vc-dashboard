@@ -25,12 +25,21 @@ describe("TimelineChart expanded behavior", () => {
     // Modal should show expanded title
     expect(await screen.findByText(/Expanded Investment Volume/i)).toBeInTheDocument();
 
-    // Mode select should be present in modal
-    const select = screen.getByRole("combobox");
-    expect(select).toBeInTheDocument();
+    // Mode controls should be present in modal (radios or a combobox depending on implementation)
+    const closeBtn = screen.getByRole("button", { name: /Close modal/i });
+    const modalFrame = closeBtn.closest(".modalFrame") || document.body;
+    const { within } = require("@testing-library/react");
+    const lineRadio = within(modalFrame).queryByRole("radio", { name: /Line/i });
+    if (lineRadio) {
+      const stackedRadio = within(modalFrame).getByRole("radio", { name: /Stacked/i });
+      expect(lineRadio).toBeInTheDocument();
+      expect(stackedRadio).toBeInTheDocument();
+    } else {
+      const select = within(modalFrame).getByRole("combobox");
+      expect(select).toBeInTheDocument();
+    }
 
     // Close modal via Close button
-    const closeBtn = screen.getByRole("button", { name: /Close modal/i });
     await userEvent.click(closeBtn);
 
     expect(screen.queryByText(/Expanded Investment Volume/i)).not.toBeInTheDocument();

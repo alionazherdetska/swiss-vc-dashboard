@@ -5,6 +5,8 @@ import {
   INDUSTRY_COLOR_MAP,
   CEO_GENDER_COLOR_MAP,
   STAGE_COLOR_MAP,
+  PRIMARY_CANTON_ORDER_CODES,
+  OTHER_CANTON_CODES,
 } from "../../lib/constants";
 import styles from "./FilterPanel.module.css";
 
@@ -34,13 +36,24 @@ const FilterPanel = ({
   const companiesTab = activeTab === "companies";
   const dealsTab = !companiesTab;
 
-  // Allowed canton subset (no scroll, only these shown)
-  // Use canton codes to avoid accent / naming mismatches (ZH, ZG, VD, GE, BS, BE)
-  const ALLOWED_CANTON_CODES = useMemo(() => ["ZH", "ZG", "VD", "GE", "BS", "BE"], []);
-  const allowedCantons = useMemo(
-    () => OFFICIAL_CANTONS.filter((c) => ALLOWED_CANTON_CODES.includes(c.code)),
-    [ALLOWED_CANTON_CODES]
+  // Use centralized canton groupings: primary preview list + grouped "Other"
+  const PRIMARY_CANTON_ORDER = PRIMARY_CANTON_ORDER_CODES;
+  const OTHER_CANTON_CODES_LOCAL = OTHER_CANTON_CODES;
+
+  const allowedCantons = useMemo(() => {
+    const map = OFFICIAL_CANTONS.reduce((acc, c) => {
+      acc[c.code] = c;
+      return acc;
+    }, {});
+    return PRIMARY_CANTON_ORDER.map((code) => map[code]).filter(Boolean);
+  }, [PRIMARY_CANTON_ORDER]);
+
+  const otherCantons = useMemo(
+    () => OFFICIAL_CANTONS.filter((c) => OTHER_CANTON_CODES_LOCAL.includes(c.code)),
+    [OTHER_CANTON_CODES_LOCAL]
   );
+
+  const displayCantons = useMemo(() => [...allowedCantons, { name: "Other", code: "OTHER" }], [allowedCantons]);
 
   // Determine which filter should be primary (checkboxes with colors)
   // On Overview tab (timeline), all filters should show as checkboxes with "All" labels
@@ -59,7 +72,7 @@ const FilterPanel = ({
     const heights = [];
 
     // Cantons: header + items (subset, no scroll)
-    const cantonsHeight = 40 + (allowedCantons.length + 1) * 28;
+    const cantonsHeight = 40 + (displayCantons.length + 1) * 28;
     heights.push(cantonsHeight);
 
     // CEO Gender: header + items
@@ -553,20 +566,56 @@ const FilterPanel = ({
                   <label className={`${styles.itemLabel} ${styles.itemLabelHover}`}>
                     <input
                       type="checkbox"
-                      checked={filters.cantons.length === allowedCantons.length}
-                      onChange={() =>
-                        updateFilter(
-                          "cantons",
-                          filters.cantons.length === allowedCantons.length
-                            ? []
-                            : allowedCantons.map((c) => c.name)
-                        )
-                      }
+                      checked={allowedCantons.every((c) => filters.cantons.includes(c.name))}
+                      onChange={() => {
+                        const primaryNames = allowedCantons.map((c) => c.name);
+                        const allSelected = primaryNames.every((n) => filters.cantons.includes(n));
+                        if (allSelected) {
+                          updateFilter(
+                            "cantons",
+                            filters.cantons.filter((n) => !primaryNames.includes(n))
+                          );
+                        } else {
+                          const toAdd = primaryNames.filter((n) => !filters.cantons.includes(n));
+                          updateFilter("cantons", [...filters.cantons, ...toAdd]);
+                        }
+                      }}
                       className={styles.checkboxAll}
                     />
                     <span className={styles.labelTextBold}>All</span>
                   </label>
-                  {allowedCantons.map((canton) => {
+                  {displayCantons.map((canton) => {
+                    if (canton.code === "OTHER") {
+                      const color = CANTON_COLOR_MAP["Other"] || "#999";
+                      const isOtherChecked = otherCantons.every((c) => filters.cantons.includes(c.name));
+                      return (
+                        <label
+                          key={canton.code}
+                          className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isOtherChecked}
+                            onChange={() => {
+                              if (isOtherChecked) {
+                                updateFilter(
+                                  "cantons",
+                                  filters.cantons.filter((n) => !otherCantons.some((c) => c.name === n))
+                                );
+                              } else {
+                                const toAdd = otherCantons.map((c) => c.name).filter((n) => !filters.cantons.includes(n));
+                                updateFilter("cantons", [...filters.cantons, ...toAdd]);
+                              }
+                            }}
+                            className={`${styles.checkbox} ${styles.checkboxColored}`}
+                            style={{
+                              "--checkbox-bg-color": color,
+                            }}
+                          />
+                          <span className={styles.labelText}>{canton.name}</span>
+                        </label>
+                      );
+                    }
                     const color = CANTON_COLOR_MAP[canton.name] || "#999";
                     return (
                       <label
@@ -601,23 +650,43 @@ const FilterPanel = ({
                     />
                     <span className={styles.labelTextBold}>All</span>
                   </label>
-                  {allowedCantons.map((canton) => (
-                    <label
-                      key={canton.code}
-                      className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
-                    >
-                      <input
-                        type="radio"
-                        name="canton-radio"
-                        checked={filters.cantons.length === 1 && filters.cantons[0] === canton.name}
-                        onChange={() => updateFilter("cantons", [canton.name])}
-                        className={styles.radio}
-                      />
-                      <span className={styles.labelText}>
-                        {canton.name} ({canton.code})
-                      </span>
-                    </label>
-                  ))}
+                  {displayCantons.map((canton) => {
+                    if (canton.code === "OTHER") {
+                      const isOtherSelected = otherCantons.length > 0 && otherCantons.every((c) => filters.cantons.includes(c.name));
+                      return (
+                        <label
+                          key={canton.code}
+                          className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                        >
+                          <input
+                            type="radio"
+                            name="canton-radio"
+                            checked={isOtherSelected}
+                            onChange={() => updateFilter("cantons", otherCantons.map((c) => c.name))}
+                            className={styles.radio}
+                          />
+                          <span className={styles.labelText}>{canton.name}</span>
+                        </label>
+                      );
+                    }
+                    return (
+                      <label
+                        key={canton.code}
+                        className={`${styles.itemLabel} ${styles.itemLabelIndented} ${styles.itemLabelHover}`}
+                      >
+                        <input
+                          type="radio"
+                          name="canton-radio"
+                          checked={filters.cantons.length === 1 && filters.cantons[0] === canton.name}
+                          onChange={() => updateFilter("cantons", [canton.name])}
+                          className={styles.radio}
+                        />
+                        <span className={styles.labelText}>
+                          {canton.name} ({canton.code})
+                        </span>
+                      </label>
+                    );
+                  })}
                 </>
               )}
             </div>

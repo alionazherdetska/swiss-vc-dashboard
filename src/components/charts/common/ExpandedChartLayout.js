@@ -14,6 +14,10 @@ const ExpandedChartLayout = ({
   children,
   controls = null,
   rightControls = null,
+  // when true, legend will render selectable checkboxes (used for canton expanded view)
+  legendSelectable = false,
+  selectedLegendItems = [],
+  onToggleLegend = null,
 }) => {
   return (
     <div>
@@ -21,9 +25,18 @@ const ExpandedChartLayout = ({
 
       <div className="grid grid-cols-5 items-start" style={{ minHeight: height }}>
         {/* Legend on the LEFT - 1/5 */}
-        <div className="col-span-1">
-          {controls && <div className="mb-4">{controls}</div>}
-          <ChartLegend items={legendItems} colorOf={colorOf} title={legendTitle} />
+        <div className="col-span-1 flex flex-col" style={{ height: height }}>
+          {controls && <div className="mb-4 flex-shrink-0">{controls}</div>}
+          <div style={{ overflowY: "auto", flex: "1 1 auto", paddingRight: 6 }}>
+            <ChartLegend
+              items={legendItems}
+              colorOf={colorOf}
+              title={legendTitle}
+              showCheckboxes={legendSelectable}
+              checkedItems={selectedLegendItems}
+              onToggle={onToggleLegend}
+            />
+          </div>
         </div>
 
         {/* Chart on the RIGHT - 4/5 */}

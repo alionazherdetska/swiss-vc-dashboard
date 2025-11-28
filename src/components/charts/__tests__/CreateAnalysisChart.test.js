@@ -51,10 +51,10 @@ describe("CreateAnalysisChart factory", () => {
     const modalAfter = allMocksAfter.find((el) => el.getAttribute("data-showtotal") === "false");
     expect(modalAfter).toBeDefined();
 
-    // Mode dropdown should be present and changeable
-    const select = within(modalFrame).getByRole("combobox");
-    await userEvent.selectOptions(select, "column");
-    expect(select).toHaveValue("column");
+    // Mode controls should be present and changeable (radio buttons)
+    const stackedRadio = within(modalFrame).getByRole("radio", { name: /Stacked/i });
+    await userEvent.click(stackedRadio);
+    expect(stackedRadio).toBeChecked();
 
     // Modal mock should reflect mode change
     const allMocksMode = await screen.findAllByTestId("mock-multi");
