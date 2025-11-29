@@ -136,18 +136,6 @@ const D3MultiSeriesChart = ({
       .domain([0, maxValue * 1.1])
       .range([chartHeight, 0]);
 
-    g.selectAll(".grid-x")
-      .data(years)
-      .enter()
-      .append("line")
-      .attr("class", "grid-x")
-      .attr("x1", (d) => xScale(d) + xScale.bandwidth() / 2)
-      .attr("x2", (d) => xScale(d) + xScale.bandwidth() / 2)
-      .attr("y1", 0)
-      .attr("y2", chartHeight)
-      .style("stroke", GRID_STROKE)
-      .style("stroke-width", 0.5)
-      .style("opacity", 0.5);
 
     g.selectAll(".grid-y")
       .data(yScale.ticks())
@@ -162,11 +150,21 @@ const D3MultiSeriesChart = ({
       .style("stroke-width", 0.5)
       .style("opacity", 0.5);
 
-    // Choose tick values so labels do not overlap: estimate max ticks by
-    // allowing ~60px per tick label, then sample the years array accordingly.
+    // Choose tick values so labels do not overlap: show all years when the
+    // years array is consecutive (e.g., 2012..2025) or small enough to fit,
+    // otherwise sample based on chart width (~60px per tick).
     const maxTicks = Math.max(1, Math.floor(chartWidth / 60));
-    const step = Math.max(1, Math.ceil(years.length / maxTicks));
-    const tickValues = years.filter((_, i) => i % step === 0);
+    const isConsecutive = years.length > 1 && years.every((y, i) => i === 0 || y === years[i - 1] + 1);
+    let tickValues = [];
+    if (isConsecutive || years.length <= maxTicks) {
+      tickValues = years.slice();
+    } else {
+      const step = Math.max(1, Math.ceil(years.length / maxTicks));
+      for (let i = 0; i < years.length; i += step) tickValues.push(years[i]);
+      if (tickValues[tickValues.length - 1] !== years[years.length - 1]) {
+        tickValues.push(years[years.length - 1]);
+      }
+    }
 
     const xAxis = g
       .append("g")

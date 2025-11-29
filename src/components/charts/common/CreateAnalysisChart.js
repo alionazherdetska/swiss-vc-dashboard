@@ -102,6 +102,7 @@ const createAnalysisChart = (config) => {
         const expandedNames = EXPANDED_ORDER_CODES.map((code) => codeToName[code]).filter(Boolean);
 
         // Names that are NOT explicitly exposed in expandedNames will be grouped into 'Other' in expanded view
+        // eslint-disable-next-line no-unused-vars
         const otherNamesForExpanded = OFFICIAL_CANTONS.map((c) => c.name).filter((n) => !expandedNames.includes(n));
 
         // Build category mapping for expanded data: map anything not in expandedNames -> 'Other'
@@ -216,6 +217,7 @@ const createAnalysisChart = (config) => {
         expandedCategories || categories
       );
 
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       useEffect(() => {
         setModalSelectedCategories(expandedCategories || categories);
       }, [expandedCategories, categories]);

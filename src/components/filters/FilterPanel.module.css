@@ -64,7 +64,7 @@ select.inputSmall::-ms-expand {
 
 .filtersRowOverview {
   display: grid;
-  grid-template-columns: auto auto auto 1.5fr;
+  grid-template-columns: auto 1.5fr;
   gap: 1.5rem;
   align-items: start;
 }

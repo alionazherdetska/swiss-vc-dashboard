@@ -53,6 +53,7 @@ const FilterPanel = ({
     [OTHER_CANTON_CODES_LOCAL]
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const displayCantons = useMemo(() => [...allowedCantons, { name: "Other", code: "OTHER" }], [allowedCantons]);
 
   // Determine which filter should be primary (checkboxes with colors)
@@ -162,30 +163,7 @@ const FilterPanel = ({
             </div>
           </Section>
 
-          {/* Column 2: All filters as checkboxes with reset inside */}
-          <Section title="Industries" onReset={resetFilters}>
-            <div className={styles.overviewCheckboxes}>
-              <label className={`${styles.itemLabel}`}>
-                <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
-                <span className={styles.labelText}>All Industries</span>
-              </label>
-
-              <label className={`${styles.itemLabel}`}>
-                <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
-                <span className={styles.labelText}>All Cantons</span>
-              </label>
-
-              <label className={`${styles.itemLabel}`}>
-                <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
-                <span className={styles.labelText}>All Stages</span>
-              </label>
-
-              <label className={`${styles.itemLabel}`}>
-                <input type="checkbox" checked={true} disabled className={`${styles.checkbox}`} />
-                <span className={styles.labelText}>All CEO genders</span>
-              </label>
-            </div>
-          </Section>
+          {/* Column 2 removed for the Timeline overview per design (no boxed header or checkboxes) */}
 
           {/* Column 3 removed - reset now inside Industries section */}
 

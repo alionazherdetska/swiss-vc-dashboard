@@ -68,15 +68,20 @@ const D3AreaChart = ({
 
     // Build a deduplicated, sorted array of data years so we can pick ticks
     const years = Array.from(new Set(data.map((d) => d.year))).sort((a, b) => a - b);
-
-    // Choose tick values so labels do not overlap: estimate ~60px per tick.
+    // If the years array is consecutive (e.g. 2012,2013,...,2025) or short enough
+    // to fit, show every year. Otherwise sample ticks based on chart width.
     const maxTicks = Math.max(1, Math.floor(chartWidth / 60));
-    const step = Math.max(1, Math.ceil(years.length / maxTicks));
-    const tickValues = [];
-    for (let i = 0; i < years.length; i += step) tickValues.push(years[i]);
-    // Ensure last year is included
-    if (tickValues[tickValues.length - 1] !== years[years.length - 1]) {
-      tickValues.push(years[years.length - 1]);
+    const isConsecutive = years.length > 1 && years.every((y, i) => i === 0 || y === years[i - 1] + 1);
+    let tickValues = [];
+    if (isConsecutive || years.length <= maxTicks) {
+      tickValues = years.slice();
+    } else {
+      const step = Math.max(1, Math.ceil(years.length / maxTicks));
+      for (let i = 0; i < years.length; i += step) tickValues.push(years[i]);
+      // Ensure last year is included
+      if (tickValues[tickValues.length - 1] !== years[years.length - 1]) {
+        tickValues.push(years[years.length - 1]);
+      }
     }
 
     const yTicks = yScale.ticks();
