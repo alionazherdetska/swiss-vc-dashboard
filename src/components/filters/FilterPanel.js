@@ -221,7 +221,7 @@ const FilterPanel = ({
                             "--checkbox-bg-color": color,
                           }}
                         />
-                        <span className={styles.labelText}>{industry}</span>
+                        {industry}
                       </label>
                     );
                   })}
@@ -309,7 +309,7 @@ const FilterPanel = ({
                                 "--checkbox-bg-color": color,
                               }}
                             />
-                            <span className={styles.labelText}>{phase}</span>
+     {phase}
                           </label>
                         );
                       })}
@@ -338,7 +338,7 @@ const FilterPanel = ({
                             onChange={() => updateFilter("phases", [phase])}
                             className={styles.radio}
                           />
-                          <span className={styles.labelText}>{phase}</span>
+   {phase}
                         </label>
                       ))}
                     </>
@@ -413,7 +413,7 @@ const FilterPanel = ({
                               "--checkbox-bg-color": color,
                             }}
                           />
-                          <span className={styles.labelText}>{gender}</span>
+   {gender}
                         </label>
                       );
                     })}
@@ -445,7 +445,7 @@ const FilterPanel = ({
                           onChange={() => updateFilter("ceoGenders", [gender])}
                           className={styles.radio}
                         />
-                        <span className={styles.labelText}>{gender}</span>
+ {gender}
                       </label>
                     ))}
                   </>
@@ -519,7 +519,7 @@ const FilterPanel = ({
                               "--checkbox-bg-color": color,
                             }}
                           />
-                          <span className={styles.labelText}>{canton.name}</span>
+   {canton.name}
                         </label>
                       );
                     }
@@ -538,9 +538,8 @@ const FilterPanel = ({
                             "--checkbox-bg-color": color,
                           }}
                         />
-                        <span className={styles.labelText}>
+ 
                           {canton.name} ({canton.code})
-                        </span>
                       </label>
                     );
                   })}
@@ -572,7 +571,7 @@ const FilterPanel = ({
                             onChange={() => updateFilter("cantons", otherCantons.map((c) => c.name))}
                             className={styles.radio}
                           />
-                          <span className={styles.labelText}>{canton.name}</span>
+   {canton.name}
                         </label>
                       );
                     }
@@ -588,9 +587,7 @@ const FilterPanel = ({
                           onChange={() => updateFilter("cantons", [canton.name])}
                           className={styles.radio}
                         />
-                        <span className={styles.labelText}>
                           {canton.name} ({canton.code})
-                        </span>
                       </label>
                     );
                   })}

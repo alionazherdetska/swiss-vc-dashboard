@@ -19,7 +19,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
   const dims = getChartDims(false, undefined, CHART_MARGIN);
   const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
 
-  const MainChart = ({ data: chartData, isExpanded = false }) => {
+  const MainChart = ({ data: chartData, isExpanded = false, onExpand }) => {
     const currentDims = isExpanded ? expandedDims : dims;
 
     return (
@@ -35,7 +35,18 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
             fillOpacity={0.8}
             gridColor="#E2E8F0"
             axisColor="#4A5568"
-          />
+          >
+            <div className={styles.chartHeaderOverlay}>
+              <ChartHeader
+                  title={headerTitle}
+                  subtitle={showVolume ? "in CHF Mio." : ""}
+                  showExpandButton={true}
+                  onExpand={() => onExpand && onExpand(isExpanded ? (showVolume ? "volume" : "count") : (showVolume ? "volume" : "count"))}
+                  className="flex items-center justify-between"
+                  titleClassName="text-md font-semibold text-gray-800"
+                />
+            </div>
+          </D3AreaChart>
         </ResponsiveD3Container>
       </div>
     );
@@ -68,19 +79,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       title={headerTitle}
       data={data}
       ChartComponent={({ data: chartData, onExpand }) => (
-        <div>
-          <div className="pl-4">
-            <ChartHeader
-              title={headerTitle}
-              showExpandButton={true}
-              onExpand={() => onExpand && onExpand(showVolume ? "volume" : "count")}
-              expandTitle="Expand Chart"
-              className="flex items-start gap-4 mb-2"
-              titleClassName="text-md font-semibold text-gray-800"
-            />
-          </div>
-          <MainChart data={chartData} />
-        </div>
+        <MainChart data={chartData} onExpand={onExpand} />
       )}
       ExpandedChartComponent={ExpandedChart}
       isDualChart={false}

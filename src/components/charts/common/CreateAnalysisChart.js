@@ -38,6 +38,7 @@ const createAnalysisChart = (config) => {
     colorOf,
     showTotal = false,
     selectedCategories = [],
+    children,
   }) => {
     const metricSuffix = isVolume ? "__volume" : "__count";
     const displayCategories = selectedCategories.length > 0 ? selectedCategories : categories;
@@ -57,7 +58,9 @@ const createAnalysisChart = (config) => {
         showTotal={showTotal}
         yAxisLabel={null}
         metricSuffix={metricSuffix}
-      />
+      >
+        {children}
+      </D3MultiSeriesChart>
     );
   };
 
@@ -185,7 +188,7 @@ const createAnalysisChart = (config) => {
 
     const renderChart =
       (isVolume) =>
-      ({ data, mode, isExpanded = false, width, height, showTotal = false }) => {
+      ({ data, mode, isExpanded = false, width, height, showTotal = false, children }) => {
         const currentDims = isExpanded ? expandedDims : dims;
         const finalHeight = typeof height === "number" ? height : currentDims.height;
 
@@ -197,11 +200,13 @@ const createAnalysisChart = (config) => {
               isVolume={isVolume}
               mode={mode}
               margin={currentDims.margin}
-            isExpanded={isExpanded}
-            colorOf={colorOf}
-            showTotal={showTotal}
+              isExpanded={isExpanded}
+              colorOf={colorOf}
+              showTotal={showTotal}
               selectedCategories={selectedCategories}
-            />
+            >
+              {children}
+            </CategoryChart>
           </ResponsiveD3Container>
         );
       };
@@ -218,7 +223,12 @@ const createAnalysisChart = (config) => {
 
       useEffect(() => {
         setModalSelectedCategories(expandedCategories || categories);
-      }, [expandedCategories, categories]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [
+        // Use stringified arrays so the effect runs when contents change
+        JSON.stringify(expandedCategories || []),
+        JSON.stringify(categories || []),
+      ]);
 
       const toggleModalCategory = (cat) => {
         setModalSelectedCategories((prev) => {

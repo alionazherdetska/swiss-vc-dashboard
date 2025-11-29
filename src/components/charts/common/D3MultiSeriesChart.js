@@ -19,6 +19,7 @@ const D3MultiSeriesChart = ({
 
   getSeriesValue = (d, category, suffix) => d[`${category}${suffix}`] || 0,
   metricSuffix = "__volume",
+  children,
 }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
@@ -430,6 +431,7 @@ const D3MultiSeriesChart = ({
 
   return (
     <div className="relative">
+      {children}
       <svg ref={svgRef} width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none"></svg>
       <div
         ref={tooltipRef}

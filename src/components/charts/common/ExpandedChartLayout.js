@@ -23,7 +23,7 @@ const ExpandedChartLayout = ({
     <div>
       {rightControls && <div className="flex justify-end mb-3">{rightControls}</div>}
 
-      <div className="grid grid-cols-5 items-start" style={{ minHeight: height }}>
+      <div className="grid grid-cols-6 items-start" style={{ minHeight: height }}>
         {/* Legend on the LEFT - 1/5 */}
         <div className="col-span-1 flex flex-col" style={{ height: height }}>
           {controls && <div className="mb-4 flex-shrink-0">{controls}</div>}
@@ -45,7 +45,7 @@ const ExpandedChartLayout = ({
         </div>
 
         {/* Chart on the RIGHT - 4/5 */}
-        <div className="col-span-4 min-w-0" style={{ height: height }}>
+        <div className="col-span-5 min-w-0" style={{ height: height }}>
           <ResponsiveD3Container width="100%" height={height}>
             {children}
           </ResponsiveD3Container>

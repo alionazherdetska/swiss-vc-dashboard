@@ -8,18 +8,20 @@ const ChartHeader = ({
   onExpand,
   expandTitle = "Expand chart",
   children,
-  className = "flex items-start gap-4 mb-4",
-  titleClassName = "text-xl font-semibold text-gray-900 leading-tight",
+  className = "flex items-center justify-between gap-4 mb-[15px]",
+  titleClassName = "",
   subtitleClassName = "text-sm text-gray-500 mt-0.5",
 }) => {
+  const wrapperClass = String(className).includes("w-") ? className : `${className} w-full`;
+
   return (
-    <div className={className}>
+    <div className={wrapperClass}>
       <div className="flex flex-col">
-        <h3 className={titleClassName}>{title}</h3>
-        {subtitle && <p className={subtitleClassName}>{subtitle}</p>}
+        <h3 className={`${styles.chartTitle}${titleClassName ? ` ${titleClassName}` : ""}`}>{title}</h3>
+        <p className={subtitleClassName} aria-hidden>{subtitle ?? "\u00A0"}</p>
       </div>
       {(showExpandButton || children) && (
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2">
           {showExpandButton && (
             <button
               onClick={onExpand}

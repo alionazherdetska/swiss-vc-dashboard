@@ -17,6 +17,7 @@ const D3AreaChart = ({
   showVolume = false,
   onTooltipShow,
   onTooltipHide,
+  children,
 }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
@@ -283,6 +284,7 @@ const D3AreaChart = ({
 
   return (
     <div className="relative">
+      {children}
       <svg ref={svgRef} width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none"></svg>
       <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50" />
       {window && window.__D3_DEBUG__ ? (

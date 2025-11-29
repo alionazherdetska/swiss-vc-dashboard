@@ -18,6 +18,7 @@ const D3ComposedChart = ({
   dataKeySuffix = "__volume",
   tooltipFormatter,
   showDataPoints = false,
+  children,
 }) => {
   const svgRef = useRef();
   const tooltipRef = useRef();
@@ -484,6 +485,7 @@ const D3ComposedChart = ({
 
   return (
     <div className="relative">
+      {children}
       <svg ref={svgRef} width={width} height={height}></svg>
       <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50" />
     </div>

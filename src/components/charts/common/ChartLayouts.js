@@ -21,6 +21,9 @@ const DualChartLayout = ({
   // Headers
   volumeTitle = "Investment Volume vs Year",
   countTitle = "Number of Deals vs Year",
+  // optional subtitles for first/second chart
+  volumeSubtitle = "in CHF Mio.",
+  countSubtitle = "",
 
   // Action handlers
   onVolumeExpand,
@@ -38,32 +41,36 @@ const DualChartLayout = ({
       <div className={gridClassName}>
         {/* Volume Chart */}
         <div className={styles.chartArea}>
-          <div className="pl-4">
-            <ChartHeader
-              title={volumeTitle}
-              showExpandButton={!!onVolumeExpand}
-              onExpand={onVolumeExpand}
-              isVolumeChart={true}
-              expandTitle="Expand Volume Chart"
-            />
-          </div>
-
-          <VolumeChart data={volumeData} isVolume={true} {...volumeProps} />
+          <VolumeChart data={volumeData} isVolume={true} {...volumeProps}>
+            <div className={styles.chartHeaderOverlay}>
+              <ChartHeader
+                title={volumeTitle}
+                subtitle={volumeSubtitle}
+                showExpandButton={!!onVolumeExpand}
+                onExpand={onVolumeExpand}
+                isVolumeChart={true}
+                expandTitle="Expand Volume Chart"
+                className="flex items-center justify-between"
+              />
+            </div>
+          </VolumeChart>
         </div>
 
         {/* Count Chart */}
         <div className={styles.chartArea}>
-          <div className="pl-4">
-            <ChartHeader
-              title={countTitle}
-              showExpandButton={!!onCountExpand}
-              onExpand={onCountExpand}
-              isVolumeChart={false}
-              expandTitle="Expand Count Chart"
-            />
-          </div>
-
-          <CountChart data={countData} isVolume={false} {...countProps} />
+          <CountChart data={countData} isVolume={false} {...countProps}>
+            <div className={styles.chartHeaderOverlay}>
+              <ChartHeader
+                title={countTitle}
+                subtitle={countSubtitle}
+                showExpandButton={!!onCountExpand}
+                onExpand={onCountExpand}
+                isVolumeChart={false}
+                expandTitle="Expand Count Chart"
+                className="flex items-center justify-between"
+              />
+            </div>
+          </CountChart>
         </div>
       </div>
     </div>
@@ -102,19 +109,21 @@ const SingleChartLayout = ({
     <div className={className}>
       {children}
 
-      <div>
-        <div className="pl-4">
-          <ChartHeader
-            title={title}
-            showExpandButton={!!onExpand}
-            onExpand={onExpand}
-            isVolumeChart={isVolumeChart}
-            expandTitle={`Expand ${isVolumeChart ? "Volume" : "Count"} Chart`}
-          />
+        <div>
+          <ChartComponent data={data} {...chartProps}>
+            <div className={styles.chartHeaderOverlay}>
+              <ChartHeader
+                title={title}
+                subtitle={""}
+                showExpandButton={!!onExpand}
+                onExpand={onExpand}
+                isVolumeChart={isVolumeChart}
+                expandTitle={`Expand ${isVolumeChart ? "Volume" : "Count"} Chart`}
+                className="flex items-center justify-between"
+              />
+            </div>
+          </ChartComponent>
         </div>
-
-        <ChartComponent data={data} {...chartProps} />
-      </div>
     </div>
   );
 };

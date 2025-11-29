@@ -222,7 +222,6 @@ const Dashboard = () => {
                     yLabel="Number of Deals"
                   />
                 </ChartErrorBoundary>
-                <div>
                   {(() => {
                     const years =
                       filterOptions?.dealYears && filterOptions.dealYears.length
@@ -283,7 +282,6 @@ const Dashboard = () => {
                       </div>
                     );
                   })()}
-                </div>
                 <div className={styles.timelineMessagePlain}>
                   <h3 className={styles.overviewMessageTitle}>How to use the dashboard</h3>
                   <p className={styles.overviewMessageText}>

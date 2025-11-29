@@ -71,7 +71,7 @@ const ChartControls = ({
                         onChange={() => onSingleModeChange?.("column")}
                         className={filterStyles.radio}
                       />
-                      <span className={filterStyles.labelText}>Stacked</span>
+                      Stacked
                     </label>
                   </div>
                 );
@@ -129,7 +129,7 @@ const ChartControls = ({
                           onChange={() => onLeftModeChange?.("column")}
                           className={filterStyles.radio}
                         />
-                        <span className={filterStyles.labelText}>Stacked</span>
+                      Stacked
                       </label>
                     </div>
                   );
@@ -161,7 +161,7 @@ const ChartControls = ({
                           onChange={() => onRightModeChange?.("column")}
                           className={filterStyles.radio}
                         />
-                        <span className={filterStyles.labelText}>Stacked</span>
+                        Stacked
                       </label>
                     </div>
                   );
@@ -197,7 +197,7 @@ const ChartControls = ({
                         onChange={() => onSingleModeChange?.("column")}
                         className={filterStyles.radio}
                       />
-                      <span className={filterStyles.labelText}>Stacked</span>
+                      Stacked
                     </label>
                   </div>
                 );

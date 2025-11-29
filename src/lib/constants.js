@@ -3,12 +3,12 @@ import { TrendingUp, MapPin, DollarSign, BarChart3, Calendar, LineChart } from "
 /* =========================
    Chart layout & styling
    ========================= */
-export const CHART_MARGIN = { top: 50, right: 50, left: 60, bottom: 60 };
+export const CHART_MARGIN = { top: 40, right: 20, left: 60, bottom: 60 };
 export const EXPANDED_CHART_MARGIN = {
-  top: 80,
-  right: 80,
-  left: 80,
-  bottom: 80,
+  top: 90,
+  right: 10,
+  left: 50,
+  bottom: 50,
 };
 
 // Axis/grid stroke tokens (UI colors)
