@@ -196,3 +196,55 @@
 .chartsArea {
   padding: 20px;
 }
+
+.timelineMessagePlain {
+  padding: 0.25rem 0 0 0;
+  align-self: start;
+  background: transparent;
+  border: none;
+}
+
+.overviewMessageTitle {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 32px;
+  color: #4A4A4A;
+  margin: 0;
+}
+
+.overviewMessageText {
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-size: 20px;
+  line-height: 32px;
+  color: #4A4A4A;
+  margin: 0;
+}
+
+/* Add one line-height gap between successive overview paragraphs */
+.overviewMessageText + .overviewMessageText {
+  margin-top: 32px;
+}
+
+
+.timelineGrid {
+  row-gap: 18px;
+}
+
+/* Hide accidental empty grid children in the timeline layout (removes stray placeholders) */
+.timelineGrid > div:empty {
+  display: none;
+}
+
+/* Hide any chart container in the timeline grid that doesn't actually contain an SVG
+   (defensive: removes stray empty chart boxes left by layout changes). */
+.timelineGrid .chartArea:not(:has(svg)) {
+  display: none !important;
+}
+
+@media (min-width: 768px) {
+  .timelineMessagePlain {
+    grid-column: 2 / 3;
+  }
+}

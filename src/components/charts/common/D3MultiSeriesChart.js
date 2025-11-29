@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 import { AXIS_STROKE, GRID_STROKE } from "../../../lib/constants";
 
@@ -53,8 +53,15 @@ const D3MultiSeriesChart = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const chartWidth = width - margin.left - margin.right;
+    // Use the actual rendered SVG width so plotted content scales to visible size
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const renderedWidth = svgRect && svgRect.width ? svgRect.width : width;
+    const chartWidth = renderedWidth - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
+
+    // Add a transparent background rect covering the full svg so overlays and devtools
+    // show the svg bounding box and there is a consistent hit area.
+    svg.append("rect").attr("x", 0).attr("y", 0).attr("width", renderedWidth).attr("height", height).attr("fill", "transparent");
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -411,13 +418,41 @@ const D3MultiSeriesChart = ({
     allCategories,
   ]);
 
+  const [debugInfo, setDebugInfo] = useState({ renderedWidth: null, chartWidth: null });
+
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const renderedWidth = svgRect && svgRect.width ? svgRect.width : width;
+    const chartWidth = renderedWidth - margin.left - margin.right;
+    setDebugInfo({ renderedWidth: Math.round(renderedWidth), chartWidth: Math.round(chartWidth) });
+  }, [width, margin.left, margin.right]);
+
   return (
     <div className="relative">
-      <svg ref={svgRef} width={width} height={height}></svg>
+      <svg ref={svgRef} width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none"></svg>
       <div
         ref={tooltipRef}
         className="absolute pointer-events-none opacity-0 transition-opacity z-50"
       />
+      {window && window.__D3_DEBUG__ ? (
+        <div
+          style={{
+            position: "absolute",
+            left: 6,
+            bottom: 6,
+            background: "rgba(0,0,0,0.6)",
+            color: "#fff",
+            padding: "6px 8px",
+            borderRadius: 6,
+            fontSize: 12,
+            zIndex: 60,
+          }}
+        >
+          <div>renderedWidth: {debugInfo.renderedWidth ?? "-"}px</div>
+          <div>chartWidth: {debugInfo.chartWidth ?? "-"}px</div>
+        </div>
+      ) : null}
     </div>
   );
 };

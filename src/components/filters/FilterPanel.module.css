@@ -10,6 +10,7 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  margin-top: 12px;
 }
 
 .inputSmall {
@@ -89,19 +90,7 @@ select.inputSmall::-ms-expand {
   align-self: start;
 }
 
-.overviewMessageTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #111827;
-  margin: 0 0 0.5rem 0;
-}
-
-.overviewMessageText {
-  font-size: 0.75rem;
-  color: #6b7280;
-  line-height: 1.5;
-  margin: 0;
-}
+/* overviewMessageTitle/text are defined in Dashboard.module.css to match layout-specific typography */
 
 .stackColumn {
   display: flex;

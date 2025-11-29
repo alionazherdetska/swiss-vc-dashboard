@@ -53,7 +53,6 @@ const FilterPanel = ({
     [OTHER_CANTON_CODES_LOCAL]
   );
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const displayCantons = useMemo(() => [...allowedCantons, { name: "Other", code: "OTHER" }], [allowedCantons]);
 
   // Determine which filter should be primary (checkboxes with colors)
@@ -93,90 +92,20 @@ const FilterPanel = ({
     // Sort and get second longest
     const sorted = [...heights].sort((a, b) => b - a);
     return sorted[1] || sorted[0] || 100;
-  }, [ceoTotal, industriesTotal, phasesTotal, dealsTab, allowedCantons.length]);
+  }, [ceoTotal, industriesTotal, phasesTotal, dealsTab, displayCantons.length]);
 
   return (
     <div className={styles.panelRoot}>
       {isOverviewTab ? (
         // Overview layout: Years + All checkboxes in one column + Message
         <div className={styles.filtersRowOverview}>
-          {/* Column 1: Years */}
-          {/* Removed onReset to hide reset button for Years */}
-          <Section title="Years" plain>
-            <div className={styles.inputGroup}>
-              {(() => {
-                const years =
-                  filterOptions?.dealYears && filterOptions.dealYears.length
-                    ? Array.from(new Set(filterOptions.dealYears))
-                        .map((v) => parseInt(v, 10))
-                        .filter((y) => !Number.isNaN(y) && y >= 2012 && y <= 2025)
-                        .sort((a, b) => a - b)
-                    : [];
-                const startOptions = years.filter((y) => y < filters.yearRange[1]);
-                const endOptions = years.filter((y) => y > filters.yearRange[0]);
-                const startValue = startOptions.includes(filters.yearRange[0])
-                  ? filters.yearRange[0]
-                  : startOptions[0] ?? filters.yearRange[0];
-                const endValue = endOptions.includes(filters.yearRange[1])
-                  ? filters.yearRange[1]
-                  : endOptions[endOptions.length - 1] ?? filters.yearRange[1];
-                return (
-                  <>
-                    <select
-                      value={startValue}
-                      onChange={(e) =>
-                        updateFilter("yearRange", [
-                          Math.min(parseInt(e.target.value || "0"), filters.yearRange[1] - 1),
-                          filters.yearRange[1],
-                        ])
-                      }
-                      className={styles.inputSmall}
-                      disabled={startOptions.length === 0}
-                    >
-                      {startOptions.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
-                    <span className={styles.textMuted}>to</span>
-                    <select
-                      value={endValue}
-                      onChange={(e) =>
-                        updateFilter("yearRange", [
-                          filters.yearRange[0],
-                          Math.max(parseInt(e.target.value || "0"), filters.yearRange[0] + 1),
-                        ])
-                      }
-                      className={styles.inputSmall}
-                      disabled={endOptions.length === 0}
-                    >
-                      {endOptions.map((y) => (
-                        <option key={y} value={y}>
-                          {y}
-                        </option>
-                      ))}
-                    </select>
-                  </>
-                );
-              })()}
-            </div>
-          </Section>
+          {/* Column 1 (Years) removed from FilterPanel overview — moved to dashboard timeline grid */}
 
           {/* Column 2 removed for the Timeline overview per design (no boxed header or checkboxes) */}
 
           {/* Column 3 removed - reset now inside Industries section */}
 
-          {/* Column 4: Message */}
-          <div className={styles.overviewMessage}>
-            <h3 className={styles.overviewMessageTitle}>How to use the Filters</h3>
-            <p className={styles.overviewMessageText}>
-              In the Overview tab (Total investments/deals), the "All" filter is preselected because
-              the total of all investments is displayed. Reducing the display using additional
-              filters is only possible in the other tabs, as individual filters in the overview
-              would only change the total display.
-            </p>
-          </div>
+          {/* Column 4 removed - message moved to dashboard layout */}
         </div>
       ) : (
         // Regular layout for other tabs

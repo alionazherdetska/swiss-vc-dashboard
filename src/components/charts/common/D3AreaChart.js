@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
 
 const D3AreaChart = ({
@@ -27,7 +27,11 @@ const D3AreaChart = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    const chartWidth = width - margin.left - margin.right;
+    // Use the actual rendered SVG width to compute chart dimensions so the
+    // plotted area fills the visible SVG even when CSS scales the svg.
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const renderedWidth = svgRect && svgRect.width ? svgRect.width : width;
+    const chartWidth = renderedWidth - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
     // Gradient definition
@@ -51,6 +55,18 @@ const D3AreaChart = ({
       .attr("offset", "95%")
       .attr("stop-color", fillColor)
       .attr("stop-opacity", 0.1);
+
+    // Add a transparent full-viewport rect so the svg area is measurable and clickable
+    svg.append("rect").attr("x", 0).attr("y", 0).attr("width", renderedWidth).attr("height", height).attr("fill", "transparent");
+
+    // Store debug info for optional overlay
+    try {
+      // update state in a non-blocking way
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      // (we'll set via a setter defined below)
+    } catch (e) {
+      // ignore
+    }
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
@@ -253,10 +269,40 @@ const D3AreaChart = ({
     onTooltipHide,
   ]);
 
+  // Debug state: show measured widths when requested
+  const [debugInfo, setDebugInfo] = useState({ renderedWidth: null, chartWidth: null });
+
+  // Update debugInfo when the SVG is available; keep lightweight
+  useEffect(() => {
+    if (!svgRef.current) return;
+    const svgRect = svgRef.current.getBoundingClientRect();
+    const renderedWidth = svgRect && svgRect.width ? svgRect.width : width;
+    const chartWidth = renderedWidth - margin.left - margin.right;
+    setDebugInfo({ renderedWidth: Math.round(renderedWidth), chartWidth: Math.round(chartWidth) });
+  }, [width, margin.left, margin.right]);
+
   return (
     <div className="relative">
-      <svg ref={svgRef} width={width} height={height}></svg>
+      <svg ref={svgRef} width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none"></svg>
       <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50" />
+      {window && window.__D3_DEBUG__ ? (
+        <div
+          style={{
+            position: "absolute",
+            left: 6,
+            bottom: 6,
+            background: "rgba(0,0,0,0.6)",
+            color: "#fff",
+            padding: "6px 8px",
+            borderRadius: 6,
+            fontSize: 12,
+            zIndex: 60,
+          }}
+        >
+          <div>renderedWidth: {debugInfo.renderedWidth ?? "-"}px</div>
+          <div>chartWidth: {debugInfo.chartWidth ?? "-"}px</div>
+        </div>
+      ) : null}
     </div>
   );
 };

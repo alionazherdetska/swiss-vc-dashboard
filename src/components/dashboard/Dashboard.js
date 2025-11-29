@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import FilterPanel from "../filters/FilterPanel.js";
+import filterStyles from "../filters/FilterPanel.module.css";
 import { TimelineChart } from "../charts/TimelineChart.js";
 import { processCompanies, processDeals, generateChartData } from "../../lib/utils.js";
 import ChartErrorBoundary from "../charts/common/ChartErrorBoundary.js";
@@ -56,6 +57,15 @@ const Dashboard = () => {
         if (jsonData.Deals) {
           processedDeals = processDeals(jsonData.Deals, processedCompanies);
           setDeals(processedDeals);
+
+          // Default year range: last available year minus 10 years to last year
+          const years = processedDeals.map((d) => parseInt(d.Year, 10)).filter((y) => !Number.isNaN(y));
+          if (years.length) {
+            const maxYear = Math.max(...years);
+            const minYear = Math.min(...years);
+            const startYear = Math.max(minYear, maxYear - 10);
+            setGlobalFilters({ yearRange: [startYear, maxYear] });
+          }
         }
       } catch (e) {
         console.error("Error loading data:", e);
@@ -212,6 +222,78 @@ const Dashboard = () => {
                     yLabel="Number of Deals"
                   />
                 </ChartErrorBoundary>
+                <div>
+                  {(() => {
+                    const years =
+                      filterOptions?.dealYears && filterOptions.dealYears.length
+                        ? Array.from(new Set(filterOptions.dealYears))
+                            .map((v) => parseInt(v, 10))
+                            .filter((y) => !Number.isNaN(y) && y >= 2012 && y <= 2025)
+                            .sort((a, b) => a - b)
+                        : [];
+                    const startOptions = years.filter((y) => y < globalFilters.yearRange[1]);
+                    const endOptions = years.filter((y) => y > globalFilters.yearRange[0]);
+                    const startValue = startOptions.includes(globalFilters.yearRange[0])
+                      ? globalFilters.yearRange[0]
+                      : startOptions[0] ?? globalFilters.yearRange[0];
+                    const endValue = endOptions.includes(globalFilters.yearRange[1])
+                      ? globalFilters.yearRange[1]
+                      : endOptions[endOptions.length - 1] ?? globalFilters.yearRange[1];
+
+                    return (
+                      <div>
+                        <div className={filterStyles.sectionTitle}>Years</div>
+                        <div className={filterStyles.inputGroup}>
+                          <select
+                            value={startValue}
+                            onChange={(e) =>
+                              updateFilter("yearRange", [
+                                Math.min(parseInt(e.target.value || "0"), globalFilters.yearRange[1] - 1),
+                                globalFilters.yearRange[1],
+                              ])
+                            }
+                            className={filterStyles.inputSmall}
+                            disabled={startOptions.length === 0}
+                          >
+                            {startOptions.map((y) => (
+                              <option key={y} value={y}>
+                                {y}
+                              </option>
+                            ))}
+                          </select>
+                          <span className={filterStyles.textMuted}>to</span>
+                          <select
+                            value={endValue}
+                            onChange={(e) =>
+                              updateFilter("yearRange", [
+                                globalFilters.yearRange[0],
+                                Math.max(parseInt(e.target.value || "0"), globalFilters.yearRange[0] + 1),
+                              ])
+                            }
+                            className={filterStyles.inputSmall}
+                            disabled={endOptions.length === 0}
+                          >
+                            {endOptions.map((y) => (
+                              <option key={y} value={y}>
+                                {y}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div className={styles.timelineMessagePlain}>
+                  <h3 className={styles.overviewMessageTitle}>How to use the dashboard</h3>
+                  <p className={styles.overviewMessageText}>
+                    Check out the category tabs Industries, Stages, Cantons and CEO gender above
+                    the graphs to filter the data from our database.
+                  </p>
+                  <p className={styles.overviewMessageText}>
+                    HY data is visible in expanded view only.
+                  </p>
+                </div>
               </div>
             )}
 
