@@ -27,11 +27,16 @@ const ExpandedChartLayout = ({
         {/* Legend on the LEFT - 1/5 */}
         <div className="col-span-1 flex flex-col" style={{ height: height }}>
           {controls && <div className="mb-4 flex-shrink-0">{controls}</div>}
+          {legendTitle && (
+            <div className="mb-2 flex-shrink-0">
+              <span className="text-sm font-semibold text-gray-700">{legendTitle}:</span>
+            </div>
+          )}
           <div style={{ overflowY: "auto", flex: "1 1 auto", paddingRight: 6 }}>
             <ChartLegend
               items={legendItems}
               colorOf={colorOf}
-              title={legendTitle}
+              title={null}
               showCheckboxes={legendSelectable}
               checkedItems={selectedLegendItems}
               onToggle={onToggleLegend}

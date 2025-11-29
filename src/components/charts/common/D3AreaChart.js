@@ -54,6 +54,7 @@ const D3AreaChart = ({
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
+
     // Scales
     const xScale = d3
       .scaleLinear()
@@ -65,12 +66,25 @@ const D3AreaChart = ({
       .domain([0, d3.max(data, (d) => d[dataKey]) * 1.05])
       .range([chartHeight, 0]);
 
-    const xTicks = xScale.ticks();
+    // Build a deduplicated, sorted array of data years so we can pick ticks
+    const years = Array.from(new Set(data.map((d) => d.year))).sort((a, b) => a - b);
+
+    // Choose tick values so labels do not overlap: estimate ~60px per tick.
+    const maxTicks = Math.max(1, Math.floor(chartWidth / 60));
+    const step = Math.max(1, Math.ceil(years.length / maxTicks));
+    const tickValues = [];
+    for (let i = 0; i < years.length; i += step) tickValues.push(years[i]);
+    // Ensure last year is included
+    if (tickValues[tickValues.length - 1] !== years[years.length - 1]) {
+      tickValues.push(years[years.length - 1]);
+    }
+
     const yTicks = yScale.ticks();
 
-    // Grid lines
+    // Grid lines (use chosen tickValues)
+    g.selectAll(".grid-x").remove();
     g.selectAll(".grid-x")
-      .data(xTicks)
+      .data(tickValues)
       .enter()
       .append("line")
       .attr("class", "grid-x")
@@ -124,7 +138,7 @@ const D3AreaChart = ({
     const xAxis = g
       .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
-      .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+      .call(d3.axisBottom(xScale).tickValues(tickValues).tickFormat(d3.format("d")));
 
     xAxis
       .selectAll("text")

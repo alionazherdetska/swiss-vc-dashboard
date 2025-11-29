@@ -84,7 +84,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
       )}
       ExpandedChartComponent={ExpandedChart}
       isDualChart={false}
-      supportsSingleMode={true}
+      supportsSingleMode={false}
       supportsTotal={false}
       initialSingleMode="line"
       initialShowTotal={false}

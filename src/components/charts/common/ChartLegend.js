@@ -12,7 +12,7 @@ const ChartLegend = ({
   if (!items || !items.length) return null;
   const isChecked = (it) => (checkedItems ? checkedItems.includes(it) : false);
   return (
-    <div className="flex flex-col gap-4 justify-start py-2">
+    <div className="flex flex-col gap-3 justify-start py-2">
       {title && <span className="text-sm font-semibold text-gray-700 mr-4">{title}:</span>}
       {items.map((item) => (
         <label key={item} className="flex items-center gap-2 cursor-pointer">

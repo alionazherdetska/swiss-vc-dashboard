@@ -116,12 +116,15 @@ const createAnalysisChart = (config) => {
 
         // Compute the yearly data for expanded categories (this dataset will include all series fields)
         const chartConfig = getChartConfig(chartType);
+        // For canton charts the "total" should reflect the sum of the currently
+        // filtered/selected canton series (not the unfiltered universe). Use
+        // `filteredDeals` as `allData` so grand totals equal the stacked sum.
         const yearlyDataExpanded = calculateYearlyData(filteredDeals, {
           ...chartConfig,
           categories: expandedExtractedCategories,
           getCategoryValue: getCategoryValueExpanded,
           includeTotal: true,
-          allData: allFilteredDeals,
+          allData: filteredDeals,
         });
 
         // Now compute compact categories (for the small view): primary + Other only when present
@@ -182,7 +185,7 @@ const createAnalysisChart = (config) => {
 
     const renderChart =
       (isVolume) =>
-      ({ data, mode, isExpanded = false, width, height }) => {
+      ({ data, mode, isExpanded = false, width, height, showTotal = false }) => {
         const currentDims = isExpanded ? expandedDims : dims;
         const finalHeight = typeof height === "number" ? height : currentDims.height;
 
@@ -194,9 +197,9 @@ const createAnalysisChart = (config) => {
               isVolume={isVolume}
               mode={mode}
               margin={currentDims.margin}
-              isExpanded={isExpanded}
-              colorOf={colorOf}
-              showTotal={false}
+            isExpanded={isExpanded}
+            colorOf={colorOf}
+            showTotal={showTotal}
               selectedCategories={selectedCategories}
             />
           </ResponsiveD3Container>
@@ -262,8 +265,8 @@ const createAnalysisChart = (config) => {
             countData={data}
             VolumeChart={VolumeChart}
             CountChart={CountChart}
-            volumeProps={{ mode: leftMode }}
-            countProps={{ mode: rightMode }}
+            volumeProps={{ mode: leftMode, showTotal }}
+            countProps={{ mode: rightMode, showTotal }}
             onVolumeExpand={() => onExpand("volume")}
             onCountExpand={() => onExpand("count")}
           />

@@ -92,9 +92,9 @@ export const CEO_GENDER_COLOR_MAP = {
 };
 
 export const STAGE_COLOR_MAP = {
-  Seed: "#77E05A",
-  "Early Stage": "#FFC86D",
-  "Later Stage": "#98E5FD",
+  Seed: "#2ECC71",
+  "Early Stage": "#F7931E",
+  "Later Stage": "#3498DB",
 };
 
 export const OFFICIAL_CANTONS = [

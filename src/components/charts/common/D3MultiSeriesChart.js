@@ -26,6 +26,30 @@ const D3MultiSeriesChart = ({
   useEffect(() => {
     if (!data?.length || !categories?.length) return;
 
+    // Debugging aid: when showTotal is enabled, compute the sum of all metric keys
+    // present in each year row and compare to the grand total fields that the
+    // data may provide. This helps detect mismatches between generated totals
+    // and the values used for stacking.
+    if (showTotal) {
+      try {
+        data.forEach((d) => {
+          const metricKeys = Object.keys(d).filter((k) => k.endsWith(metricSuffix));
+          const computed = metricKeys.length ? d3.sum(metricKeys.map((k) => d[k] || 0)) : 0;
+          const pre = isVolume ? (d.__grandTotalVolume ?? d.totalVolume) : (d.__grandTotalCount ?? d.totalCount);
+          if (Math.abs((pre || 0) - computed) > 0.0001) {
+            // eslint-disable-next-line no-console
+            console.warn("[D3MultiSeriesChart] total mismatch for year", d.year, {
+              grandTotal: pre,
+              computedFromSeries: computed,
+              metricKeys: metricKeys.slice(0, 20),
+            });
+          }
+        });
+      } catch (e) {
+        // swallow errors in debug code
+      }
+    }
+
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
@@ -34,9 +58,11 @@ const D3MultiSeriesChart = ({
 
     const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
+    // ensure domain contains unique, sorted years to avoid duplicate tick labels
+    const years = Array.from(new Set(data.map((d) => d.year))).sort((a, b) => a - b);
     const xScale = d3
       .scaleBand()
-      .domain(data.map((d) => d.year))
+      .domain(years)
       .range([0, chartWidth])
       .padding(0.1);
     // For stacked (column) mode compute the stacked data and derive the max from the
@@ -111,7 +137,7 @@ const D3MultiSeriesChart = ({
       .range([chartHeight, 0]);
 
     g.selectAll(".grid-x")
-      .data(xScale.domain())
+      .data(years)
       .enter()
       .append("line")
       .attr("class", "grid-x")
@@ -136,10 +162,16 @@ const D3MultiSeriesChart = ({
       .style("stroke-width", 0.5)
       .style("opacity", 0.5);
 
+    // Choose tick values so labels do not overlap: estimate max ticks by
+    // allowing ~60px per tick label, then sample the years array accordingly.
+    const maxTicks = Math.max(1, Math.floor(chartWidth / 60));
+    const step = Math.max(1, Math.ceil(years.length / maxTicks));
+    const tickValues = years.filter((_, i) => i % step === 0);
+
     const xAxis = g
       .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
-      .call(d3.axisBottom(xScale));
+      .call(d3.axisBottom(xScale).tickValues(tickValues));
 
     xAxis
       .selectAll("text")
@@ -149,6 +181,21 @@ const D3MultiSeriesChart = ({
       .style("text-anchor", "end")
       .attr("dx", "-0.8em")
       .attr("dy", "0.15em");
+
+    // Draw vertical grid lines for the chosen ticks, not every data year.
+    g.selectAll(".grid-x").remove();
+    g.selectAll(".grid-x")
+      .data(tickValues)
+      .enter()
+      .append("line")
+      .attr("class", "grid-x")
+      .attr("x1", (d) => xScale(d) + xScale.bandwidth() / 2)
+      .attr("x2", (d) => xScale(d) + xScale.bandwidth() / 2)
+      .attr("y1", 0)
+      .attr("y2", chartHeight)
+      .style("stroke", GRID_STROKE)
+      .style("stroke-width", 0.5)
+      .style("opacity", 0.5);
 
     const yAxis = g.append("g").call(d3.axisLeft(yScale));
 
@@ -253,7 +300,7 @@ const D3MultiSeriesChart = ({
           .attr("class", `dot-${categoryKey}`)
           .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
           .attr("cy", (d) => yScale(d.value))
-          .attr("r", 4)
+            .attr("r", 3)
           .attr("fill", colorOf(category))
           .style("cursor", "pointer")
           .on("mouseover", function (event, d) {
@@ -287,7 +334,7 @@ const D3MultiSeriesChart = ({
           .attr("class", `dot-hit-${categoryKey}`)
           .attr("cx", (d) => xScale(d.year) + xScale.bandwidth() / 2)
           .attr("cy", (d) => yScale(d.value))
-          .attr("r", 10)
+          .attr("r", 8)
           .attr("fill", "transparent")
           .style("pointer-events", "all")
           .style("cursor", "pointer")
