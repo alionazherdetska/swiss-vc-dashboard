@@ -4,21 +4,21 @@ import React, { useState, useLayoutEffect, useRef, useCallback } from "react";
  * Responsive container for D3 charts
  * Measures container width and passes dimensions to children
  */
-const ResponsiveD3Container = ({ children, width = "100%", height = 400, debounceTime = 100 }) => {
+const ResponsiveD3Container = ({ children, width = "100%", height = 380, debounceTime = 100 }) => {
   const containerRef = useRef(null);
   const timeoutRef = useRef(null);
   const resizeObserverRef = useRef(null);
 
   const [dimensions, setDimensions] = useState({
     width: null,
-    height: typeof height === "number" ? height : 400,
+    height: typeof height === "number" ? height : 380,
   });
 
   const updateDimensions = useCallback(() => {
     if (!containerRef.current) return;
 
     const { width: containerWidth } = containerRef.current.getBoundingClientRect();
-    const newHeight = typeof height === "number" ? height : 400;
+    const newHeight = typeof height === "number" ? height : 380;
     const measuredWidth = containerWidth ? Math.round(containerWidth) : null;
 
     setDimensions((prevDims) => {

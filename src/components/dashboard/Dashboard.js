@@ -211,15 +211,15 @@ const Dashboard = () => {
                     data={chartData.timeline}
                     showVolume={true}
                     title="Invested Capital"
-                    yLabel="Invested Capital CHF (M)"
+                    yLabel="Invested Capital"
                   />
                 </ChartErrorBoundary>
                 <ChartErrorBoundary chartName="Timeline Count">
                   <TimelineChart
                     data={chartData.timeline}
                     showVolume={false}
-                    title="Number of Deals by Year"
-                    yLabel="Number of Deals"
+                    title="Number of deals"
+                    yLabel="Number of deals"
                   />
                 </ChartErrorBoundary>
                   {(() => {

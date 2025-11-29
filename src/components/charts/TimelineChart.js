@@ -24,6 +24,16 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
 
     return (
       <div className={styles.chartArea}>
+        <div className={styles.chartHeaderOverlay}>
+          <ChartHeader
+            title={headerTitle}
+            subtitle={showVolume ? "in CHF Mio." : ""}
+            showExpandButton={true}
+            onExpand={() => onExpand && onExpand(isExpanded ? (showVolume ? "volume" : "count") : (showVolume ? "volume" : "count"))}
+            className="flex items-center justify-between"
+            titleClassName="text-md font-semibold text-gray-800"
+          />
+        </div>
         <ResponsiveD3Container width="100%" height={currentDims.height}>
           <D3AreaChart
             data={chartData}
@@ -35,18 +45,7 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
             fillOpacity={0.8}
             gridColor="#E2E8F0"
             axisColor="#4A5568"
-          >
-            <div className={styles.chartHeaderOverlay}>
-              <ChartHeader
-                  title={headerTitle}
-                  subtitle={showVolume ? "in CHF Mio." : ""}
-                  showExpandButton={true}
-                  onExpand={() => onExpand && onExpand(isExpanded ? (showVolume ? "volume" : "count") : (showVolume ? "volume" : "count"))}
-                  className="flex items-center justify-between"
-                  titleClassName="text-md font-semibold text-gray-800"
-                />
-            </div>
-          </D3AreaChart>
+          />
         </ResponsiveD3Container>
       </div>
     );

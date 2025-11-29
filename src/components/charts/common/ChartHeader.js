@@ -8,7 +8,7 @@ const ChartHeader = ({
   onExpand,
   expandTitle = "Expand chart",
   children,
-  className = "flex items-center justify-between gap-4 mb-[15px]",
+  className = "flex items-center justify-between gap-4 ",
   titleClassName = "",
   subtitleClassName = "text-sm text-gray-500 mt-0.5",
 }) => {

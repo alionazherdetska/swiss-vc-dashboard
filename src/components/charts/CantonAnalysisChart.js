@@ -13,8 +13,8 @@ const CantonAnalysisChart = createAnalysisChart({
   categoryField: "Canton",
   colorMap: CANTON_COLOR_MAP,
   normalizeCategory: normalizeCanton,
-  volumeLabel: "Investment Volume CHF (M)",
-  countLabel: "Number of Deals",
+  volumeLabel: "Invested capital",
+  countLabel: "Number of deals",
 });
 
 export default CantonAnalysisChart;

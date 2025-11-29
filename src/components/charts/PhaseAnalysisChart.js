@@ -11,7 +11,7 @@ const PhaseAnalysisChart = createAnalysisChart({
   legendTitle: "Phases",
   categoryField: "Phase",
   colorMap: STAGE_COLOR_MAP,
-  volumeLabel: "Investment Volume CHF (M)",
+  volumeLabel: "Invested capital",
   countLabel: "Number of Deals",
 });
 

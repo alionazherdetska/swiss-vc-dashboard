@@ -10,7 +10,7 @@ const ExpandedChartLayout = ({
   legendItems = [],
   legendTitle = "Legend",
   colorOf,
-  height = 420,
+  height = 380,
   children,
   controls = null,
   rightControls = null,

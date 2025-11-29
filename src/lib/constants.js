@@ -3,7 +3,7 @@ import { TrendingUp, MapPin, DollarSign, BarChart3, Calendar, LineChart } from "
 /* =========================
    Chart layout & styling
    ========================= */
-export const CHART_MARGIN = { top: 40, right: 20, left: 60, bottom: 60 };
+export const CHART_MARGIN = { top: 18, right: 20, left: 60, bottom: 60 };
 export const EXPANDED_CHART_MARGIN = {
   top: 90,
   right: 10,

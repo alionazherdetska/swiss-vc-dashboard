@@ -17,8 +17,8 @@ const GenderAnalysisChart = createAnalysisChart({
       const gender = d["Gender CEO"];
       return gender && gender.trim() && gender !== "Unknown";
     }),
-  volumeLabel: "Investment Volume CHF (M)",
-  countLabel: "Number of Deals",
+  volumeLabel: "Invested capital",
+  countLabel: "Number of deals",
 });
 
 export default GenderAnalysisChart;

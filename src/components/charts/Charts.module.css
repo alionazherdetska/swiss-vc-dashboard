@@ -5,12 +5,10 @@
 }
 
 .chartHeaderOverlay {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
+  position: relative;
   display: flex;
   align-items: center;
+  margin: 20px 20px 0 20px;
   justify-content: space-between;
   pointer-events: none; /* allow clicks to pass through except explicitly enabled inside */
   z-index: 20;
