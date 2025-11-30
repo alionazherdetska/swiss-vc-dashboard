@@ -20,10 +20,10 @@ describe("ChartControls", () => {
       />
     );
 
-    // mode select exists
-    const select = screen.getByRole("combobox");
-    expect(select).toBeInTheDocument();
-    expect(select).toHaveValue("line");
+    // mode radios exist (Line selected)
+    const lineRadio = screen.getByRole("radio", { name: /Line/i });
+    expect(lineRadio).toBeInTheDocument();
+    expect(lineRadio).toBeChecked();
 
     // Show total checkbox and label exist and have whitespace-nowrap
     const checkbox = screen.getByRole("checkbox");

@@ -17,7 +17,7 @@ describe("Expanded chart UI", () => {
     );
 
     render(
-      <ChartModal isOpen={true} onClose={onClose} title={"Expanded Investment Volume"} onExport={onExport} headerRight={headerRight}>
+      <ChartModal isOpen={true} onClose={onClose} title={"Invested capital"} onExport={onExport} headerRight={headerRight}>
         <ChartControls
           isDualChart={false}
           showModeControls={true}
@@ -32,7 +32,7 @@ describe("Expanded chart UI", () => {
     );
 
     // Title and subtitle
-    expect(screen.getByText(/Expanded Investment Volume/i)).toBeInTheDocument();
+    expect(screen.getByText(/Invested capital/i)).toBeInTheDocument();
     expect(screen.getByText(/in CHF Mio\./i)).toBeInTheDocument();
 
     // Export buttons rendered by ChartModal

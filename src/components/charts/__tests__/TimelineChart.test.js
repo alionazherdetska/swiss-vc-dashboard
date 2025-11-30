@@ -22,16 +22,18 @@ describe("TimelineChart expanded behavior", () => {
     const expandBtn = screen.getByRole("button", { name: /Expand Chart/i });
     await userEvent.click(expandBtn);
 
-    // Modal should show expanded title
-    expect(await screen.findByText(/Expanded Investment Volume/i)).toBeInTheDocument();
+    // Modal should show expanded title (heading in modal is level 2)
+    const modalHeading = await screen.findByRole("heading", { name: /Invested capital/i, level: 2 });
+    expect(modalHeading).toBeInTheDocument();
 
     // No mode controls are expected for TimelineChart expanded modal
     // Ensure modal opened and other header controls exist (e.g., export buttons)
     expect(screen.getByRole("button", { name: /Close modal/i })).toBeInTheDocument();
 
     // Close modal via Close button
+    const closeBtn = screen.getByRole("button", { name: /Close modal/i });
     await userEvent.click(closeBtn);
 
-    expect(screen.queryByText(/Expanded Investment Volume/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /Invested capital/i, level: 2 })).not.toBeInTheDocument();
   });
 });

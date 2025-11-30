@@ -11,7 +11,7 @@ const QuarterlyAnalysisChart = createAnalysisChart({
   legendTitle: "Industries",
   categoryField: "Industry",
   colorMap: INDUSTRY_COLOR_MAP,
-  volumeLabel: "Investment Volume",
+  volumeLabel: "Investment capital",
   countLabel: "Number of deals",
 });
 

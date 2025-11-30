@@ -18,7 +18,11 @@ const ChartHeader = ({
     <div className={wrapperClass}>
       <div className="flex flex-col">
         <h3 className={`${styles.chartTitle}${titleClassName ? ` ${titleClassName}` : ""}`}>{title}</h3>
-        <p className={subtitleClassName} aria-hidden>{subtitle ?? "\u00A0"}</p>
+        {typeof subtitle === "string" && subtitle.trim().length > 0 ? (
+          <p className={subtitleClassName} aria-hidden>
+            {subtitle}
+          </p>
+        ) : null}
       </div>
       {(showExpandButton || children) && (
         <div className="flex items-center gap-2">

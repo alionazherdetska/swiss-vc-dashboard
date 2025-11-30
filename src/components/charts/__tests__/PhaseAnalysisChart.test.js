@@ -32,8 +32,8 @@ describe("PhaseAnalysisChart expanded behavior", () => {
     // Open modal
     await userEvent.click(expandBtn);
 
-    // Modal title should appear
-    const modalTitle = await screen.findByText(/Expanded Investment Volume/i);
+    // Modal title should appear (modal heading is level 2)
+    const modalTitle = await screen.findByRole("heading", { name: /Invested capital/i, level: 2 });
     expect(modalTitle).toBeInTheDocument();
 
     // Mocked D3 components exist both in the main view and inside the modal; find the one inside the modal
@@ -72,7 +72,7 @@ describe("PhaseAnalysisChart expanded behavior", () => {
     expect(modalCloseBtn).toBeInTheDocument();
     await userEvent.click(modalCloseBtn);
 
-    // Modal should be closed
-    expect(screen.queryByText(/Expanded Investment Volume/i)).not.toBeInTheDocument();
+    // Modal should be closed (no level-2 heading with Invested capital)
+    expect(screen.queryByRole("heading", { name: /Invested capital/i, level: 2 })).not.toBeInTheDocument();
   });
 });

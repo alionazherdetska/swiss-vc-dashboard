@@ -194,10 +194,19 @@ const BaseExpandableChart = ({
   );
 
   const modalTitle = useMemo(() => {
+    // For the volume expanded view we want the modal title to read
+    // "Invested capital" (no "Expanded" prefix). Other expanded
+    // chart types keep the "Expanded <Label>" format.
+    if (chartState.expanded === "volume") return "Invested capital";
+
     const typeLabels = {
-      volume: "Investment Volume",
-      count: "Deal Count",
+      volume: "Invested capital",
+      count: "Number of deals",
     };
+
+    // For count expanded view return plain label (no 'Expanded' prefix)
+    if (chartState.expanded === "count") return typeLabels.count;
+
     return `Expanded ${typeLabels[chartState.expanded] || "Chart"}`;
   }, [chartState.expanded]);
 
