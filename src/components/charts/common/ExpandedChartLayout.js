@@ -18,34 +18,42 @@ const ExpandedChartLayout = ({
   legendSelectable = false,
   selectedLegendItems = [],
   onToggleLegend = null,
+  // when false, do not render the legend column (useful for charts like timeline)
+  showLegend = true,
 }) => {
   return (
     <div>
       {rightControls && <div className="flex justify-end mb-3">{rightControls}</div>}
 
       <div className="grid grid-cols-6 items-start" style={{ minHeight: height }}>
-        {/* Legend on the LEFT - 1/5 */}
-        <div className="col-span-1 flex flex-col" style={{ height: height }}>
-          {controls && <div className="mb-4 flex-shrink-0">{controls}</div>}
-          {legendTitle && (
-            <div className="mb-2 flex-shrink-0">
-              <span className="text-sm font-semibold text-gray-700">{legendTitle}:</span>
+        {showLegend && (
+          <>
+            {/* Legend on the LEFT - 1/5 */}
+            <div className="col-span-1 flex flex-col" style={{ height: height }}>
+              {controls && <div className="mb-4 flex-shrink-0">{controls}</div>}
+              {legendTitle && (
+                <div className="mb-2 flex-shrink-0">
+                  <span className="text-sm font-semibold text-gray-700">{legendTitle}:</span>
+                </div>
+              )}
+              <div style={{ overflowY: "auto", flex: "1 1 auto", paddingRight: 6 }}>
+                <ChartLegend
+                  items={legendItems}
+                  colorOf={colorOf}
+                  title={null}
+                  showCheckboxes={legendSelectable}
+                  checkedItems={selectedLegendItems}
+                  onToggle={onToggleLegend}
+                />
+              </div>
             </div>
-          )}
-          <div style={{ overflowY: "auto", flex: "1 1 auto", paddingRight: 6 }}>
-            <ChartLegend
-              items={legendItems}
-              colorOf={colorOf}
-              title={null}
-              showCheckboxes={legendSelectable}
-              checkedItems={selectedLegendItems}
-              onToggle={onToggleLegend}
-            />
-          </div>
-        </div>
 
-        {/* Chart on the RIGHT - 4/5 */}
-        <div className="col-span-5 min-w-0" style={{ height: height }}>
+            {/* spacer to keep grid consistent when legend shown */}
+          </>
+        )}
+
+        {/* Chart on the RIGHT - takes remaining columns */}
+        <div className={`min-w-0`} style={{ height: height, gridColumn: showLegend ? 'span 5' : 'span 6' }}>
           <ResponsiveD3Container width="100%" height={height}>
             {children}
           </ResponsiveD3Container>

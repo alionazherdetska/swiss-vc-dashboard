@@ -54,7 +54,8 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
   const ExpandedChart = ({ data: chartData, controls }) => (
     <ExpandedChartLayout
       legendItems={[headerTitle]}
-      legendTitle="Series"
+      legendTitle={null}
+      showLegend={false}
       colorOf={() => chartColor}
       height={expandedDims.height}
       controls={controls}
