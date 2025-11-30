@@ -9,7 +9,7 @@ import QuarterlyAnalysisChart from "../charts/QuarterlyAnalysisChart.js";
 import PhaseAnalysisChart from "../charts/PhaseAnalysisChart.js";
 import CantonAnalysisChart from "../charts/CantonAnalysisChart.js";
 import GenderAnalysisChart from "../charts/GenderAnalysisChart.js";
-import styles from "./Dashboard.module.css";
+import styles from "./dashboard.module.css";
 import utilStyles from "../../styles/utils.module.css";
 
 const Dashboard = () => {
