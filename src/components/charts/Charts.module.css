@@ -2,13 +2,18 @@
   border-radius: 20px;
   background: var(--D9D9D9, linear-gradient(180deg, #fffefe 0%, #d9d9d9 100%));
   position: relative;
+  /* Reserve space for the absolute-positioned header overlay so it doesn't overlap the SVG.
+     Defaults: top offset 12px, header height ~34px, gap 15px. These can be overridden via CSS vars. */
+  padding-top: calc(var(--chart-header-top-offset, 12px) + var(--chart-header-height, 34px) + var(--chart-header-gap, 15px));
 }
 
 .chartHeaderOverlay {
-  position: relative;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: var(--chart-header-top-offset, 12px);
   display: flex;
   align-items: center;
-  margin: 20px 20px 0 20px;
   justify-content: space-between;
   pointer-events: none; /* allow clicks to pass through except explicitly enabled inside */
   z-index: 20;

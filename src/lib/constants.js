@@ -1,8 +1,6 @@
-import { TrendingUp, MapPin, DollarSign, BarChart3, Calendar, LineChart } from "lucide-react";
-
 /* =========================
-   Chart layout & styling
-   ========================= */
+  Chart layout & styling
+  ========================= */
 export const CHART_MARGIN = { top: 18, right: 20, left: 60, bottom: 60 };
 export const EXPANDED_CHART_MARGIN = {
   top: 90,
@@ -47,14 +45,6 @@ export const ENHANCED_COLOR_PALETTE = [
   "#8A2BE2",
   "#00CED1",
 ];
-
-// Label spacing presets when ≤3 industries are visible
-export const SMALLSET_LABEL_BASE_LIFT = { regular: -4, expanded: -8 };
-export const SMALLSET_LABEL_DY = {
-  regular: [-6, 1, 6],
-  expanded: [-10, 1, 10],
-};
-
 export const CANTON_COLOR_MAP = {
   Zürich: "#5185B4",
   Bern: "#A6BA3C",
@@ -166,38 +156,6 @@ export const CANTON_MAP = {
   Abroad: null,
 };
 
-// Chart type options (cleaned up)
-export const getChartOptions = (activeTab) =>
-  [
-    { key: "timeline", name: "Timeline Trends", icon: TrendingUp },
-    ...(activeTab === "companies"
-      ? [
-          {
-            key: "industry-trends",
-            name: "Top Industry Trends",
-            icon: LineChart,
-          },
-          { key: "funding-analysis", name: "Funding Status", icon: DollarSign },
-        ]
-      : []),
-    ...(activeTab === "deals"
-      ? [
-          {
-            key: "quarterly-analysis",
-            name: "Sector Analysis",
-            icon: Calendar,
-          },
-          { key: "phase-analysis", name: "Funding Phases", icon: BarChart3 },
-        ]
-      : []),
-    {
-      key: "geographic-distribution",
-      name: "Geographic Distribution",
-      icon: MapPin,
-    },
-  ].filter(Boolean);
+// chart options and some small helper UI option lists were removed
+// — they were unused in the codebase and cluttered the file.
 
-export const VOLUME_OPTIONS = [
-  { key: "count", name: "Count", unit: "" },
-  { key: "volume", name: "Volume", unit: "CHF M" },
-];
