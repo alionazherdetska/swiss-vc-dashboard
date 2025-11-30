@@ -17,7 +17,8 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
   const chartColor = "#E84A5F";
 
   const dims = getChartDims(false, undefined, CHART_MARGIN);
-  const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
+  const expandedMargin = { ...EXPANDED_CHART_MARGIN, top: 60, right: 30 };
+  const expandedDims = getChartDims(true, 460, expandedMargin);
 
   const MainChart = ({ data: chartData, isExpanded = false, onExpand }) => {
     const currentDims = isExpanded ? expandedDims : dims;
