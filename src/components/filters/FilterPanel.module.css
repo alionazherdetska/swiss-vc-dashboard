@@ -89,7 +89,9 @@ select.inputSmall::-ms-expand {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  align-items: start;
+  /* Stretch grid items to the height of the tallest item so
+     all filter boxes align at the bottom. */
+  align-items: stretch;
 }
 
 .filtersRowOverview {
@@ -127,6 +129,13 @@ select.inputSmall::-ms-expand {
   gap: 1.5rem;
 }
 
+/* Ensure stacked sections fill the grid cell and are spaced so their
+   combined height matches neighboring single sections. */
+.stackColumn {
+  height: 100%;
+  justify-content: space-between;
+}
+
 .sectionRoot {
   min-width: 0;
   /* padding: top right bottom left */
@@ -136,6 +145,13 @@ select.inputSmall::-ms-expand {
   box-shadow:
     0 1px 3px 0 rgba(0, 0, 0, 0.1),
     0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Make each section stretch to fill its grid cell so boxes align */
+.sectionRoot {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Also allow an individual section to expand its overflow while focused */
@@ -159,6 +175,14 @@ select.inputSmall::-ms-expand {
 
 .sectionBody {
   margin-top: 0;
+}
+
+/* Allow section body to grow to fill remaining space inside a section */
+.sectionBody,
+.sectionBodyWithTitle {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .sectionHeader {

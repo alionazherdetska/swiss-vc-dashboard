@@ -39,6 +39,17 @@ const D3AreaChart = ({
 
     // Gradient definition
     const defs = svg.append("defs");
+    // Create a clip path for the plotting area so shapes do not visually
+    // overflow the chart bounds (helps avoid small gaps/antialiasing artifacts).
+    const clipId = `clip-${Math.random().toString(36).slice(2, 9)}`;
+    defs
+      .append('clipPath')
+      .attr('id', clipId)
+      .append('rect')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('width', chartWidth)
+      .attr('height', chartHeight);
     const gradient = defs
       .append("linearGradient")
       .attr("id", `area-gradient-${dataKey}`)
@@ -59,8 +70,10 @@ const D3AreaChart = ({
       .attr("stop-color", fillColor)
       .attr("stop-opacity", 0.1);
 
-    // Add a transparent full-viewport rect so the svg area is measurable and clickable
-    svg.append("rect").attr("x", 0).attr("y", 0).attr("width", renderedWidth).attr("height", height).attr("fill", "transparent");
+    // Add a non-filled full-viewport rect (in viewBox units) so the svg area
+    // is measurable without introducing a visible fill that could overlay
+    // the plotted content. Use `fill='none'` and viewBox-aligned units.
+    svg.append("rect").attr("x", 0).attr("y", 0).attr("width", width).attr("height", height).attr("fill", "none").style("pointer-events", "none");
 
     // Store debug info for optional overlay
     try {
@@ -80,9 +93,20 @@ const D3AreaChart = ({
       .domain(d3.extent(data, (d) => d.year))
       .range([0, chartWidth]);
 
+    const rawMax = d3.max(data, (d) => d[dataKey]) || 0;
+
+    // Determine y tick count default used earlier
+    const defaultYTickCount = Math.max(3, Math.min(6, Math.floor(chartHeight / 70)));
+    const effectiveYTickCount = yTickCount != null ? yTickCount : defaultYTickCount;
+
+    // Compute a sensible step and top value so the top tick is a rounded
+    // multiple near the data max (avoids showing oversized top like 8000).
+    const step = Math.max(1, d3.tickStep(0, rawMax, effectiveYTickCount));
+    const yTop = Math.max(step, Math.ceil(rawMax / step) * step);
+
     const yScale = d3
       .scaleLinear()
-      .domain([0, d3.max(data, (d) => d[dataKey]) * 1.05])
+      .domain([0, yTop])
       .range([chartHeight, 0]);
 
     // Build a deduplicated, sorted array of data years so we can pick ticks
@@ -104,8 +128,9 @@ const D3AreaChart = ({
     }
 
     // Determine y-axis ticks. Allow caller to supply explicit tick values
-    // or request an approximate tick count. Fallback to the scale default.
-    const yTicks = yTickValues ? yTickValues : yScale.ticks(yTickCount || undefined);
+    // or request an approximate tick count. Use the effective count computed
+    // earlier so we don't redeclare variables.
+    const yTicks = yTickValues ? yTickValues : yScale.ticks(effectiveYTickCount);
 
     // Grid lines (use chosen tickValues)
     g.selectAll(".grid-x").remove();
@@ -151,9 +176,12 @@ const D3AreaChart = ({
       .y((d) => yScale(d[dataKey]))
       .curve(d3.curveMonotoneX);
 
-    g.append("path").datum(data).attr("fill", `url(#area-gradient-${dataKey})`).attr("d", area);
+    // Plotting group (clipped) for area/line so they do not overflow bounds
+    const plot = g.append('g').attr('clip-path', `url(#${clipId})`);
 
-    g.append("path")
+    plot.append("path").datum(data).attr("fill", `url(#area-gradient-${dataKey})`).attr("d", area);
+
+    plot.append("path")
       .datum(data)
       .attr("fill", "none")
       .attr("stroke", strokeColor)
@@ -177,10 +205,49 @@ const D3AreaChart = ({
 
     xAxis.selectAll("line, path").style("stroke", axisColor);
 
+    // Replace default domain path for x axis with a crisp horizontal line
+    xAxis.select('.domain').remove();
+    g.append('line')
+      .attr('class', 'axis-domain-x')
+      .attr('x1', 0)
+      .attr('x2', chartWidth)
+      .attr('y1', chartHeight + 0.5)
+      .attr('y2', chartHeight + 0.5)
+      .style('stroke', axisColor)
+      .style('stroke-width', 1)
+      .style('shape-rendering', 'crispEdges');
+
+    xAxis.selectAll('.tick line').style('stroke-linecap', 'butt');
+
     const yAxis = g.append("g").call(d3.axisLeft(yScale).tickValues(yTicks));
 
     yAxis.selectAll("text").style("font-size", "12px").style("fill", axisColor);
     yAxis.selectAll("line, path").style("stroke", axisColor);
+
+    // Defensive dedupe of y-axis tick labels (remove duplicates if any)
+    try {
+      const seen = new Set();
+      yAxis.selectAll('text').nodes().forEach((n) => {
+        const key = `${n.textContent}|${n.getAttribute('y')}`;
+        if (seen.has(key)) n.remove();
+        else seen.add(key);
+      });
+    } catch (e) {}
+
+    // Replace default domain path with a precise single-pixel vertical line
+    // to avoid small caps/dashes at the top caused by the SVG path geometry.
+    yAxis.select('.domain').remove();
+    g.append('line')
+      .attr('class', 'axis-domain')
+      .attr('x1', 0.5)
+      .attr('x2', 0.5)
+      .attr('y1', 0)
+      .attr('y2', chartHeight)
+      .style('stroke', axisColor)
+      .style('stroke-width', 1)
+      .style('shape-rendering', 'crispEdges');
+
+    yAxis.selectAll('.tick line').style('stroke-linecap', 'butt');
 
     if (yAxisLabel) {
       g.append("text")
@@ -291,7 +358,7 @@ const D3AreaChart = ({
   return (
     <div className="relative">
       {children}
-      <svg ref={svgRef} width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none"></svg>
+      <svg ref={svgRef} className="relative z-40" width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none"></svg>
       <div ref={tooltipRef} className="absolute pointer-events-none opacity-0 transition-opacity z-50" />
       {window && window.__D3_DEBUG__ ? (
         <div

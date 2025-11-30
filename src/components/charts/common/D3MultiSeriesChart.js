@@ -182,7 +182,7 @@ const D3MultiSeriesChart = ({
     const xAxis = g
       .append("g")
       .attr("transform", `translate(0,${chartHeight})`)
-      .call(d3.axisBottom(xScale).tickValues(tickValues));
+      .call(d3.axisBottom(xScale).tickValues(tickValues).tickSizeOuter(0));
 
     xAxis
       .selectAll("text")
@@ -208,7 +208,7 @@ const D3MultiSeriesChart = ({
       .style("stroke-width", 0.5)
       .style("opacity", 0.5);
 
-    const yAxis = g.append("g").call(d3.axisLeft(yScale).tickValues(yTicks));
+    const yAxis = g.append("g").call(d3.axisLeft(yScale).tickValues(yTicks).tickSizeOuter(0));
 
     yAxis
       .selectAll("text")

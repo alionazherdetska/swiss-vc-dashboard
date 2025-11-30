@@ -55,6 +55,21 @@ body {
   stroke: #374151;
 }
 
+/* Prevent rounded endcaps or joins on axis and grid lines which can
+   produce small visible dashes at the ends of axis lines in some browsers. */
+.d3-chart-container .axis line,
+.d3-chart-container .axis path,
+.d3-chart-container .axis .domain {
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+
+.d3-chart-container .grid-x,
+.d3-chart-container .grid-y {
+  stroke-linecap: butt;
+  shape-rendering: crispEdges;
+}
+
 .d3-chart-container .grid-line {
   stroke: #e5e7eb;
   stroke-dasharray: 3, 3;
