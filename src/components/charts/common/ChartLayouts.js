@@ -1,5 +1,6 @@
 import ChartHeader from "./ChartHeader";
 import styles from "../Charts.module.css";
+import utilStyles from "../../../styles/utils.module.css";
 
 /**
  * Layout component for dual charts (volume and count side by side)
@@ -30,7 +31,7 @@ const DualChartLayout = ({
   onCountExpand,
 
   // Layout configuration
-  gridClassName = "grid grid-cols-1 md:grid-cols-2 gap-4",
+    gridClassName = `grid grid-cols-1 md:grid-cols-2 ${utilStyles.gridGap15}`,
 
   children,
 }) => {

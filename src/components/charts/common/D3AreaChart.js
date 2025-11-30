@@ -14,6 +14,8 @@ const D3AreaChart = ({
   gridColor = "#E2E8F0",
   axisColor = "#4A5568",
   yAxisLabel = "",
+  yTickCount = null,
+  yTickValues = null,
   showVolume = false,
   onTooltipShow,
   onTooltipHide,
@@ -101,7 +103,9 @@ const D3AreaChart = ({
       }
     }
 
-    const yTicks = yScale.ticks();
+    // Determine y-axis ticks. Allow caller to supply explicit tick values
+    // or request an approximate tick count. Fallback to the scale default.
+    const yTicks = yTickValues ? yTickValues : yScale.ticks(yTickCount || undefined);
 
     // Grid lines (use chosen tickValues)
     g.selectAll(".grid-x").remove();
@@ -173,7 +177,7 @@ const D3AreaChart = ({
 
     xAxis.selectAll("line, path").style("stroke", axisColor);
 
-    const yAxis = g.append("g").call(d3.axisLeft(yScale));
+    const yAxis = g.append("g").call(d3.axisLeft(yScale).tickValues(yTicks));
 
     yAxis.selectAll("text").style("font-size", "12px").style("fill", axisColor);
     yAxis.selectAll("line, path").style("stroke", axisColor);
@@ -265,6 +269,8 @@ const D3AreaChart = ({
     gridColor,
     axisColor,
     yAxisLabel,
+    yTickCount,
+    yTickValues,
     showVolume,
     onTooltipShow,
     onTooltipHide,

@@ -13,14 +13,19 @@ import styles from "./FilterPanel.module.css";
 const Section = ({ title, children, minHeight, onReset, plain }) => (
   <div className={plain ? styles.sectionRootPlain : styles.sectionRoot}>
     <div className={styles.sectionHeader}>
-      <div className={styles.sectionTitle}>{title}</div>
+      {title ? <div className={styles.sectionTitle}>{title}</div> : null}
       {onReset ? (
         <button type="button" className={styles.sectionReset} onClick={onReset}>
           Reset
         </button>
       ) : null}
     </div>
-    <div style={{ minHeight: minHeight ? `${minHeight}px` : "auto" }}>{children}</div>
+    <div
+      className={title ? styles.sectionBodyWithTitle : styles.sectionBody}
+      style={{ minHeight: minHeight ? `${minHeight}px` : "auto" }}
+    >
+      {children}
+    </div>
   </div>
 );
 
@@ -110,9 +115,8 @@ const FilterPanel = ({
       ) : (
         // Regular layout for other tabs
         <div className={styles.filtersRow}>
-          {/* Years */}
-          {/* Removed onReset to hide reset button for Years */}
-          <Section title="Years" minHeight={filterHeights} plain>
+          {/* Years (title intentionally omitted to keep UI compact) */}
+          <Section minHeight={filterHeights} plain>
             <div className={styles.inputGroup}>
               {(() => {
                 const years =

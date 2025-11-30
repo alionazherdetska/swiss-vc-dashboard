@@ -19,6 +19,8 @@ const D3MultiSeriesChart = ({
 
   getSeriesValue = (d, category, suffix) => d[`${category}${suffix}`] || 0,
   metricSuffix = "__volume",
+  yTickCount = null,
+  yTickValues = null,
   children,
 }) => {
   const svgRef = useRef();
@@ -145,8 +147,11 @@ const D3MultiSeriesChart = ({
       .range([chartHeight, 0]);
 
 
+    // Determine y-axis tick values, allowing caller to override
+    const yTicks = yTickValues ? yTickValues : yScale.ticks(yTickCount || undefined);
+
     g.selectAll(".grid-y")
-      .data(yScale.ticks())
+      .data(yTicks)
       .enter()
       .append("line")
       .attr("class", "grid-y")
@@ -203,7 +208,7 @@ const D3MultiSeriesChart = ({
       .style("stroke-width", 0.5)
       .style("opacity", 0.5);
 
-    const yAxis = g.append("g").call(d3.axisLeft(yScale));
+    const yAxis = g.append("g").call(d3.axisLeft(yScale).tickValues(yTicks));
 
     yAxis
       .selectAll("text")
@@ -416,6 +421,8 @@ const D3MultiSeriesChart = ({
     metricSuffix,
     getSeriesValue,
     yAxisLabel,
+    yTickCount,
+    yTickValues,
     allCategories,
   ]);
 

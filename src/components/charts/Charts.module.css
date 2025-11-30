@@ -23,6 +23,9 @@
   pointer-events: auto; /* make inner header elements interactive */
 }
 
+/* Utility: exact 15px gap for chart grids */
+/* .gridGap15 moved to shared utils.module.css to avoid duplication */
+
 .expandButton {
   padding: 6px 14px;
   border-radius: 15px;

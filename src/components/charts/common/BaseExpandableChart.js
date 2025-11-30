@@ -220,6 +220,7 @@ const BaseExpandableChart = ({
         isOpen={chartState.expanded !== null}
         onClose={handleModalClose}
         title={modalTitle}
+        subtitle={chartState.expanded === "volume" ? "in CHF Mio." : ""}
         onExport={handleExport}
         headerRight={
           supportsTotal ? (

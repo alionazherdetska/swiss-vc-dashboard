@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import ExportButton from "./ExportButton";
 import styles from "./ChartModal.module.css";
 
-const ChartModal = ({ isOpen, onClose, title, children, onExport, headerRight = null }) => {
+const ChartModal = ({ isOpen, onClose, title, subtitle = "", children, onExport, headerRight = null }) => {
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => e.key === "Escape" && onClose?.();
@@ -34,7 +34,7 @@ const ChartModal = ({ isOpen, onClose, title, children, onExport, headerRight = 
           <div className="flex items-start justify-between">
             <div className="flex flex-col">
               <h2 className="text-2xl font-semibold text-gray-900 leading-tight">{title}</h2>
-              <p className="text-sm text-gray-500 mt-1">in CHF Mio.</p>
+              <p className="text-sm text-gray-500 mt-1">{subtitle || "\u00A0"}</p>
             </div>
             <div className={`flex items-center ${styles.exportContainer}`}>
               {onExport && (

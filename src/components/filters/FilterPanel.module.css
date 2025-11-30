@@ -5,30 +5,47 @@
   overflow-y: auto;
 }
 
+/* When any input inside the panel is focused, allow visible overflow so
+   native select dropdowns can render above sibling panels instead of
+   being clipped by the scrolling container. */
+.panelRoot:focus-within {
+  overflow: visible;
+  z-index: 9999;
+  position: relative;
+}
+
 .inputGroup {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  margin-top: 12px;
+  /* allow focused child controls to rise above other panels */
+  position: relative;
 }
 
 .inputSmall {
   width: 5rem;
   padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  border: 1px solid #d1d5db; /* gray-300 */
-  border-radius: 0.375rem;
+  border: 1px solid var(--STU--Dark-grey, #4A4A4A);
+  border-radius: 15px;
   background: #ffffff;
-  color: #111827; /* gray-900 */
+  color: #000000;
 }
 
 /* Replace native focus ring on select inputs used in the panel */
-.inputSmall:focus-visible {
+.inputSmall:focus-visible,
+.inputSmall:focus {
   outline: 1px solid #000000;
   outline-offset: 2px;
   position: relative;
-  z-index: 30;
+  z-index: 9999;
+}
+
+/* When any control inside the inputGroup is focused, raise the group's stacking context
+   so dropdowns and focus outlines are not clipped by adjacent panels. */
+.inputGroup:focus-within {
+  position: relative;
+  z-index: 9999;
 }
 
 /* Style selects so the dropdown arrow appears inside the control */
@@ -40,6 +57,15 @@ select.inputSmall {
   background-repeat: no-repeat;
   /* leave a bit more space between the text and the arrow */
   padding-right: 1rem;
+
+  /* ensure select matches requested border + radius and typography */
+  border: 1px solid var(--STU--Dark-grey, #4A4A4A);
+  border-radius: 15px;
+  font-family: "Roboto", sans-serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: normal;
+  color: #000000;
 
   /* move arrow closer to the right edge so there's a larger gap from the text */
   background-position: right 0.45rem center;
@@ -111,22 +137,39 @@ select.inputSmall::-ms-expand {
     0 1px 2px 0 rgba(0, 0, 0, 0.06);
 }
 
+/* Also allow an individual section to expand its overflow while focused */
+.sectionRoot:focus-within {
+  overflow: visible;
+  z-index: 9999;
+  position: relative;
+}
+
 .sectionRootPlain {
   min-width: 0;
+}
+
+/* Section body variants: add gap below a visible title */
+.sectionBodyWithTitle {
+  margin-top: 18px;
+}
+
+.sectionBody {
+  margin-top: 0;
 }
 
 .sectionHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
 }
 
 .sectionTitle {
-  font-weight: 600;
-  color: #111827;
+  color: var(--STU--Dark-grey, #4A4A4A);
+  font-family: "Roboto", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: normal;
   margin: 0;
-  font-size: 0.875rem;
 }
 
 .sectionReset {
@@ -194,6 +237,10 @@ select.inputSmall::-ms-expand {
 
 .itemLabel {
   display: grid;
+  font-family: "Roboto", sans-serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: normal;
   grid-template-columns: 24px 1fr;
   align-items: center;
   gap: 0.5rem;
@@ -399,19 +446,27 @@ select.inputSmall::-ms-expand {
 }
 
 .labelText {
-  font-size: 0.875rem;
+  font-family: "Roboto", sans-serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 28px;
   color: #374151;
 }
 
 .labelTextMuted {
-  font-size: 0.875rem;
+  font-family: "Roboto", sans-serif;
+  font-size: 15px;
+  font-weight: 300;
+  line-height: 28px;
   color: #9ca3af;
 }
 
 .labelTextBold {
-  font-size: 0.875rem;
-  color: #374151;
+  font-family: "Roboto", sans-serif;
+  font-size: 15px;
   font-weight: 600;
+  line-height: 28px;
+  color: #374151;
 }
 
 /* Focus outline styling for interactive elements (except tabs) */

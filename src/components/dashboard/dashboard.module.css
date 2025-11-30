@@ -136,7 +136,7 @@
 .filtersWrap {
   display: flex;
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 48px;
 }
 
 .loadingContainer {
@@ -210,8 +210,11 @@
 
 
 .timelineGrid {
-  row-gap: 18px;
+  row-gap: 48px;
 }
+
+/* local utility to match charts gap of 15px when needed */
+/* gridGap15 moved to shared utils.module.css */
 
 /* Hide accidental empty grid children in the timeline layout (removes stray placeholders) */
 .timelineGrid > div:empty {

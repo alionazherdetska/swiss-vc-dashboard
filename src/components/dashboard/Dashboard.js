@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import * as d3 from "d3";
 import FilterPanel from "../filters/FilterPanel.js";
 import filterStyles from "../filters/FilterPanel.module.css";
 import { TimelineChart } from "../charts/TimelineChart.js";
@@ -9,6 +10,7 @@ import PhaseAnalysisChart from "../charts/PhaseAnalysisChart.js";
 import CantonAnalysisChart from "../charts/CantonAnalysisChart.js";
 import GenderAnalysisChart from "../charts/GenderAnalysisChart.js";
 import styles from "./Dashboard.module.css";
+import utilStyles from "../../styles/utils.module.css";
 
 const Dashboard = () => {
   const [deals, setDeals] = useState([]);
@@ -146,6 +148,30 @@ const Dashboard = () => {
     return generateChartData("deals", [], timelineDeals);
   }, [timelineDeals]);
 
+  // Standardize Y-axis tick count for timeline charts so both charts
+  // in the timeline tab render with a similar number of ticks.
+  // TODO: make this configurable or compute dynamically based on layout.
+  const timelineSharedYTickCount = 6;
+  const analysisSharedYTickCount = 6;
+
+  // Compute explicit tick values for timeline charts so both rendered
+  // timeline charts receive deterministic tick arrays (same count,
+  // each scaled to its own domain). This makes the tick count exact
+  // and keeps axis/grid alignment predictable across matching charts.
+  const yTickValuesVolume = useMemo(() => {
+    if (!chartData || !chartData.timeline || !chartData.timeline.length) return null;
+    const maxVal = d3.max(chartData.timeline, (d) => d.volume) || 0;
+    if (maxVal === 0) return null;
+    return d3.scaleLinear().domain([0, maxVal * 1.05]).nice().ticks(timelineSharedYTickCount);
+  }, [chartData, timelineSharedYTickCount]);
+
+  const yTickValuesCount = useMemo(() => {
+    if (!chartData || !chartData.timeline || !chartData.timeline.length) return null;
+    const maxVal = d3.max(chartData.timeline, (d) => d.count) || 0;
+    if (maxVal === 0) return null;
+    return d3.scaleLinear().domain([0, maxVal * 1.05]).nice().ticks(timelineSharedYTickCount);
+  }, [chartData, timelineSharedYTickCount]);
+
   const updateFilter = (key, value) => {
     if (key === "yearRange") {
       setGlobalFilters((prev) => ({ ...prev, yearRange: value }));
@@ -205,12 +231,14 @@ const Dashboard = () => {
 
           <div className={styles.chartsArea}>
             {activeChart === "timeline" && (
-              <div className={`grid grid-cols-1 md:grid-cols-2 gap-2 ${styles.timelineGrid || ""}`}>
+              <div className={`grid grid-cols-1 md:grid-cols-2 ${utilStyles.gridGap15} ${styles.timelineGrid || ""}`}>
                 <ChartErrorBoundary chartName="Timeline Volume">
                   <TimelineChart
                     data={chartData.timeline}
                     showVolume={true}
                     title="Invested Capital"
+                    yTickCount={timelineSharedYTickCount}
+                    yTickValues={yTickValuesVolume}
                     yLabel="Invested Capital"
                   />
                 </ChartErrorBoundary>
@@ -219,6 +247,8 @@ const Dashboard = () => {
                     data={chartData.timeline}
                     showVolume={false}
                     title="Number of deals"
+                    yTickCount={timelineSharedYTickCount}
+                    yTickValues={yTickValuesCount}
                     yLabel="Number of deals"
                   />
                 </ChartErrorBoundary>
@@ -241,7 +271,6 @@ const Dashboard = () => {
 
                     return (
                       <div>
-                        <div className={filterStyles.sectionTitle}>Years</div>
                         <div className={filterStyles.inputGroup}>
                           <select
                             value={startValue}
@@ -302,6 +331,7 @@ const Dashboard = () => {
                   allDeals={baseFilteredDeals}
                   selectedIndustryCount={chartFilters.quarterly.industries.length}
                   totalIndustryCount={filterOptions.industries.length}
+                  yTickCount={analysisSharedYTickCount}
                 />
               </ChartErrorBoundary>
             )}
@@ -313,6 +343,7 @@ const Dashboard = () => {
                   allDeals={baseFilteredDeals}
                   selectedPhaseCount={chartFilters.phase.phases.length}
                   totalPhaseCount={filterOptions.phases.length}
+                  yTickCount={analysisSharedYTickCount}
                 />
               </ChartErrorBoundary>
             )}
@@ -324,6 +355,7 @@ const Dashboard = () => {
                   allDeals={baseFilteredDeals}
                   selectedCantonCount={chartFilters.canton.cantons.length}
                   totalCantonCount={filterOptions.cantons.length}
+                  yTickCount={analysisSharedYTickCount}
                 />
               </ChartErrorBoundary>
             )}
@@ -335,6 +367,7 @@ const Dashboard = () => {
                   allDeals={baseFilteredDeals}
                   selectedGenderCount={chartFilters.ceoGender.ceoGenders.length}
                   totalGenderCount={filterOptions.ceoGenders.length}
+                  yTickCount={analysisSharedYTickCount}
                 />
               </ChartErrorBoundary>
             )}

@@ -38,6 +38,8 @@ const createAnalysisChart = (config) => {
     colorOf,
     showTotal = false,
     selectedCategories = [],
+    yTickCount = null,
+    yTickValues = null,
     children,
   }) => {
     const metricSuffix = isVolume ? "__volume" : "__count";
@@ -58,13 +60,15 @@ const createAnalysisChart = (config) => {
         showTotal={showTotal}
         yAxisLabel={null}
         metricSuffix={metricSuffix}
+        yTickCount={yTickCount}
+        yTickValues={yTickValues}
       >
         {children}
       </D3MultiSeriesChart>
     );
   };
 
-  const AnalysisChart = ({ deals, allDeals, selectedCategories = [] }) => {
+  const AnalysisChart = ({ deals, allDeals, selectedCategories = [], yTickCount = null, yTickValues = null }) => {
     const { chartData, categories, colorOf, expandedCategories } = useMemo(() => {
       if (!deals?.length) return { chartData: [], categories: [], colorOf: () => "#000" };
 
@@ -204,6 +208,8 @@ const createAnalysisChart = (config) => {
               colorOf={colorOf}
               showTotal={showTotal}
               selectedCategories={selectedCategories}
+              yTickCount={yTickCount}
+              yTickValues={yTickValues}
             >
               {children}
             </CategoryChart>
@@ -221,14 +227,14 @@ const createAnalysisChart = (config) => {
         expandedCategories || categories
       );
 
+      // Stringify arrays into local variables so the dependency array contains
+      // simple, stable values that ESLint can validate statically.
+      const _expandedCategoriesKey = JSON.stringify(expandedCategories || []);
+      const _categoriesKey = JSON.stringify(categories || []);
+
       useEffect(() => {
         setModalSelectedCategories(expandedCategories || categories);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [
-        // Use stringified arrays so the effect runs when contents change
-        JSON.stringify(expandedCategories || []),
-        JSON.stringify(categories || []),
-      ]);
+      }, [_expandedCategoriesKey, _categoriesKey]);
 
       const toggleModalCategory = (cat) => {
         setModalSelectedCategories((prev) => {
@@ -260,6 +266,8 @@ const createAnalysisChart = (config) => {
             colorOf={colorOf}
             showTotal={showTotal}
             selectedCategories={modalSelectedCategories}
+            yTickCount={yTickCount}
+            yTickValues={yTickValues}
           />
         </ExpandedChartLayout>
       );

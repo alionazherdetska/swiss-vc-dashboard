@@ -11,7 +11,7 @@ import styles from "./Charts.module.css";
  * Timeline Chart - Shows investment volume or deal count over time
  * Uses same pattern as other analysis charts for consistency
  */
-export const TimelineChart = ({ data, showVolume = false, title }) => {
+export const TimelineChart = ({ data, showVolume = false, title, yTickCount = null, yTickValues = null }) => {
   const chartKey = showVolume ? "volume" : "count";
   const headerTitle = title || (showVolume ? "Invested capital" : "Number of deals");
   const chartColor = "#E84A5F";
@@ -46,6 +46,8 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
             fillOpacity={0.8}
             gridColor="#E2E8F0"
             axisColor="#4A5568"
+            yTickCount={yTickCount}
+            yTickValues={yTickValues}
           />
         </ResponsiveD3Container>
       </div>
@@ -71,6 +73,8 @@ export const TimelineChart = ({ data, showVolume = false, title }) => {
         fillOpacity={0.8}
         gridColor="#E2E8F0"
         axisColor="#4A5568"
+        yTickCount={yTickCount}
+        yTickValues={yTickValues}
       />
     </ExpandedChartLayout>
   );
