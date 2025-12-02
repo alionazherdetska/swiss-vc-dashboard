@@ -188,7 +188,14 @@ const createAnalysisChart = (config) => {
     }, [deals, allDeals]);
 
     const dims = getChartDims(false, undefined, CHART_MARGIN);
-    const expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
+    let expandedDims = getChartDims(true, 440, EXPANDED_CHART_MARGIN);
+
+    // Apply a unique left margin for the canton expanded chart so the
+    // expanded legend (with checkboxes) has enough room on the left side.
+    if (chartType === "canton") {
+      const cantonExpandedMargin = { ...EXPANDED_CHART_MARGIN, left: 90 };
+      expandedDims = getChartDims(true, 440, cantonExpandedMargin);
+    }
 
     const renderChart =
       (isVolume) =>

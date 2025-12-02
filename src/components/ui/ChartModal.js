@@ -39,7 +39,7 @@ const ChartModal = ({ isOpen, onClose, title, subtitle = "", children, onExport,
             <div className={`flex items-center ${styles.exportContainer}`}>
               {onExport && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">Download</span>
+                  <span className={styles.downloadLabel}>Download</span>
                   <ExportButton
                     onClick={() => onExport("csv")}
                     label="CSV"

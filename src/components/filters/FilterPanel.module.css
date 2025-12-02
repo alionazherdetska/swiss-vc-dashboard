@@ -232,7 +232,7 @@ select.inputSmall::-ms-expand {
   gap: 0.25rem; /* tighter vertical spacing */
   max-height: 15rem;
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 8px;
 }
 
 /* When a child inside the scrollable list receives focus, allow visible overflow

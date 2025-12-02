@@ -122,3 +122,12 @@
   outline: 2px solid #374151;
   outline-offset: 2px;
 }
+
+.downloadLabel {
+  color: #000;
+  font-family: Roboto;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: normal;
+}
