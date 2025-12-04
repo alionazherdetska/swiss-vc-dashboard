@@ -61,7 +61,7 @@ const ChartModal = ({ isOpen, onClose, title, subtitle = "", children, onExport,
               {headerRight}
               <button onClick={onClose} className={styles.closeBtn} aria-label="Close modal">
                 Close
-                <X className="h-5 w-5" />
+                <X className="h-6 w-6" />
               </button>
             </div>
           </div>

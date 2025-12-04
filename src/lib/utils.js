@@ -35,6 +35,31 @@ export const makeDistributedColorFn = (map, palette) => {
   };
 };
 
+// Swiss number formatting helper (German Swiss by default: 1'234.56)
+export const formatNumberCH = (value, decimals = 0, locale = "de-CH") => {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "";
+
+  // Support an 'auto' mode: if decimals === 'auto', show no decimals for
+  // whole numbers, otherwise show one decimal to keep width compact.
+  let decimalsToUse = decimals;
+  if (decimals === "auto") {
+    decimalsToUse = Number.isInteger(n) ? 0 : 1;
+  }
+
+  try {
+    return n.toLocaleString(locale, {
+      minimumFractionDigits: decimalsToUse,
+      maximumFractionDigits: decimalsToUse,
+    });
+  } catch {
+    // Fallback: manual apostrophe grouping
+    const parts = n.toFixed(Math.max(0, decimalsToUse)).split(".");
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+    return parts.join(".");
+  }
+};
+
 /* =========================
    Your existing data utils
    ========================= */

@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import * as d3 from "d3";
+import { formatNumberCH } from "../../../lib/utils";
 
 const D3ComposedChart = ({
   data = [],
@@ -147,7 +148,13 @@ const D3ComposedChart = ({
 
     xAxis.selectAll("line, path").style("stroke", axisColor);
 
-    const yAxis = g.append("g").call(d3.axisLeft(yScale));
+    const yAxis = g
+      .append("g")
+      .call(
+        d3
+          .axisLeft(yScale)
+          .tickFormat((d) => formatNumberCH(d, dataKeySuffix === "__volume" ? "auto" : 0))
+      );
     yAxis.selectAll("text").style("font-size", "12px").style("fill", axisColor);
     yAxis.selectAll("line, path").style("stroke", axisColor);
 
@@ -167,6 +174,44 @@ const D3ComposedChart = ({
     const HOVER_SUPPRESSION_MS = 150;
     const HIT_PROX_PX = 12; // vertical proximity threshold in px to prefer per-series points
     let lastSeriesHoverTime = 0;
+
+    // Helper to show a tooltip and clamp horizontal position so it fits inside chart area.
+    const showTooltip = (xPx, yPx, html, oneLine = false) => {
+      tooltip
+        .style("opacity", 1)
+        .style("background", "#ffffff")
+        .style("border", "1px solid #E2E8F0")
+        .style("padding", "8px")
+        .style("border-radius", "8px")
+        .style("color", "#1F2937")
+        .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
+        .style("top", `${yPx}px`)
+        .style("transform", "translate(0, -120%)")
+        .html(html);
+
+      // Force browser to layout to measure tooltip width
+      const node = tooltip.node();
+      const ttWidth = node ? node.getBoundingClientRect().width : 0;
+
+      // Chart area bounds inside the container (relative to container left)
+      const chartLeft = margin.left;
+      const chartRight = margin.left + chartWidth;
+
+      // Desired centered left (no translateX centering used)
+      let left = xPx - ttWidth / 2;
+
+      const minLeft = chartLeft + 6; // nudge a bit from left edge
+      const maxLeft = chartRight - ttWidth - 6; // nudge a bit from right edge
+
+      if (left < minLeft) left = minLeft;
+      if (left > maxLeft) left = maxLeft;
+
+      tooltip.style("left", `${left}px`);
+
+      // Ensure single-line tooltips do not wrap
+      if (oneLine) tooltip.style("white-space", "nowrap");
+      else tooltip.style("white-space", "normal");
+    };
 
     if (mode === "column") {
       const stack = d3
@@ -196,23 +241,15 @@ const D3ComposedChart = ({
           .on("mouseover", function (event, d) {
             lastSeriesHoverTime = Date.now();
             const value = d[1] - d[0];
-            const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
+            const formattedValue = tooltipFormatter
+              ? tooltipFormatter(value, category)[0]
+              : formatNumberCH(value, dataKeySuffix === "__volume" ? "auto" : 0);
 
             const xPos = margin.left + (xScale(d.data.year) + xScale.bandwidth() / 2);
             const yPos = margin.top + yScale(d[1]);
 
-            tooltip
-              .style("opacity", 1)
-              .style("left", `${xPos}px`)
-              .style("top", `${yPos}px`)
-              .style("transform", "translate(-50%, -120%)")
-              .style("background", "#ffffff")
-              .style("border", "1px solid #E2E8F0")
-              .style("padding", "8px")
-              .style("border-radius", "8px")
-              .style("color", "#1F2937")
-              .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
-              .html(`<strong>${category}</strong><br/>${d.data.year}: ${formattedValue}`);
+            // show category on first line, year:value on second
+            showTooltip(xPos, yPos, `<strong>${category}</strong><br/>${d.data.year}: ${formattedValue}`);
           })
           .on("mouseout", () => tooltip.style("opacity", 0));
       });
@@ -276,23 +313,14 @@ const D3ComposedChart = ({
             .on("mouseover", function (event, d) {
               lastSeriesHoverTime = Date.now();
               const value = d[dataKey] || 0;
-              const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
+              const formattedValue = tooltipFormatter
+                ? tooltipFormatter(value, category)[0]
+                : formatNumberCH(value, dataKeySuffix === "__volume" ? "auto" : 0);
 
               const xPos = margin.left + (xScale(d.year) + xScale.bandwidth() / 2);
               const yPos = margin.top + yScale(d[dataKey] || 0);
 
-              tooltip
-                .style("opacity", 1)
-                .style("left", `${xPos}px`)
-                .style("top", `${yPos}px`)
-                .style("transform", "translate(-50%, -120%)")
-                .style("background", "#ffffff")
-                .style("border", "1px solid #E2E8F0")
-                .style("padding", "8px")
-                .style("border-radius", "8px")
-                .style("color", "#1F2937")
-                .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
-                .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
+              showTooltip(xPos, yPos, `<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
             })
             .on("mouseout", () => tooltip.style("opacity", 0));
 
@@ -311,21 +339,12 @@ const D3ComposedChart = ({
             .on("mouseover", function (event, d) {
               lastSeriesHoverTime = Date.now();
               const value = d[dataKey] || 0;
-              const formattedValue = tooltipFormatter ? tooltipFormatter(value, category)[0] : Math.round(value * 100) / 100;
+              const formattedValue = tooltipFormatter
+                ? tooltipFormatter(value, category)[0]
+                : formatNumberCH(value, dataKeySuffix === "__volume" ? "auto" : 0);
               const xPos = margin.left + (xScale(d.year) + xScale.bandwidth() / 2);
               const yPos = margin.top + yScale(d[dataKey] || 0);
-              tooltip
-                .style("opacity", 1)
-                .style("left", `${xPos}px`)
-                .style("top", `${yPos}px`)
-                .style("transform", "translate(-50%, -120%)")
-                .style("background", "#ffffff")
-                .style("border", "1px solid #E2E8F0")
-                .style("padding", "8px")
-                .style("border-radius", "8px")
-                .style("color", "#1F2937")
-                .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
-                .html(`<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
+              showTooltip(xPos, yPos, `<strong>${category}</strong><br/>${d.year}: ${formattedValue}`);
             })
             .on("mouseout", () => tooltip.style("opacity", 0));
         }
@@ -406,21 +425,12 @@ const D3ComposedChart = ({
               const py = yScale(val); // chart-space Y
               if (Math.abs(mouseY - py) <= HIT_PROX_PX) {
                 // Show that series' tooltip (point-level)
-                const formattedValue = tooltipFormatter ? tooltipFormatter(val, cat)[0] : Math.round(val * 100) / 100;
+                const formattedValue = tooltipFormatter
+                  ? tooltipFormatter(val, cat)[0]
+                  : formatNumberCH(val, dataKeySuffix === "__volume" ? "auto" : 0);
                 const xPos = margin.left + centers[closestIdx];
                 const yPos = margin.top + py;
-                tooltip
-                  .style("opacity", 1)
-                  .style("left", `${xPos}px`)
-                  .style("top", `${yPos}px`)
-                  .style("transform", "translate(-50%, -120%)")
-                  .style("background", "#ffffff")
-                  .style("border", "1px solid #E2E8F0")
-                  .style("padding", "8px")
-                  .style("border-radius", "8px")
-                  .style("color", "#1F2937")
-                  .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
-                  .html(`<strong>${cat}</strong><br/>${closestData.year}: ${formattedValue}`);
+                showTooltip(xPos, yPos, `<strong>${cat}</strong><br/>${closestData.year}: ${formattedValue}`);
                 overlay.style("cursor", "pointer");
                 lastSeriesHoverTime = Date.now();
                 return;
@@ -437,21 +447,13 @@ const D3ComposedChart = ({
 
             if (categoryValues.length > 0) {
               const maxCategory = categoryValues.reduce((max, curr) => (curr.value > max.value ? curr : max));
-              const formattedValue = tooltipFormatter ? tooltipFormatter(maxCategory.value, maxCategory.category)[0] : Math.round(maxCategory.value * 100) / 100;
+              const formattedValue = tooltipFormatter
+                ? tooltipFormatter(maxCategory.value, maxCategory.category)[0]
+                : formatNumberCH(maxCategory.value, dataKeySuffix === "__volume" ? "auto" : 0);
               const xPos = margin.left + centers[closestIdx];
               const yPos = margin.top + yScale(maxCategory.value);
-              tooltip
-                .style("opacity", 1)
-                .style("left", `${xPos}px`)
-                .style("top", `${yPos}px`)
-                .style("transform", "translate(-50%, -120%)")
-                .style("background", "#ffffff")
-                .style("border", "1px solid #E2E8F0")
-                .style("padding", "8px")
-                .style("border-radius", "8px")
-                .style("color", "#1F2937")
-                .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
-                .html(`<strong>${maxCategory.category}</strong><br/>${closestData.year}: ${formattedValue}`);
+              // For aggregated overlay tooltip show single-line "year: value"
+              showTooltip(xPos, yPos, `${closestData.year}: ${formattedValue}`, true);
 
               overlay.style("cursor", "pointer");
             } else {

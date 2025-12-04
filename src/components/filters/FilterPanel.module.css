@@ -21,14 +21,14 @@
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 12px;
   /* allow focused child controls to rise above other panels */
   position: relative;
 }
 
 .inputSmall {
   width: 5rem;
-  padding: 0.375rem 0.75rem;
+  padding: 8px 0.75rem;
   border: 1px solid var(--STU--Dark-grey, #4A4A4A);
   border-radius: 15px;
   background: #ffffff;
@@ -58,8 +58,8 @@ select.inputSmall {
   appearance: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path d='M5 8l5 5 5-5' stroke='%234a4a4a' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
-  /* leave a bit more space between the text and the arrow */
-  padding-right: 1rem;
+  /* leave more space between the text and the arrow so there's ~9px gap */
+  padding-right: 32px;
 
   /* ensure select matches requested border + radius and typography */
   border: 1px solid var(--STU--Dark-grey, #4A4A4A);
@@ -70,9 +70,10 @@ select.inputSmall {
   line-height: normal;
   color: #000000;
 
-  /* move arrow closer to the right edge so there's a larger gap from the text */
-  background-position: right 0.45rem center;
-  background-size: 0.95rem 0.95rem;
+  /* position and size the arrow so its left edge sits ~22px from the right edge;
+     with padding-right:32px this leaves ~9px visible gap between text and arrow */
+  background-position: right 12px center;
+  background-size: 14px 14px;
 }
 
 /* Hide IE/Edge default arrow */
@@ -479,6 +480,20 @@ select.inputSmall::-ms-expand {
   font-weight: 300;
   line-height: 20px;
   color: #374151;
+}
+
+/* Styles used for the "Show total" label in chart controls/modal header */
+.showTotalLabel {
+  color: var(--STU--Dark-grey, #4A4A4A);
+  font-family: Roboto, sans-serif;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 300;
+  line-height: 28px;
+  width: 70px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .labelTextMuted {

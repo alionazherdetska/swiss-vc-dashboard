@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import * as d3 from "d3";
+import { formatNumberCH } from "../../../lib/utils";
 
 const D3AreaChart = ({
   data = [],
@@ -219,7 +220,14 @@ const D3AreaChart = ({
 
     xAxis.selectAll('.tick line').style('stroke-linecap', 'butt');
 
-    const yAxis = g.append("g").call(d3.axisLeft(yScale).tickValues(yTicks));
+    const yAxis = g
+      .append("g")
+      .call(
+        d3
+          .axisLeft(yScale)
+          .tickValues(yTicks)
+          .tickFormat((d) => formatNumberCH(d, showVolume ? "auto" : 0))
+      );
 
     yAxis.selectAll("text").style("font-size", "12px").style("fill", axisColor);
     yAxis.selectAll("line, path").style("stroke", axisColor);
@@ -290,8 +298,8 @@ const D3AreaChart = ({
           const closestData = data[minIndex];
           const value = closestData[dataKey];
           const formattedValue = showVolume
-            ? `${Number(value).toFixed(1)}M CHF`
-            : d3.format(",")(value);
+            ? formatNumberCH(value, "auto")
+            : formatNumberCH(value, 0);
 
           const xPos = margin.left + xScale(closestData.year);
           const yPos = margin.top + yScale(closestData[dataKey]);
@@ -307,7 +315,8 @@ const D3AreaChart = ({
             .style("border-radius", "8px")
             .style("color", "#1F2937")
             .style("box-shadow", "0 6px 20px rgba(16,24,40,0.08)")
-            .html(`<strong>${closestData.year}</strong><br/>${yAxisLabel}: ${formattedValue}`);
+            .style("white-space", "nowrap")
+            .html(`${closestData.year}: ${formattedValue}`);
 
           if (onTooltipShow) onTooltipShow(closestData, event);
           overlay.style("cursor", "pointer");

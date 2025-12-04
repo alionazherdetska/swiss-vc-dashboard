@@ -37,7 +37,7 @@ const ExportButton = ({
 
   return (
     <button className={`${styles.exportBtn} ${className}`} title={title} onClick={onClick}>
-      {label && <span>{label}</span>}
+      {label && <span className={styles.downloadLabel}>{label}</span>}
       {showIcon && (
         <svg
           className="h-5 w-5"

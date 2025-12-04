@@ -93,7 +93,7 @@ const ChartControls = ({
                   onChange={(e) => onShowTotalChange?.(e.target.checked)}
                   className={filterStyles.checkbox}
                 />
-                <span className="text-gray-700 whitespace-nowrap">Show total</span>
+                <span className={filterStyles.showTotalLabel}>Show total</span>
               </label>
             )}
           </div>
@@ -214,7 +214,7 @@ const ChartControls = ({
                 onChange={(e) => onShowTotalChange?.(e.target.checked)}
                 className={filterStyles.checkbox}
               />
-              <span className="text-gray-700">Show total</span>
+              <span className={filterStyles.showTotalLabel}>Show total</span>
             </label>
           )}
 
